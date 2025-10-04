@@ -35,26 +35,28 @@ Marketing teams struggle to create polished collateral quickly, especially when 
 - **Export**: html2canvas + jsPDF for professional output
 
 ### Backend
-- **API**: Node.js with Express/Fastify (TypeScript)
-- **Database**: PostgreSQL for structured data, Redis for caching
-- **AI Integration**: OpenAI GPT-4, Anthropic Claude
+- **API**: Python FastAPI (async/await)
+- **Database**: MongoDB Atlas for flexible document storage
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **AI Integration**: Google Gemini Pro API, OpenAI GPT-4
+- **Canva Integration**: Canva Connect API for design export
 - **File Storage**: AWS S3 or Cloudinary for assets
-- **Background Jobs**: Bull Queue for async AI processing
 
 ### Infrastructure
-- **Frontend Hosting**: Vercel or Netlify
-- **Backend Hosting**: AWS, Google Cloud, or Railway
+- **Frontend Hosting**: Vercel
+- **Backend Hosting**: Vercel Serverless Functions (FastAPI)
+- **Database**: MongoDB Atlas (cloud)
 - **Monitoring**: Sentry for errors, DataDog/New Relic for performance
-- **Security**: JWT authentication, API rate limiting
+- **Security**: JWT authentication, CORS middleware, API rate limiting
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- PostgreSQL database
-- Redis instance
-- AI service API keys (OpenAI, Anthropic)
+- Python 3.13+ with pip
+- MongoDB (local installation or Atlas cloud account)
+- AI service API keys (Google Gemini, OpenAI)
+- Canva Connect API credentials (for design export)
 
 ### Installation
 
@@ -66,46 +68,56 @@ Marketing teams struggle to create polished collateral quickly, especially when 
 
 2. **Install dependencies**
    ```bash
-   # Install frontend dependencies
-   cd frontend
-   npm install
+   # Install backend Python dependencies
+   pip install -r requirements.txt
    
-   # Install backend dependencies
-   cd ../backend
-   npm install
+   # Or use virtual environment (recommended)
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   # source .venv/bin/activate  # macOS/Linux
+   pip install -r requirements.txt
    ```
 
 3. **Environment Setup**
    ```bash
-   # Copy environment templates
+   # Copy environment template
    cp .env.example .env
    
    # Configure your environment variables:
-   # - Database connection strings
-   # - AI service API keys
-   # - Authentication secrets
-   # - File storage credentials
+   # - MONGODB_URL: MongoDB connection string
+   # - JWT_SECRET_KEY: Secret for JWT tokens
+   # - JWT_REFRESH_SECRET_KEY: Secret for refresh tokens
+   # - GEMINI_API_KEY: Google Gemini API key
+   # - CANVA_API_BASE_URL: Canva Connect API URL
+   # - CANVA_CLIENT_ID: Canva app client ID
+   # - CANVA_CLIENT_SECRET: Canva app secret
    ```
 
 4. **Database Setup**
    ```bash
-   # Run database migrations
-   npm run db:migrate
+   # MongoDB will auto-create collections on first use
+   # No migrations needed for MongoDB
    
-   # Seed with sample templates
-   npm run db:seed
+   # Start MongoDB locally (if not using Atlas)
+   # Windows: net start MongoDB
+   # macOS: brew services start mongodb-community
+   # Linux: sudo systemctl start mongod
    ```
 
-5. **Development Servers**
+5. **Development Server**
    ```bash
-   # Start backend API (port 3001)
-   npm run dev:api
+   # Start FastAPI backend with auto-reload (port 8000)
+   uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
    
-   # Start frontend app (port 3000)
-   npm run dev:web
+   # Or use Python module
+   python -m uvicorn backend.main:app --reload
    
-   # Start background job processing
-   npm run dev:workers
+   # Test the API
+   # Open http://localhost:8000/docs for interactive API documentation
+   # Open http://localhost:8000/health for health check
+   
+   # Run authentication tests
+   python test_auth_flow.py
    ```
 
 ### GitHub Copilot Configuration
@@ -191,14 +203,31 @@ src/
 
 ### Core Endpoints
 
+**Authentication:** ✅ Implemented
 ```
-POST /api/v1/one-pagers                 # Create new project
-GET  /api/v1/one-pagers/:id             # Get project details
-PUT  /api/v1/one-pagers/:id             # Update project
-POST /api/v1/one-pagers/:id/generate    # Generate AI layout
-POST /api/v1/one-pagers/:id/refine      # Refine with feedback
-GET  /api/v1/one-pagers/:id/versions    # Version history
-POST /api/v1/one-pagers/:id/export      # Export final output
+POST /api/v1/auth/signup                # User registration
+POST /api/v1/auth/login                 # User login (get JWT tokens)
+POST /api/v1/auth/refresh               # Refresh access token
+GET  /api/v1/auth/me                    # Get current user profile
+```
+
+**One-Pagers:** 🔜 Coming Soon
+```
+POST /api/v1/onepagers                  # Create new project
+GET  /api/v1/onepagers/:id              # Get project details
+PUT  /api/v1/onepagers/:id              # Update project
+POST /api/v1/onepagers/:id/generate     # Generate AI layout
+POST /api/v1/onepagers/:id/refine       # Refine with feedback
+GET  /api/v1/onepagers/:id/versions     # Version history
+POST /api/v1/onepagers/:id/export       # Export to Canva/PDF
+```
+
+**System:**
+```
+GET  /                                   # API information
+GET  /health                            # Health check with DB status
+GET  /docs                              # Interactive API documentation (Swagger UI)
+GET  /redoc                             # Alternative API documentation
 ```
 
 ### WebSocket Events
