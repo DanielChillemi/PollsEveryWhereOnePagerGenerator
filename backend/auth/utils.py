@@ -8,7 +8,7 @@ Core authentication functions:
 - JWT token verification and decoding
 """
 
-from passlib.context import CryptContext
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from jose import jwt, JWTError
@@ -16,35 +16,38 @@ from jose import jwt, JWTError
 from backend.config import settings
 
 
-# Password hashing context (bcrypt with cost factor 12)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def hash_password(password: str) -> str:
     """
     Hash a plain text password using bcrypt.
-    
+
     Args:
         password: Plain text password
-        
+
     Returns:
         str: Hashed password
     """
-    return pwd_context.hash(password)
+    # Bcrypt has a 72-byte password limit
+    password_bytes = password.encode('utf-8')[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain text password against a hashed password.
-    
+
     Args:
         plain_password: Plain text password to verify
         hashed_password: Hashed password from database
-        
+
     Returns:
         bool: True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Bcrypt has a 72-byte password limit
+    password_bytes = plain_password.encode('utf-8')[:72]
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:

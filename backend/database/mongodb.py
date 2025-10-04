@@ -65,7 +65,7 @@ class MongoDB:
         - Brand Kits: index on user_id
         - One-Pagers: indexes on user_id and created_at
         """
-        if not cls.database:
+        if cls.database is None:
             return
         
         try:
@@ -111,7 +111,7 @@ class MongoDB:
         Raises:
             RuntimeError: If database is not connected
         """
-        if not cls.database:
+        if cls.database is None:
             raise RuntimeError("Database is not connected. Call connect_to_database() first.")
         return cls.database
 
