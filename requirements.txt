@@ -1,0 +1,34 @@
+# Marketing One-Pager Co-Creation Tool - Backend Dependencies
+# ============================================================
+
+# Core Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Database
+motor>=3.3.0                    # Async MongoDB driver
+pymongo>=4.6.0                  # MongoDB synchronous driver (used by Motor)
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0  # JWT token handling
+passlib[bcrypt]>=1.7.4           # Password hashing
+bcrypt>=4.0.1                    # Bcrypt implementation
+
+# Data Validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0         # Environment variable management
+email-validator>=2.1.0           # Email validation for Pydantic
+
+# HTTP Client (for Canva API)
+httpx>=0.25.0                    # Async HTTP client
+requests>=2.31.0                 # Sync HTTP client (POC code)
+
+# Utilities
+python-dotenv>=1.0.0             # .env file loading
+PyJWT>=2.8.0                     # JWT library alternative
+
+# Development & Testing (optional, comment out for production)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# httpx>=0.25.0  # For testing FastAPI
