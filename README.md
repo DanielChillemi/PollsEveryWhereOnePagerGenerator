@@ -38,9 +38,9 @@ Marketing teams struggle to create polished collateral quickly, especially when 
 - **API**: Python FastAPI (async/await)
 - **Database**: MongoDB Atlas for flexible document storage
 - **Authentication**: JWT tokens with bcrypt password hashing
-- **AI Integration**: Google Gemini Pro API, OpenAI GPT-4
+- **AI Integration**: Direct API calls to mistralai/Mistral-7B-Instruct-v0.2 via Hugging Face
 - **Canva Integration**: Canva Connect API for design export
-- **File Storage**: AWS S3 or Cloudinary for assets
+- **File Storage**: AWS S3 for asset storage and management
 
 ### Infrastructure
 - **Frontend Hosting**: Vercel
@@ -55,8 +55,9 @@ Marketing teams struggle to create polished collateral quickly, especially when 
 
 - Python 3.13+ with pip
 - MongoDB (local installation or Atlas cloud account)
-- AI service API keys (Google Gemini, OpenAI)
+- Hugging Face API token (for Mistral-7B-Instruct-v0.2 access)
 - Canva Connect API credentials (for design export)
+- AWS credentials (for S3 file storage)
 
 ### Installation
 
@@ -87,10 +88,13 @@ Marketing teams struggle to create polished collateral quickly, especially when 
    # - MONGODB_URL: MongoDB connection string
    # - JWT_SECRET_KEY: Secret for JWT tokens
    # - JWT_REFRESH_SECRET_KEY: Secret for refresh tokens
-   # - GEMINI_API_KEY: Google Gemini API key
+   # - HUGGINGFACE_API_TOKEN: Hugging Face API token for Mistral-7B
    # - CANVA_API_BASE_URL: Canva Connect API URL
    # - CANVA_CLIENT_ID: Canva app client ID
    # - CANVA_CLIENT_SECRET: Canva app secret
+   # - AWS_ACCESS_KEY_ID: AWS access key for S3
+   # - AWS_SECRET_ACCESS_KEY: AWS secret key for S3
+   # - AWS_S3_BUCKET_NAME: S3 bucket for file storage
    ```
 
 4. **Database Setup**
