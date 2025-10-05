@@ -27,10 +27,13 @@ venv/
 ENV/
 env/
 
-# Environment Variables
+# Environment Variables (CRITICAL - Contains API keys!)
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+.env.test
 
 # IDEs
 .vscode/
@@ -94,3 +97,8 @@ Projectdoc/
 *.key
 *.cert
 secrets/
+
+# Test outputs and temporary test files
+test_*.json
+demo_output/
+*_backup.py

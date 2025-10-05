@@ -60,31 +60,38 @@ class MongoDB:
     async def _create_indexes(cls) -> None:
         """
         Create database indexes for optimal query performance.
-        
+
         - Users: unique index on email
-        - Brand Kits: index on user_id
-        - One-Pagers: indexes on user_id and created_at
+        - Brand Kits: indexes on user_id, is_active
+        - One-Pagers: indexes on user_id, created_at, status
         """
         if cls.database is None:
             return
-        
+
         try:
             # Users collection indexes
             users_collection = cls.database.users
             await users_collection.create_index("email", unique=True)
-            logger.info("Created unique index on users.email")
-            
-            # Brand Kits collection indexes (future)
-            # brand_kits_collection = cls.database.brand_kits
-            # await brand_kits_collection.create_index("user_id")
-            
-            # One-Pagers collection indexes (future)
-            # onepagers_collection = cls.database.onepagers
-            # await onepagers_collection.create_index("user_id")
-            # await onepagers_collection.create_index("created_at")
-            
+            logger.info("✅ Created unique index on users.email")
+
+            # Brand Kits collection indexes
+            brand_kits_collection = cls.database.brand_kits
+            await brand_kits_collection.create_index("user_id")
+            await brand_kits_collection.create_index("is_active")
+            await brand_kits_collection.create_index([("user_id", 1), ("is_active", 1)])
+            logger.info("✅ Created indexes on brand_kits (user_id, is_active)")
+
+            # One-Pagers collection indexes
+            onepagers_collection = cls.database.onepagers
+            await onepagers_collection.create_index("user_id")
+            await onepagers_collection.create_index([("created_at", -1)])  # Descending for recent-first
+            await onepagers_collection.create_index("status")
+            await onepagers_collection.create_index([("user_id", 1), ("status", 1)])
+            await onepagers_collection.create_index([("user_id", 1), ("created_at", -1)])
+            logger.info("✅ Created indexes on onepagers (user_id, created_at, status)")
+
         except Exception as e:
-            logger.warning(f"Error creating indexes: {e}")
+            logger.warning(f"⚠️ Error creating indexes: {e}")
     
     @classmethod
     async def close_database_connection(cls) -> None:
