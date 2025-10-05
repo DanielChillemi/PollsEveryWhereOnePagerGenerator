@@ -16,6 +16,8 @@ import time
 from backend.config import settings
 from backend.database.mongodb import MongoDB
 from backend.auth.routes import router as auth_router
+from backend.brand_kits.routes import router as brand_kits_router
+from backend.onepagers.routes import router as onepagers_router
 
 
 # Configure logging
@@ -130,6 +132,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Mount routers
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(brand_kits_router, prefix="/api/v1")
+app.include_router(onepagers_router, prefix="/api/v1")
 
 
 # Health check endpoint
@@ -169,7 +173,7 @@ async def root():
     """
     return {
         "message": "Marketing One-Pager Co-Creation API",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "docs": "/docs",
         "health": "/health",
         "authentication": {
@@ -177,6 +181,20 @@ async def root():
             "login": "/api/v1/auth/login",
             "refresh": "/api/v1/auth/refresh",
             "profile": "/api/v1/auth/me"
+        },
+        "brand_kits": {
+            "create": "/api/v1/brand-kits",
+            "get_mine": "/api/v1/brand-kits/me",
+            "get_by_id": "/api/v1/brand-kits/{id}",
+            "update": "/api/v1/brand-kits/{id}",
+            "delete": "/api/v1/brand-kits/{id}"
+        },
+        "onepagers": {
+            "create": "/api/v1/onepagers",
+            "list": "/api/v1/onepagers",
+            "get": "/api/v1/onepagers/{id}",
+            "iterate": "/api/v1/onepagers/{id}/iterate",
+            "delete": "/api/v1/onepagers/{id}"
         }
     }
 

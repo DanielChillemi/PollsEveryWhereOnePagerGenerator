@@ -51,9 +51,13 @@ class Settings(BaseSettings):
     canva_redirect_uri: str = "http://localhost:8000/api/v1/canva/callback"
     canva_access_token: str = ""
     
-    # AI Integration (Future)
-    gemini_api_key: str = ""
-    openai_api_key: str = ""
+    # AI Integration
+    openai_api_key: str = ""  # OpenAI API key (required)
+    ai_model_name: str = "gpt-4-turbo-preview"  # Options: gpt-4-turbo-preview, gpt-3.5-turbo, gpt-4
+
+    # Alternative AI providers (future use)
+    huggingface_api_token: str = ""  # Hugging Face API token
+    gemini_api_key: str = ""  # Google Gemini API key
     
     # Logging
     log_level: str = "INFO"
