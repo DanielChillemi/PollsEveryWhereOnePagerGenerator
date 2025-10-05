@@ -80,6 +80,10 @@ canva-connect-api-starter-kit-main/
 canva-poc/output/
 canva-poc/.env
 
+# Backend outputs (PDF exports)
+backend/output/*.pdf
+!backend/output/.gitkeep
+
 # Development/Planning files (internal use only)
 .clinerules/
 .github/
