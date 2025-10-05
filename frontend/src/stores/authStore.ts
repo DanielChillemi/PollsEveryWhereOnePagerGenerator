@@ -13,7 +13,7 @@ interface User {
   is_active: boolean
   created_at: string
   updated_at: string
-  brand_kit_id?: string
+  brand_kit_id?: string | null
 }
 
 interface AuthState {

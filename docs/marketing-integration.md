@@ -16,24 +16,81 @@ This guide helps marketing teams integrate the AI-powered one-pager co-creation 
 
 2. **Brand Configuration**
    ```yaml
-   # Example brand configuration
+   # Poll Everywhere Brand Configuration
    brand:
      colors:
-       primary: "#1a365d"
-       secondary: "#2d3748"
-       accent: "#4299e1"
+       primary: "#007ACC"      # Primary Blue
+       purple: "#864CBD"       # Purple Accent
+       deepBlue: "#1568B8"     # Deep Blue
+       gradient: "linear-gradient(135deg, #864CBD 0%, #1568B8 100%)"
+       background: "#FFFFFF"   # Clean White
+       text: "#333333"         # Body Text
+       textLight: "#666666"    # Secondary Text
+       textDark: "#1a1a1a"     # Headlines
      fonts:
-       heading: "Inter"
-       body: "Open Sans"
+       family: "Source Sans Pro"
+       heading: "Source Sans Pro"
+       body: "Source Sans Pro"
+       weights: [300, 400, 600, 700]  # Light, Normal, Semibold, Bold
+     spacing:
+       base: "8px"  # 8px base unit system
+       scale: ["8px", "16px", "24px", "32px", "48px", "64px"]
+     borderRadius:
+       default: "8px"
+       large: "12px"
+       button: "50px"  # Fully rounded buttons
      logo:
-       url: "/assets/brand/logo.svg"
-       variations: ["light", "dark", "monochrome"]
+       url: "/assets/brand/poll-everywhere-logo.svg"
+       variations: ["primary", "white", "monochrome"]
    ```
 
 3. **Template Library Setup**
    - Industry-specific templates (SaaS, Healthcare, Finance, etc.)
    - Use case templates (Product launch, Sales enablement, Trade show)
    - Audience templates (C-level, IT decision makers, End users)
+
+### Poll Everywhere Brand Guidelines
+
+This tool is built with the **Poll Everywhere Design System v2.0**, ensuring all generated materials maintain brand consistency.
+
+#### **Design Principles**
+- ✓ **Clean & Modern**: Embrace white space for a professional, uncluttered aesthetic
+- ✓ **Gradient-Forward**: Use the signature purple-to-blue gradient for primary CTAs and hero elements
+- ✓ **Rounded & Friendly**: Fully rounded buttons (50px) and smooth corners (8-12px) create an approachable feel
+- ✓ **Typography-Driven**: Source Sans Pro at 18px for body text ensures readability and brand recognition
+- ✓ **Consistent Spacing**: 8px base unit system creates visual rhythm and hierarchy
+
+#### **Brand Elements to Maintain**
+1. **Color Usage**
+   - Primary actions use gradient: `linear-gradient(135deg, #864CBD 0%, #1568B8 100%)`
+   - Links and secondary actions use Primary Blue (#007ACC)
+   - Headlines use Text Dark (#1a1a1a) for maximum contrast
+   - Body copy uses standard Text (#333333) for comfortable reading
+
+2. **Typography Hierarchy**
+   - H1 Hero: 48px Bold (page titles, hero headlines)
+   - H2 Section: 32px Bold (major section dividers)
+   - H3 Subsection: 24px Semibold (card titles, subsections)
+   - Body Text: 18px Normal (paragraphs, descriptions)
+   - Small Text: 14px Normal (captions, fine print)
+
+3. **Button Styles**
+   - **Primary (Gradient)**: For main CTAs ("Get Started", "Sign Up")
+   - **Secondary (Solid Blue)**: For secondary actions ("Learn More", "View Details")
+   - **Outline**: For tertiary actions ("Contact Sales", "Download")
+   - All buttons use 50px border-radius for consistent rounding
+
+4. **Stats & Numbers**
+   - Use 56px Bold in Primary Blue for impressive statistics
+   - Example: "10m+ Presenters Empowered", "200m+ Participants Engaged"
+   - Center-align with light gray labels below
+
+#### **Brand DON'Ts**
+- ✗ Don't use sharp corners or boxy designs
+- ✗ Don't overcrowd elements - always maintain generous white space
+- ✗ Don't use colors outside the defined palette
+- ✗ Don't mix other font families with Source Sans Pro
+- ✗ Don't create busy or cluttered layouts
 
 ### Daily Workflow Integration
 
@@ -221,23 +278,28 @@ Competitive Advantage: Enterprise security + consumer simplicity
 
 ### Design Optimization
 
-1. **Visual Hierarchy**
-   - Use AI suggestions for layout structure
-   - Ensure clear information flow from top to bottom
-   - Highlight key benefits and call-to-action elements
-   - Maintain appropriate white space for readability
+1. **Visual Hierarchy (Poll Everywhere Style)**
+   - Use AI suggestions for layout structure following 8px spacing grid
+   - Ensure clear information flow from top to bottom with generous white space
+   - Highlight CTAs with the brand gradient (`#864CBD → #1568B8`)
+   - Apply rounded corners (12px for cards, 50px for buttons)
+   - Use Primary Blue (#007ACC) for links and secondary elements
+   - Maintain Source Sans Pro typography throughout (18px body, 48px hero headlines)
 
 2. **Mobile Optimization**
-   - Test all materials on mobile devices
-   - Ensure text remains readable at smaller sizes
-   - Optimize images for quick loading
-   - Consider mobile-specific layout variations
+   - Test all materials on mobile devices (Poll Everywhere is mobile-first)
+   - Ensure 18px body text remains comfortably readable on small screens
+   - Use responsive spacing scale (16px on mobile, 24-32px on desktop)
+   - Optimize gradient buttons for touch targets (minimum 44px height)
+   - Consider mobile-specific layout variations maintaining brand consistency
 
 3. **Print Considerations**
-   - Design with print margins in mind
-   - Use high-resolution images for professional printing
-   - Test color accuracy across different print methods
-   - Consider paper size and orientation options
+   - Design with print margins in mind (minimum 0.5" margins)
+   - Use high-resolution logo and brand assets for professional printing
+   - Test gradient colors for accurate CMYK conversion
+   - Source Sans Pro fonts embed well in PDFs
+   - Consider paper size and orientation options (letter, A4)
+   - Ensure Primary Blue (#007ACC) prints accurately across methods
 
 ### Performance Measurement
 
@@ -320,3 +382,96 @@ Competitive Advantage: Enterprise security + consumer simplicity
 - Track conversion paths from materials to website
 - Measure impact on overall marketing metrics
 - Generate reports on material ROI and effectiveness
+
+---
+
+## Poll Everywhere Brand Resources
+
+### Brand System Documentation
+For detailed brand guidelines and implementation details:
+- **Complete Brand Guide**: `docs/BRAND_SYSTEM_INTEGRATION.md`
+- **Brand Configuration**: `frontend/src/config/brandConfig.ts`
+- **Utility Functions**: `frontend/src/utils/brandUtils.ts`
+- **Visual Reference**: `Projectdoc/poll-everywhere-design-system.html`
+
+### Quick Brand Reference
+
+#### **Primary Colors**
+| Color | Hex Code | Usage |
+|-------|----------|-------|
+| Primary Blue | `#007ACC` | Links, icons, secondary CTAs |
+| Purple Accent | `#864CBD` | Gradient start, accents |
+| Deep Blue | `#1568B8` | Gradient end, depth |
+
+#### **Gradient Definition**
+```css
+background: linear-gradient(135deg, #864CBD 0%, #1568B8 100%);
+```
+**Use for**: Primary CTAs, hero sections, brand highlights
+
+#### **Typography Scale**
+| Element | Size | Weight | Usage |
+|---------|------|--------|-------|
+| Hero H1 | 48px | Bold (700) | Page titles, hero headlines |
+| Section H2 | 32px | Bold (700) | Major sections |
+| Subsection H3 | 24px | Semibold (600) | Card titles |
+| Body Text | 18px | Normal (400) | Paragraphs, descriptions |
+| Small Text | 14px | Normal (400) | Captions, fine print |
+| Stats Numbers | 56px | Bold (700) | Large statistics |
+
+#### **Spacing System (8px Base)**
+- XS: 8px - Tight spacing, icon gaps
+- SM: 16px - Small gaps, list items
+- MD: 24px - Default spacing, card padding
+- LG: 32px - Section spacing, large gaps
+- XL: 48px - Major section dividers
+- XXL: 64px - Page-level spacing
+
+#### **Button Specifications**
+- Padding: 14px 32px
+- Border Radius: 50px (fully rounded)
+- Font Size: 18px
+- Font Weight: 600 (Semibold)
+- Hover Effect: Transform translateY(-2px) + Shadow
+
+#### **Marketing Team Checklist**
+Before finalizing any one-pager:
+- [ ] Using Source Sans Pro font family throughout
+- [ ] Primary CTAs use brand gradient
+- [ ] Buttons are fully rounded (50px border-radius)
+- [ ] Body text is 18px for readability
+- [ ] Headlines use appropriate hierarchy (48px/32px/24px)
+- [ ] Generous white space maintained (not cluttered)
+- [ ] Colors are from approved palette only
+- [ ] Stats use 56px bold numbers in Primary Blue
+- [ ] Spacing follows 8px grid system
+- [ ] No sharp corners or boxy elements
+
+### Brand Evolution & Updates
+The Poll Everywhere brand system is maintained by the design team. For questions or brand updates:
+1. Review latest brand documentation in `docs/` folder
+2. Check brand configuration file for current values
+3. Contact design team for clarification on brand usage
+4. Submit brand update requests through proper channels
+
+---
+
+## Additional Resources
+
+### Team Training Materials
+- **Video Tutorials**: Available in Help Center
+- **Brand Guidelines Workshop**: Quarterly training sessions
+- **Best Practice Templates**: Pre-approved starting points
+- **Success Stories**: Real-world examples from other marketing teams
+
+### Support Channels
+- **In-App Help**: Context-sensitive guidance
+- **Email Support**: marketing-tools@polleverywhere.com
+- **Community Forum**: Share tips and get peer feedback
+- **Design Team Office Hours**: Weekly brand consultation sessions
+
+---
+
+**Last Updated**: October 5, 2025  
+**Brand System Version**: Poll Everywhere v2.0  
+**Document Owner**: Marketing Team
