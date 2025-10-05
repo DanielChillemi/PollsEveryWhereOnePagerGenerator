@@ -244,6 +244,20 @@ socket.on('ai-generating', showGeneratingState);
 socket.on('generation-complete', handleNewLayout);
 ```
 
+## Project Documentation
+- [Quickstart Guide](QUICKSTART.md)
+- [API Documentation](QUICKSTART_API.md)
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md)
+- [Architecture Principles](docs/ARCHITECTURE_PRINCIPLES.md) - Supplementary architectural guidelines
+- [Backend Implementation](docs/BACKEND_IMPLEMENTATION.md)
+- [Brand System Integration](docs/BRAND_SYSTEM_INTEGRATION.md)
+
+## Development Process
+1. Follow assigned tasks in Jira
+2. Reference relevant documentation for your task
+3. Follow established code review process
+4. Coordinate with team leads for architectural decisions
+
 ## Deployment
 
 ### Production Checklist
