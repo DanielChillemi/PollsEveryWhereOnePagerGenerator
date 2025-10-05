@@ -12,15 +12,15 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { OnePagerState, RenderMode } from '../../types/onePager'
+import type { OnePagerState, RenderMode } from '../../types/onePager'
 import { HeroSection } from './sections/HeroSection'
 import { FeaturesSection } from './sections/FeaturesSection'
 import { StatsSection } from './sections/StatsSection'

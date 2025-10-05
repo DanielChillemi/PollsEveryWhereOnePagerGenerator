@@ -19,7 +19,7 @@ import {
 import { ColorPicker } from './ColorPicker'
 import { FontSelector } from './FontSelector'
 import { LogoUpload } from './LogoUpload'
-import { BrandKitFormData } from '../../types/brandKit'
+import type { BrandKitFormData } from '../../types/brandKit'
 import { useUploadLogo } from '../../hooks/useBrandKit'
 
 interface BrandKitFormProps {

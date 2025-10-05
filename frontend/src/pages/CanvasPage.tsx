@@ -7,7 +7,7 @@
 import { useState } from 'react'
 import { Box } from '@chakra-ui/react'
 import { CanvasRenderer } from '../components/canvas/CanvasRenderer'
-import { OnePagerState, RenderMode } from '../types/onePager'
+import type { OnePagerState, RenderMode } from '../types/onePager'
 
 // Mock data for demonstration
 const mockOnePagerState: OnePagerState = {

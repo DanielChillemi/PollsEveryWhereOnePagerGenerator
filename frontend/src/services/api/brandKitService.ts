@@ -5,7 +5,7 @@
  */
 
 import { apiClient } from './client'
-import { BrandKit, BrandKitFormData } from '../../types/brandKit'
+import type { BrandKit, BrandKitFormData } from '../../types/brandKit'
 
 /**
  * Get current user's brand kit

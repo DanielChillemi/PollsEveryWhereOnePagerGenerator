@@ -5,7 +5,7 @@
  */
 
 import { Box, Heading, Text, Grid, VStack, Container } from '@chakra-ui/react'
-import { OnePagerSection, RenderMode } from '../../../types/onePager'
+import type { OnePagerSection, RenderMode } from '../../../types/onePager'
 import { SectionWrapper } from '../SectionWrapper'
 
 interface StatsSectionProps {

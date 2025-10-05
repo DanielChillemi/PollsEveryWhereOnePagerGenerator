@@ -6,7 +6,7 @@
 
 import { Box } from '@chakra-ui/react'
 import { ReactNode } from 'react'
-import { RenderMode } from '../../types/onePager'
+import type { RenderMode } from '../../types/onePager'
 
 interface SectionWrapperProps {
   children: ReactNode

@@ -12,7 +12,7 @@ import {
   deleteBrandKit,
   uploadLogo,
 } from '../services/api/brandKitService'
-import { BrandKit, BrandKitFormData } from '../types/brandKit'
+import type { BrandKit, BrandKitFormData } from '../types/brandKit'
 
 /**
  * Query key for brand kit data

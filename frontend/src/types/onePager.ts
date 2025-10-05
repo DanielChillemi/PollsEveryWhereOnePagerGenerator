@@ -14,7 +14,7 @@ export type SectionType =
   | 'about'
   | 'contact'
 
-export interface OnePagerSection {
+export type OnePagerSection = {
   id: string
   type: SectionType
   order: number
@@ -43,7 +43,7 @@ export interface OnePagerSection {
   }
 }
 
-export interface OnePagerState {
+export type OnePagerState = {
   id?: string
   user_id?: string
   title: string

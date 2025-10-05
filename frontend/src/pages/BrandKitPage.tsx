@@ -7,7 +7,7 @@
 import { useState } from 'react'
 import { Box, Container, Heading, Text, VStack, Button, HStack, Spinner } from '@chakra-ui/react'
 import { BrandKitForm } from '../components/brandkit/BrandKitForm'
-import { BrandKitFormData } from '../types/brandKit'
+import type { BrandKitFormData } from '../types/brandKit'
 import { useBrandKit, useCreateBrandKit, useUpdateBrandKit } from '../hooks/useBrandKit'
 
 export const BrandKitPage = () => {
@@ -90,6 +90,11 @@ export const BrandKitPage = () => {
               colorScheme="blue"
               onClick={() => setIsEditing(true)}
               mt={4}
+              bg="blue.500"
+              color="white"
+              _hover={{ bg: 'blue.600' }}
+              px={8}
+              py={6}
             >
               Get Started
             </Button>

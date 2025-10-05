@@ -4,7 +4,7 @@
  * Type definitions for brand kit data structures
  */
 
-export interface BrandKit {
+export type BrandKit = {
   id?: string
   user_id?: string
   company_name: string
@@ -19,7 +19,7 @@ export interface BrandKit {
   updated_at?: string
 }
 
-export interface BrandKitFormData {
+export type BrandKitFormData = {
   company_name: string
   primary_color: string
   secondary_color: string
