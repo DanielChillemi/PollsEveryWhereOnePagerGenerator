@@ -9,6 +9,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { BrandKitPage } from './pages/BrandKitPage'
+import { CanvasPage } from './pages/CanvasPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
 
@@ -40,6 +42,22 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/brand-kit"
+          element={
+            <ProtectedRoute>
+              <BrandKitPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <CanvasPage />
             </ProtectedRoute>
           }
         />
