@@ -8,7 +8,8 @@ python-multipart>=0.0.6
 
 # Database
 motor>=3.3.0                    # Async MongoDB driver
-pymongo>=4.6.0                  # MongoDB synchronous driver (used by Motor)
+pymongo>=4.15.2                 # MongoDB synchronous driver (used by Motor + bson support)
+dnspython>=2.8.0                # DNS toolkit for MongoDB connection strings
 
 # Authentication & Security
 python-jose[cryptography]>=3.3.0  # JWT token handling
@@ -16,9 +17,9 @@ passlib[bcrypt]>=1.7.4           # Password hashing
 bcrypt>=4.0.1                    # Bcrypt implementation
 
 # Data Validation
-pydantic>=2.5.0
-pydantic-settings>=2.1.0         # Environment variable management
-email-validator>=2.1.0           # Email validation for Pydantic
+pydantic>=2.11.7                 # Core validation framework
+pydantic-settings>=2.11.0        # Environment variable management
+email-validator>=2.3.0           # Email validation for Pydantic EmailStr
 
 # HTTP Client (for Canva API)
 httpx>=0.25.0                    # Async HTTP client
@@ -29,6 +30,6 @@ python-dotenv>=1.0.0             # .env file loading
 PyJWT>=2.8.0                     # JWT library alternative
 
 # Development & Testing (optional, comment out for production)
-# pytest>=7.4.0
-# pytest-asyncio>=0.21.0
-# httpx>=0.25.0  # For testing FastAPI
+pytest>=8.4.2                    # Testing framework
+pytest-asyncio>=1.2.0            # Async test support
+# httpx>=0.25.0  # For testing FastAPI (already listed above)
