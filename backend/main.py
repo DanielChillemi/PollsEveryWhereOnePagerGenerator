@@ -16,6 +16,7 @@ import time
 from backend.config import settings
 from backend.database.mongodb import MongoDB
 from backend.auth.routes import router as auth_router
+from backend.routes.export import router as export_router
 
 
 # Configure logging
@@ -130,6 +131,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Mount routers
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(export_router)  # Export routes already include /api/export prefix
 
 
 # Health check endpoint

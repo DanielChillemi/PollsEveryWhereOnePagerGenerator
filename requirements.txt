@@ -25,6 +25,9 @@ email-validator>=2.3.0           # Email validation for Pydantic EmailStr
 httpx>=0.25.0                    # Async HTTP client
 requests>=2.31.0                 # Sync HTTP client (POC code)
 
+# Image Processing
+Pillow>=10.0.0                   # Image rendering and manipulation
+
 # Utilities
 python-dotenv>=1.0.0             # .env file loading
 PyJWT>=2.8.0                     # JWT library alternative

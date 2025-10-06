@@ -10,6 +10,7 @@ import os
 import json
 import time
 import logging
+import base64
 import requests
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
@@ -316,6 +317,221 @@ class CanvaClient:
         
         self.logger.info(f"File downloaded successfully: {file_path}")
         return file_path
+    
+    def upload_asset(
+        self,
+        file_data: bytes,
+        file_name: str,
+        asset_type: str = "image"
+    ) -> Dict[str, Any]:
+        """
+        Upload file to Canva as reusable asset using the async job API.
+        
+        This method creates an asset upload job and returns the job details.
+        Use get_asset_upload_job() to check the status and retrieve the asset ID.
+        
+        Args:
+            file_data: Binary file content (PNG, JPEG, etc.)
+            file_name: Name for the asset (e.g., "onepager.png")
+            asset_type: Type of asset (default: "image")
+            
+        Returns:
+            {
+                "job": {
+                    "id": "job-uuid",
+                    "status": "in_progress" | "success" | "failed",
+                    "asset": {  # Only present when status is "success"
+                        "id": "asset-uuid",
+                        "name": "filename.png",
+                        "thumbnail": {...}
+                    }
+                }
+            }
+            
+        Raises:
+            CanvaAPIError: If upload request fails
+        """
+        self._check_rate_limit()
+        
+        # Correct endpoint for asset uploads
+        endpoint = "/v1/asset-uploads"
+        url = f"{self.base_url}{endpoint}"
+        
+        self.logger.info(f"Uploading asset: {file_name} ({len(file_data)} bytes)")
+        
+        # Encode filename in Base64 (required for Asset-Upload-Metadata header)
+        # Truncate to 50 characters max (Canva requirement)
+        truncated_name = file_name[:50] if len(file_name) > 50 else file_name
+        name_base64 = base64.b64encode(truncated_name.encode('utf-8')).decode('utf-8')
+        
+        # Prepare headers according to Canva API docs
+        headers = {
+            'Authorization': f'Bearer {self.api_token}',
+            'Content-Type': 'application/octet-stream',
+            'Asset-Upload-Metadata': json.dumps({"name_base64": name_base64})
+        }
+        
+        try:
+            # Send raw binary data (not multipart/form-data)
+            response = requests.post(url, headers=headers, data=file_data)
+            
+            if response.status_code == 401:
+                raise CanvaAuthError("Authentication failed. Check your API token.", response.status_code)
+            elif response.status_code == 429:
+                raise CanvaRateLimitError("API rate limit exceeded (30 requests/min).", response.status_code)
+            elif response.status_code >= 400:
+                error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+                raise CanvaAPIError(
+                    f"Asset upload failed: {response.status_code} - {error_data.get('message', response.text)}",
+                    response.status_code,
+                    error_data
+                )
+            
+            result = response.json()
+            job_id = result.get('job', {}).get('id')
+            status = result.get('job', {}).get('status')
+            self.logger.info(f"✓ Asset upload job created: {job_id} (status: {status})")
+            return result
+            
+        except requests.exceptions.RequestException as e:
+            raise CanvaAPIError(f"Network error during asset upload: {e}")
+    
+    def get_asset_upload_job(self, job_id: str) -> Dict[str, Any]:
+        """
+        Get the status of an asset upload job.
+        
+        Args:
+            job_id: Asset upload job ID from upload_asset() response
+            
+        Returns:
+            {
+                "job": {
+                    "id": "job-uuid",
+                    "status": "in_progress" | "success" | "failed",
+                    "asset": {  # Only present when status is "success"
+                        "id": "asset-uuid",
+                        "name": "filename.png",
+                        "tags": [],
+                        "created_at": 1234567890,
+                        "thumbnail": {...}
+                    },
+                    "error": {  # Only present when status is "failed"
+                        "code": "file_too_big" | "import_failed" | "fetch_failed",
+                        "message": "Error description"
+                    }
+                }
+            }
+            
+        Raises:
+            CanvaAPIError: If request fails
+        """
+        response = self._make_request('GET', f'/v1/asset-uploads/{job_id}')
+        return response
+    
+    def wait_for_asset_upload(
+        self,
+        job_id: str,
+        initial_response: Optional[Dict[str, Any]] = None,
+        timeout: int = 60,
+        poll_interval: int = 2
+    ) -> str:
+        """
+        Wait for an asset upload job to complete and return the asset ID.
+        
+        Args:
+            job_id: Asset upload job ID
+            initial_response: Optional initial upload response to check for immediate success
+            timeout: Maximum time to wait in seconds (default: 60)
+            poll_interval: Time between status checks in seconds (default: 2)
+            
+        Returns:
+            Asset ID (string)
+            
+        Raises:
+            CanvaAPIError: If upload fails or times out
+        """
+        # Check if upload completed immediately (small files often do)
+        if initial_response:
+            job = initial_response.get('job', {})
+            if job.get('status') == 'success':
+                asset_id = job.get('asset', {}).get('id')
+                if asset_id:
+                    self.logger.info(f"✓ Asset upload completed immediately: {asset_id}")
+                    return asset_id
+        
+        self.logger.info("Upload not immediate, polling for completion...")
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            result = self.get_asset_upload_job(job_id)
+            job = result.get('job', {})
+            status = job.get('status')
+            
+            if status == 'success':
+                asset_id = job.get('asset', {}).get('id')
+                if not asset_id:
+                    raise CanvaAPIError(f"Asset upload job {job_id} succeeded but no asset ID returned")
+                self.logger.info(f"✓ Asset upload completed: {asset_id}")
+                return asset_id
+            
+            elif status == 'failed':
+                error = job.get('error', {})
+                error_code = error.get('code', 'unknown')
+                error_msg = error.get('message', 'Upload failed')
+                raise CanvaAPIError(f"Asset upload job {job_id} failed: {error_code} - {error_msg}")
+            
+            self.logger.info(f"Asset upload job {job_id} status: {status}, waiting {poll_interval}s...")
+            time.sleep(poll_interval)
+        
+        raise CanvaAPIError(f"Asset upload job {job_id} timed out after {timeout} seconds")
+    
+    def create_design_from_asset(
+        self,
+        asset_id: str,
+        title: str,
+        design_type: str = "presentation"
+    ) -> Dict[str, Any]:
+        """
+        Create Canva design containing uploaded asset.
+        
+        This method creates a new design and imports the specified asset
+        as the main content. The asset will be centered and sized appropriately
+        within the design canvas.
+        
+        Args:
+            asset_id: UUID of uploaded asset (from upload_asset response)
+            title: Design title (shown in Canva UI)
+            design_type: Type of design (presentation, document, etc.)
+            
+        Returns:
+            {
+                "design": {
+                    "id": "design-id",
+                    "title": "...",
+                    "url": "https://canva.com/design/...",
+                    "thumbnail": {...},
+                    "created_at": 1234567890,
+                    "updated_at": 1234567890
+                }
+            }
+            
+        Raises:
+            CanvaAPIError: If design creation fails
+        """
+        self.logger.info(f"Creating design from asset {asset_id}")
+        
+        payload = {
+            "design_type": {
+                "type": "preset",
+                "name": design_type
+            },
+            "asset_id": asset_id,
+            "title": title
+        }
+        
+        result = self._make_request("POST", "/v1/designs", json=payload)
+        self.logger.info(f"✓ Design created: {result.get('design', {}).get('id')}")
+        return result
 
 
 def create_client_from_env() -> CanvaClient:
