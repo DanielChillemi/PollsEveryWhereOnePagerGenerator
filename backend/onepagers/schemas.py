@@ -6,7 +6,7 @@ Pydantic request/response models for one-pager endpoints.
 """
 
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
 
@@ -24,7 +24,10 @@ class ContentSection(BaseModel):
     id: str = Field(description="Section identifier")
     type: str = Field(description="Section type (hero, features, testimonials, etc.)")
     title: Optional[str] = Field(None, description="Section title")
-    content: Dict[str, Any] = Field(default_factory=dict, description="Section content")
+    content: Union[str, List[str], Dict[str, Any]] = Field(
+        default_factory=dict, 
+        description="Section content (text string, list of items, or structured dict)"
+    )
     order: int = Field(description="Display order")
 
 

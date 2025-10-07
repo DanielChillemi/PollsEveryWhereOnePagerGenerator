@@ -4,7 +4,8 @@
  * Main authenticated dashboard with user profile and logout
  */
 
-import { Box, Container, Heading, Text, VStack, HStack } from '@chakra-ui/react'
+import { Box, Container, Heading, Text, VStack, HStack, SimpleGrid } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth, useLogout } from '../hooks/useAuth'
 import { FormButton } from '../components/auth/FormButton'
 import { brandConfig } from '../config/brandConfig'
@@ -12,6 +13,7 @@ import { brandConfig } from '../config/brandConfig'
 export function DashboardPage() {
   const { user } = useAuth()
   const logout = useLogout()
+  const navigate = useNavigate()
 
   return (
     <Box minH="100vh" bg="gray.50">
@@ -71,21 +73,77 @@ export function DashboardPage() {
             </VStack>
           </Box>
 
-          {/* Coming Soon */}
+          {/* Brand Kit Actions */}
           <Box
             bg="white"
             borderRadius="xl"
             boxShadow="md"
             p="xl"
-            textAlign="center"
           >
-            <Heading size="lg" color="brand.text" mb="md">
-              Smart Canvas Coming Soon 🎨
+            <Heading size="lg" color="brand.text" mb="lg">
+              Brand Kit Management
             </Heading>
-            <Text fontSize="lg" color="brand.textLight">
-              This is where you'll create your AI-powered marketing one-pagers using our
-              interactive Smart Canvas and Brand Kit integration.
-            </Text>
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap="md">
+              <Box
+                bg="brand.background"
+                borderRadius="lg"
+                p="lg"
+                textAlign="center"
+                cursor="pointer"
+                onClick={() => navigate('/brand-kit/create')}
+                transition="all 0.2s"
+                _hover={{
+                  boxShadow: 'lg',
+                  transform: 'translateY(-2px)',
+                }}
+              >
+                <Text fontSize="48px" mb="sm">✨</Text>
+                <Heading size="md" color="brand.text" mb="sm">
+                  Create Brand Kit
+                </Heading>
+                <Text fontSize="sm" color="brand.textLight">
+                  Define your brand identity with colors, fonts, and style
+                </Text>
+              </Box>
+
+              <Box
+                bg="brand.background"
+                borderRadius="lg"
+                p="lg"
+                textAlign="center"
+                cursor="pointer"
+                onClick={() => navigate('/brand-kit/list')}
+                transition="all 0.2s"
+                _hover={{
+                  boxShadow: 'lg',
+                  transform: 'translateY(-2px)',
+                }}
+              >
+                <Text fontSize="48px" mb="sm">📋</Text>
+                <Heading size="md" color="brand.text" mb="sm">
+                  View Brand Kits
+                </Heading>
+                <Text fontSize="sm" color="brand.textLight">
+                  Manage and edit your existing brand kits
+                </Text>
+              </Box>
+
+              <Box
+                bg="brand.background"
+                borderRadius="lg"
+                p="lg"
+                textAlign="center"
+                opacity={0.6}
+              >
+                <Text fontSize="48px" mb="sm">🎨</Text>
+                <Heading size="md" color="brand.text" mb="sm">
+                  Smart Canvas
+                </Heading>
+                <Text fontSize="sm" color="brand.textLight">
+                  Coming Soon - AI-powered one-pager creation
+                </Text>
+              </Box>
+            </SimpleGrid>
           </Box>
         </VStack>
       </Container>

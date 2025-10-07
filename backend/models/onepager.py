@@ -7,7 +7,7 @@ Based on validated POC schema from canva-poc/json_schema.py
 """
 
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 from datetime import datetime
 
@@ -22,6 +22,11 @@ class ElementType(str, Enum):
     FOOTER = "footer"
     IMAGE = "image"
     TEXT_BLOCK = "text_block"
+    # AI service-generated types
+    HEADING = "heading"
+    TEXT = "text"
+    LIST = "list"
+    BUTTON = "button"
 
 
 class Dimensions(BaseModel):
@@ -110,7 +115,9 @@ class OnePagerElement(BaseModel):
     """Single element in one-pager layout."""
     id: str = Field(description="Unique element identifier")
     type: ElementType = Field(description="Element type")
-    content: Dict[str, Any] = Field(description="Element content (flexible dict)")
+    content: Union[str, List[str], Dict[str, Any]] = Field(
+        description="Element content (text string, list of items, or structured dict)"
+    )
     styling: Optional[Styling] = Field(None, description="Element styling overrides")
     position: Optional[Position] = Field(None, description="Element position (if absolute)")
     order: int = Field(description="Display order within the layout")
