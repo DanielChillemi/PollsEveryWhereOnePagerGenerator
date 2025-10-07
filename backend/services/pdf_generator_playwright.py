@@ -136,73 +136,65 @@ class PDFGenerator:
         )
         
         try:
-            # Workaround for Python 3.13 + Playwright compatibility issue on Windows
-            # Use sync API with asyncio.to_thread() to avoid NotImplementedError
-            import asyncio
-            from playwright.sync_api import sync_playwright
-            
-            def _generate_pdf_sync():
-                """Synchronous PDF generation using Playwright sync API."""
-                with sync_playwright() as p:
-                    logger.debug("Launching headless Chromium with Playwright (sync mode)...")
+            # Use Playwright context manager
+            async with async_playwright() as p:
+                logger.debug("Launching headless Chromium with Playwright...")
+                
+                # Launch browser
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-accelerated-2d-canvas',
+                        '--disable-gpu'
+                    ]
+                )
+                
+                try:
+                    # Create new page
+                    logger.debug("Creating new page...")
+                    page = await browser.new_page()
                     
-                    # Launch browser
-                    browser = p.chromium.launch(
-                        headless=True,
-                        args=[
-                            '--no-sandbox',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--disable-accelerated-2d-canvas',
-                            '--disable-gpu'
-                        ]
+                    # Set viewport for consistent rendering
+                    await page.set_viewport_size({
+                        'width': 1920,
+                        'height': 1080
+                    })
+                    
+                    # Set HTML content
+                    logger.debug("Setting HTML content...")
+                    await page.set_content(html_content)
+                    
+                    # Wait for fonts and resources to load
+                    logger.debug("Waiting for resources to load...")
+                    await page.wait_for_timeout(1000)  # 1 second for Google Fonts
+                    
+                    # Generate PDF
+                    logger.debug(f"Rendering PDF ({page_format})...")
+                    pdf_bytes = await page.pdf(
+                        format=format_config['format'],
+                        margin=margin,
+                        print_background=print_background,
+                        prefer_css_page_size=prefer_css_page_size,
+                        landscape=landscape
                     )
                     
-                    try:
-                        # Create new page
-                        logger.debug("Creating new page...")
-                        page = browser.new_page()
-                        
-                        # Set viewport for consistent rendering
-                        page.set_viewport_size({'width': 1920, 'height': 1080})
-                        
-                        # Set HTML content
-                        logger.debug("Setting HTML content...")
-                        page.set_content(html_content)
-                        
-                        # Wait for fonts and resources to load
-                        logger.debug("Waiting for resources to load...")
-                        page.wait_for_timeout(1000)  # 1 second for Google Fonts
-                        
-                        # Generate PDF
-                        logger.debug(f"Rendering PDF ({page_format})...")
-                        pdf_bytes = page.pdf(
-                            format=format_config['format'],
-                            margin=margin,
-                            print_background=print_background,
-                            prefer_css_page_size=prefer_css_page_size,
-                            landscape=landscape
-                        )
-                        
-                        return pdf_bytes
-                        
-                    finally:
-                        # Close browser
-                        logger.debug("Closing browser...")
-                        browser.close()
-            
-            # Run sync Playwright in thread pool to avoid blocking
-            pdf_bytes = await asyncio.to_thread(_generate_pdf_sync)
-            
-            elapsed = (datetime.now() - start_time).total_seconds()
-            file_size_kb = len(pdf_bytes) / 1024
-            
-            logger.info(
-                f"✅ PDF generated successfully: "
-                f"{file_size_kb:.1f} KB in {elapsed:.2f}s"
-            )
-            
-            return pdf_bytes
+                    elapsed = (datetime.now() - start_time).total_seconds()
+                    file_size_kb = len(pdf_bytes) / 1024
+                    
+                    logger.info(
+                        f"✅ PDF generated successfully: "
+                        f"{file_size_kb:.1f} KB in {elapsed:.2f}s"
+                    )
+                    
+                    return pdf_bytes
+                    
+                finally:
+                    # Close browser
+                    logger.debug("Closing browser...")
+                    await browser.close()
             
         except Exception as e:
             elapsed = (datetime.now() - start_time).total_seconds()

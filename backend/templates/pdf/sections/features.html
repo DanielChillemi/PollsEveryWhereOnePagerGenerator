@@ -10,9 +10,9 @@
     </p>
     {% endif %}
     
-    {% if element.content.items or element.content.features %}
+    {% if element.content.get('items') or element.content.get('features') %}
     <div class="features-grid">
-        {% for feature in element.content.items or element.content.features %}
+        {% for feature in element.content.get('items', element.content.get('features', [])) %}
         <div class="feature-item">
             {% if feature.title %}
             <h3>{{ feature.title }}</h3>

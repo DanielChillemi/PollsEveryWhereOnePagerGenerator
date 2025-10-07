@@ -120,11 +120,18 @@ class PDFHTMLGenerator:
         Returns:
             Dictionary with template-friendly structure
         """
-        # Convert to dict
-        data = onepager.dict() if hasattr(onepager, 'dict') else onepager.model_dump()
+        # Convert to dict using Pydantic v2 model_dump()
+        try:
+            data = onepager.model_dump()
+        except AttributeError:
+            # Fallback for Pydantic v1
+            data = onepager.dict()
         
-        # Ensure elements list exists
-        if 'elements' not in data:
+        # Ensure elements is a proper list (not a method or other type)
+        if 'elements' not in data or data['elements'] is None:
+            data['elements'] = []
+        elif not isinstance(data['elements'], list):
+            logger.warning(f"elements is not a list, it's a {type(data['elements'])}")
             data['elements'] = []
         
         # Sort elements by order
@@ -143,8 +150,12 @@ class PDFHTMLGenerator:
         Returns:
             Dictionary with template-friendly structure
         """
-        # Convert to dict
-        data = brand_kit.dict() if hasattr(brand_kit, 'dict') else brand_kit.model_dump()
+        # Convert to dict using Pydantic v2 model_dump()
+        try:
+            data = brand_kit.model_dump()
+        except AttributeError:
+            # Fallback for Pydantic v1
+            data = brand_kit.dict()
         
         # Ensure required fields exist with defaults
         if 'color_palette' not in data or data['color_palette'] is None:

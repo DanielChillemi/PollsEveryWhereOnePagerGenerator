@@ -6,6 +6,14 @@ Main application entry point.
 Initializes FastAPI app, configures middleware, and mounts routes.
 """
 
+import sys
+import asyncio
+
+# Fix for Python 3.13 + Playwright on Windows
+# Python 3.13 changed subprocess handling, requiring ProactorEventLoop on Windows
+if sys.platform == 'win32' and sys.version_info >= (3, 13):
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

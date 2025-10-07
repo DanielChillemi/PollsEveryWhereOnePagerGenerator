@@ -572,7 +572,10 @@ async def export_onepager_pdf(
     # Use default brand kit if not found
     if not brand_kit_doc:
         brand_kit_doc = {
+            "_id": ObjectId(),  # Temporary ID for default brand kit
+            "user_id": onepager_doc["user_id"],  # Use the onepager's user_id
             "company_name": onepager_doc.get("title", "Company"),
+            "brand_voice": "Professional and engaging",
             "color_palette": {
                 "primary": "#0ea5e9",
                 "secondary": "#64748b",
@@ -585,7 +588,10 @@ async def export_onepager_pdf(
                 "body_font": "Inter",
                 "heading_size": "32px",
                 "body_size": "16px"
-            }
+            },
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
 
     try:
@@ -599,6 +605,7 @@ async def export_onepager_pdf(
         }
 
         # Map content sections to elements
+        has_hero_section = False
         if "content" in onepager_doc and "sections" in onepager_doc["content"]:
             for idx, section in enumerate(onepager_doc["content"]["sections"]):
                 element = {
@@ -609,9 +616,13 @@ async def export_onepager_pdf(
                     "order": section.get("order", idx)
                 }
                 onepager_layout_data["elements"].append(element)
+                
+                # Track if we already have a hero section
+                if section.get("type") == "hero":
+                    has_hero_section = True
 
-        # Add headline as hero element if exists
-        if "content" in onepager_doc and "headline" in onepager_doc["content"]:
+        # Add headline as hero element if exists and no hero section already present
+        if not has_hero_section and "content" in onepager_doc and "headline" in onepager_doc["content"]:
             hero_element = {
                 "id": "hero-main",
                 "type": "hero",
@@ -623,6 +634,11 @@ async def export_onepager_pdf(
                 "order": 0
             }
             onepager_layout_data["elements"].insert(0, hero_element)
+
+        # Normalize order values to ensure uniqueness
+        # Reassign sequential order values after building elements array
+        for idx, element in enumerate(onepager_layout_data["elements"]):
+            element["order"] = idx
 
         onepager = OnePagerLayout(**onepager_layout_data)
         brand_kit = BrandKitInDB(**brand_kit_doc)
