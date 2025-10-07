@@ -2,7 +2,7 @@
 PDF Generator Service
 =====================
 
-Converts HTML to PDF using pyppeteer (Puppeteer for Python).
+Converts HTML to PDF using Playwright (modern browser automation).
 Provides async PDF generation with format support and error handling.
 
 Features:
@@ -12,10 +12,11 @@ Features:
 - Background color/image support
 - Browser instance management
 - Comprehensive error handling
+- Actively maintained (Microsoft-backed)
 """
 
 import asyncio
-from pyppeteer import launch
+from playwright.async_api import async_playwright
 from typing import Optional, Literal, Dict
 from pathlib import Path
 import logging
@@ -55,7 +56,7 @@ class PDFGeneratorError(Exception):
 
 class PDFGenerator:
     """
-    Generate PDFs from HTML using headless Chromium (pyppeteer).
+    Generate PDFs from HTML using headless Chromium (Playwright).
     
     Usage:
         generator = PDFGenerator()
@@ -71,7 +72,7 @@ class PDFGenerator:
     
     def __init__(self):
         """Initialize PDF generator."""
-        logger.info("PDFGenerator initialized")
+        logger.info("PDFGenerator initialized (using Playwright)")
     
     async def generate_pdf(
         self,
@@ -134,61 +135,66 @@ class PDFGenerator:
             f"printBackground={print_background}"
         )
         
-        browser = None
         try:
-            # Launch headless browser
-            logger.debug("Launching headless Chromium...")
-            browser = await launch(
-                headless=True,
-                args=[
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',  # Overcome limited resource problems
-                    '--disable-accelerated-2d-canvas',
-                    '--disable-gpu'
-                ]
-            )
-            
-            # Create new page
-            logger.debug("Creating new page...")
-            page = await browser.newPage()
-            
-            # Set viewport for consistent rendering
-            await page.setViewport({
-                'width': 1920,
-                'height': 1080,
-                'deviceScaleFactor': 2  # Higher DPI for better quality
-            })
-            
-            # Set HTML content
-            logger.debug("Setting HTML content...")
-            await page.setContent(html_content)
-            
-            # Wait for fonts and resources to load
-            logger.debug("Waiting for resources to load...")
-            await asyncio.sleep(1)  # Give time for Google Fonts to load
-            
-            # Generate PDF
-            logger.debug(f"Rendering PDF ({page_format})...")
-            pdf_options = {
-                'format': format_config['format'],
-                'margin': margin,
-                'printBackground': print_background,
-                'preferCSSPageSize': prefer_css_page_size,
-                'landscape': landscape
-            }
-            
-            pdf_bytes = await page.pdf(pdf_options)
-            
-            elapsed = (datetime.now() - start_time).total_seconds()
-            file_size_kb = len(pdf_bytes) / 1024
-            
-            logger.info(
-                f"✅ PDF generated successfully: "
-                f"{file_size_kb:.1f} KB in {elapsed:.2f}s"
-            )
-            
-            return pdf_bytes
+            # Use Playwright context manager
+            async with async_playwright() as p:
+                logger.debug("Launching headless Chromium with Playwright...")
+                
+                # Launch browser
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-accelerated-2d-canvas',
+                        '--disable-gpu'
+                    ]
+                )
+                
+                try:
+                    # Create new page
+                    logger.debug("Creating new page...")
+                    page = await browser.new_page()
+                    
+                    # Set viewport for consistent rendering
+                    await page.set_viewport_size({
+                        'width': 1920,
+                        'height': 1080
+                    })
+                    
+                    # Set HTML content
+                    logger.debug("Setting HTML content...")
+                    await page.set_content(html_content)
+                    
+                    # Wait for fonts and resources to load
+                    logger.debug("Waiting for resources to load...")
+                    await page.wait_for_timeout(1000)  # 1 second for Google Fonts
+                    
+                    # Generate PDF
+                    logger.debug(f"Rendering PDF ({page_format})...")
+                    pdf_bytes = await page.pdf(
+                        format=format_config['format'],
+                        margin=margin,
+                        print_background=print_background,
+                        prefer_css_page_size=prefer_css_page_size,
+                        landscape=landscape
+                    )
+                    
+                    elapsed = (datetime.now() - start_time).total_seconds()
+                    file_size_kb = len(pdf_bytes) / 1024
+                    
+                    logger.info(
+                        f"✅ PDF generated successfully: "
+                        f"{file_size_kb:.1f} KB in {elapsed:.2f}s"
+                    )
+                    
+                    return pdf_bytes
+                    
+                finally:
+                    # Close browser
+                    logger.debug("Closing browser...")
+                    await browser.close()
             
         except Exception as e:
             elapsed = (datetime.now() - start_time).total_seconds()
@@ -197,12 +203,6 @@ class PDFGenerator:
                 exc_info=True
             )
             raise PDFGeneratorError(f"Failed to generate PDF: {e}")
-        
-        finally:
-            # Always close browser
-            if browser:
-                logger.debug("Closing browser...")
-                await browser.close()
     
     async def generate_pdf_to_file(
         self,
@@ -215,57 +215,55 @@ class PDFGenerator:
         Generate PDF and save directly to file.
         
         Args:
-            html_content: HTML string
-            output_path: Path to save PDF
-            page_format: Page format
+            html_content: HTML string with inline CSS
+            output_path: Path where PDF should be saved
+            page_format: Page format ('letter', 'a4', 'tabloid')
             **kwargs: Additional arguments passed to generate_pdf()
         
-        Raises:
-            PDFGeneratorError: If generation or file write fails
-        """
-        try:
-            pdf_bytes = await self.generate_pdf(
+        Example:
+            ```python
+            await generator.generate_pdf_to_file(
                 html_content,
-                page_format=page_format,
-                **kwargs
+                Path('output.pdf'),
+                page_format='letter'
             )
-            
-            # Ensure parent directory exists
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Write to file
-            with open(output_path, 'wb') as f:
-                f.write(pdf_bytes)
-            
-            logger.info(f"✅ PDF saved to: {output_path}")
-            
-        except Exception as e:
-            logger.error(f"Failed to save PDF to file: {e}")
-            raise PDFGeneratorError(f"Failed to save PDF: {e}")
+            ```
+        """
+        logger.info(f"Generating PDF to file: {output_path}")
+        
+        pdf_bytes = await self.generate_pdf(html_content, page_format, **kwargs)
+        
+        # Write to file
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(pdf_bytes)
+        
+        logger.info(f"✅ PDF saved to: {output_path}")
 
 
-# Convenience function for one-off PDF generation
-async def generate_pdf_from_html(
+# Module-level convenience function
+async def generate_pdf(
     html_content: str,
     page_format: PageFormat = 'letter',
     **kwargs
 ) -> bytes:
     """
-    Convenience function for quick PDF generation.
+    Convenience function for one-off PDF generation.
     
     Args:
-        html_content: HTML string
+        html_content: HTML string with inline CSS
         page_format: Page format ('letter', 'a4', 'tabloid')
-        **kwargs: Additional options passed to PDFGenerator.generate_pdf()
+        **kwargs: Additional arguments (margin, print_background, etc.)
     
     Returns:
-        PDF bytes
+        PDF file as bytes
     
     Example:
         ```python
-        html = "<html><body><h1>Test</h1></body></html>"
-        pdf = await generate_pdf_from_html(html, page_format='a4')
+        from backend.services.pdf_generator import generate_pdf
+        
+        html = "<html><body><h1>Hello</h1></body></html>"
+        pdf = await generate_pdf(html, page_format='a4')
         ```
     """
     generator = PDFGenerator()
-    return await generator.generate_pdf(html_content, page_format=page_format, **kwargs)
+    return await generator.generate_pdf(html_content, page_format, **kwargs)

@@ -29,7 +29,7 @@ requests>=2.31.0                 # Sync HTTP client (POC code)
 Pillow>=10.0.0                   # Image rendering and manipulation
 
 # PDF Generation
-pyppeteer>=1.0.2                 # Puppeteer for Python (HTML to PDF conversion)
+playwright==1.48.0               # Modern browser automation (HTML to PDF conversion) - UPDATED FROM pyppeteer
 Jinja2>=3.1.2                    # HTML template engine for PDF generation
 
 # Utilities
