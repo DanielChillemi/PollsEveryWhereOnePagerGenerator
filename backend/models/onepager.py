@@ -153,3 +153,52 @@ class OnePagerLayout(BaseModel):
     def get_elements_by_type(self, element_type: ElementType) -> List[OnePagerElement]:
         """Get all elements of a specific type."""
         return [element for element in self.elements if element.type == element_type]
+
+
+# Helper Functions for API Responses
+
+def onepager_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Transform MongoDB onepager document to API response format.
+    
+    Args:
+        onepager_doc: Raw MongoDB document
+        
+    Returns:
+        Dictionary ready for OnePagerResponse model
+    """
+    return {
+        "id": str(onepager_doc["_id"]),
+        "user_id": str(onepager_doc["user_id"]),
+        "brand_kit_id": str(onepager_doc["brand_kit_id"]) if onepager_doc.get("brand_kit_id") else None,
+        "title": onepager_doc["title"],
+        "status": onepager_doc["status"],
+        "content": onepager_doc.get("content", {}),
+        "layout": onepager_doc.get("layout", []),
+        "style_overrides": onepager_doc.get("style_overrides", {}),
+        "generation_metadata": onepager_doc.get("generation_metadata", {}),
+        "version_history": onepager_doc.get("version_history", []),
+        "created_at": onepager_doc["created_at"],
+        "updated_at": onepager_doc["updated_at"],
+        "last_accessed": onepager_doc.get("last_accessed", onepager_doc["updated_at"])
+    }
+
+
+def onepager_summary_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Transform MongoDB onepager document to summary format for list views.
+    
+    Args:
+        onepager_doc: Raw MongoDB document
+        
+    Returns:
+        Dictionary ready for OnePagerSummary model
+    """
+    return {
+        "id": str(onepager_doc["_id"]),
+        "title": onepager_doc["title"],
+        "status": onepager_doc["status"],
+        "created_at": onepager_doc["created_at"],
+        "updated_at": onepager_doc["updated_at"],
+        "has_brand_kit": bool(onepager_doc.get("brand_kit_id"))
+    }
