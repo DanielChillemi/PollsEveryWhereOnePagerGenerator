@@ -64,9 +64,10 @@ app = FastAPI(
     ## Features
     - 🔐 JWT-based authentication
     - 👤 User management and profiles
-    - 🎨 Brand Kit integration (coming soon)
-    - 🤖 AI content generation (coming soon)
-    - 🖼️ Canva design export (coming soon)
+    - 🎨 Brand Kit integration
+    - 🤖 AI content generation
+    - 📄 In-house PDF export with Brand Kit styling
+    - �️ Print-quality PDFs (Letter, A4, Tabloid formats)
     
     ## Authentication
     Most endpoints require JWT authentication. Include the access token in requests:
@@ -196,7 +197,13 @@ async def root():
             "list": "/api/v1/onepagers",
             "get": "/api/v1/onepagers/{id}",
             "iterate": "/api/v1/onepagers/{id}/iterate",
-            "delete": "/api/v1/onepagers/{id}"
+            "delete": "/api/v1/onepagers/{id}",
+            "export_pdf": "/api/v1/onepagers/{id}/export/pdf?format=letter|a4|tabloid"
+        },
+        "features": {
+            "pdf_export": "✅ In-house PDF generation with Brand Kit styling",
+            "formats_supported": ["US Letter (8.5×11\")", "A4 (8.27×11.69\")", "Tabloid (11×17\")"],
+            "pdf_features": ["Selectable text", "Google Fonts", "Brand colors", "Print-optimized"]
         }
     }
 

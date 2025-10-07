@@ -1,0 +1,10 @@
+{# Image Section Template #}
+<section class="image-section section">
+    {% if element.content.image_url %}
+    <img src="{{ element.content.image_url }}" alt="{{ element.content.alt_text or 'Image' }}">
+    {% endif %}
+    
+    {% if element.content.caption %}
+    <p class="caption">{{ element.content.caption }}</p>
+    {% endif %}
+</section>

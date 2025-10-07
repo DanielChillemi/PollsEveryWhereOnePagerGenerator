@@ -28,6 +28,10 @@ requests>=2.31.0                 # Sync HTTP client (POC code)
 # Image Processing
 Pillow>=10.0.0                   # Image rendering and manipulation
 
+# PDF Generation
+pyppeteer>=1.0.2                 # Puppeteer for Python (HTML to PDF conversion)
+Jinja2>=3.1.2                    # HTML template engine for PDF generation
+
 # Utilities
 python-dotenv>=1.0.0             # .env file loading
 PyJWT>=2.8.0                     # JWT library alternative

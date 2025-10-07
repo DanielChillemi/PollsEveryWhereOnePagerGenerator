@@ -1,0 +1,24 @@
+{# Footer Section Template #}
+<footer class="footer section">
+    {% if element.content.company_name or brand.company_name %}
+    <h3>{{ element.content.company_name or brand.company_name }}</h3>
+    {% endif %}
+    
+    {% if element.content.contact_email %}
+    <p>Email: <a href="mailto:{{ element.content.contact_email }}">{{ element.content.contact_email }}</a></p>
+    {% endif %}
+    
+    {% if element.content.contact_phone %}
+    <p>Phone: {{ element.content.contact_phone }}</p>
+    {% endif %}
+    
+    {% if element.content.website_url %}
+    <p>Website: <a href="{{ element.content.website_url }}">{{ element.content.website_url }}</a></p>
+    {% endif %}
+    
+    {% if element.content.copyright_text %}
+    <p class="copyright">{{ element.content.copyright_text }}</p>
+    {% else %}
+    <p class="copyright">© {{ now.year }} {{ element.content.company_name or brand.company_name }}. All rights reserved.</p>
+    {% endif %}
+</footer>

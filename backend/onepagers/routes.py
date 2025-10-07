@@ -470,3 +470,194 @@ async def delete_onepager(
     await db.onepagers.delete_one({"_id": ObjectId(onepager_id)})
 
     return None  # 204 No Content
+
+
+@router.get(
+    "/{onepager_id}/export/pdf",
+    tags=["One-Pagers", "Export"],
+    summary="Export one-pager as PDF",
+    responses={
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "PDF file download with Brand Kit styling applied"
+        },
+        404: {"model": ErrorResponse, "description": "One-pager or Brand Kit not found"},
+        403: {"model": ErrorResponse, "description": "User doesn't own this one-pager"}
+    }
+)
+async def export_onepager_pdf(
+    onepager_id: str,
+    format: str = Query(
+        "letter",
+        enum=["letter", "a4", "tabloid"],
+        description="Page format: letter (8.5×11\"), a4 (8.27×11.69\"), or tabloid (11×17\")"
+    ),
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Export one-pager as PDF with automatic Brand Kit styling.
+
+    Generates a print-quality PDF using the in-house PDF engine:
+    1. Fetches onepager and validates ownership
+    2. Retrieves associated Brand Kit
+    3. Generates styled HTML with brand colors/fonts
+    4. Converts to PDF using Puppeteer
+    5. Returns as downloadable file
+
+    **Query Parameters:**
+    - format: Page format (letter, a4, tabloid) - default: letter
+
+    **Returns:**
+    - PDF file with Brand Kit styling applied
+    - Selectable text (not rasterized images)
+    - Optimized for printing and digital sharing
+
+    **Errors:**
+    - 400: Invalid one-pager ID format
+    - 403: User doesn't own this one-pager
+    - 404: One-pager or Brand Kit not found
+    - 500: PDF generation failed
+
+    **Example:**
+    ```
+    GET /api/v1/onepagers/507f1f77bcf86cd799439011/export/pdf?format=a4
+    Authorization: Bearer <token>
+    ```
+    """
+    from fastapi.responses import StreamingResponse
+    import io
+    import logging
+    from backend.services.pdf_html_generator import PDFHTMLGenerator
+    from backend.services.pdf_generator import PDFGenerator
+    from backend.models.onepager import OnePagerLayout
+    from backend.models.brand_kit import BrandKitInDB
+
+    logger = logging.getLogger(__name__)
+    
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Fetch one-pager
+    logger.info(f"Fetching onepager {onepager_id} for PDF export")
+    onepager_doc = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager_doc["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to export this one-pager"
+        )
+
+    # Fetch Brand Kit if associated
+    brand_kit_doc = None
+    if onepager_doc.get("brand_kit_id"):
+        brand_kit_doc = await db.brand_kits.find_one({
+            "_id": onepager_doc["brand_kit_id"]
+        })
+
+        if not brand_kit_doc:
+            logger.warning(f"Brand Kit {onepager_doc['brand_kit_id']} not found, using defaults")
+
+    # Use default brand kit if not found
+    if not brand_kit_doc:
+        brand_kit_doc = {
+            "company_name": onepager_doc.get("title", "Company"),
+            "color_palette": {
+                "primary": "#0ea5e9",
+                "secondary": "#64748b",
+                "accent": "#10b981",
+                "text": "#1f2937",
+                "background": "#ffffff"
+            },
+            "typography": {
+                "heading_font": "Montserrat",
+                "body_font": "Inter",
+                "heading_size": "32px",
+                "body_size": "16px"
+            }
+        }
+
+    try:
+        # Convert documents to Pydantic models
+        # Map database structure to OnePagerLayout
+        onepager_layout_data = {
+            "title": onepager_doc.get("title", "Untitled"),
+            "elements": [],
+            "version": 1,
+            "dimensions": {"width": 1080, "height": 1920, "unit": "px"}
+        }
+
+        # Map content sections to elements
+        if "content" in onepager_doc and "sections" in onepager_doc["content"]:
+            for idx, section in enumerate(onepager_doc["content"]["sections"]):
+                element = {
+                    "id": section.get("id", f"section-{idx}"),
+                    "type": section.get("type", "text_block"),
+                    "content": section.get("content", {}),
+                    "styling": section.get("styling"),
+                    "order": section.get("order", idx)
+                }
+                onepager_layout_data["elements"].append(element)
+
+        # Add headline as hero element if exists
+        if "content" in onepager_doc and "headline" in onepager_doc["content"]:
+            hero_element = {
+                "id": "hero-main",
+                "type": "hero",
+                "content": {
+                    "headline": onepager_doc["content"]["headline"],
+                    "subheadline": onepager_doc["content"].get("subheadline"),
+                    "description": onepager_doc["content"].get("description", "")
+                },
+                "order": 0
+            }
+            onepager_layout_data["elements"].insert(0, hero_element)
+
+        onepager = OnePagerLayout(**onepager_layout_data)
+        brand_kit = BrandKitInDB(**brand_kit_doc)
+
+        # Generate HTML with Brand Kit styling
+        logger.info("Generating HTML from onepager layout")
+        html_generator = PDFHTMLGenerator()
+        html = html_generator.generate_html(onepager, brand_kit)
+
+        # Generate PDF
+        logger.info(f"Generating PDF with format: {format}")
+        pdf_generator = PDFGenerator()
+        pdf_bytes = await pdf_generator.generate_pdf(
+            html,
+            page_format=format
+        )
+
+        logger.info(f"✅ PDF generated successfully: {len(pdf_bytes) / 1024:.1f} KB")
+
+        # Return as downloadable file
+        filename = f"{onepager_doc['title'].replace(' ', '_')}_{format}.pdf"
+        
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{filename}\"",
+                "X-PDF-Format": format,
+                "X-PDF-Size-KB": str(int(len(pdf_bytes) / 1024))
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"PDF export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF generation failed: {str(e)}"
+        )

@@ -1,0 +1,26 @@
+{# Testimonials Section Template #}
+<section class="testimonials section">
+    {% if element.content.title %}
+    <h2>{{ element.content.title }}</h2>
+    {% endif %}
+    
+    {% if element.content.items or element.content.testimonials %}
+    <div class="testimonials-grid">
+        {% for testimonial in element.content.items or element.content.testimonials %}
+        <div class="testimonial-item">
+            {% if testimonial.quote or testimonial.text %}
+            <p class="testimonial-quote">"{{ testimonial.quote or testimonial.text }}"</p>
+            {% endif %}
+            
+            {% if testimonial.author or testimonial.name %}
+            <p class="testimonial-author">{{ testimonial.author or testimonial.name }}</p>
+            {% endif %}
+            
+            {% if testimonial.company or testimonial.role %}
+            <p class="testimonial-company">{{ testimonial.company or testimonial.role }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>

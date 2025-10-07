@@ -1,0 +1,22 @@
+{# Hero Section Template #}
+<section class="hero section">
+    <div class="hero-content">
+        <h2>{{ element.content.headline }}</h2>
+        
+        {% if element.content.subheadline %}
+        <p class="subheadline">{{ element.content.subheadline }}</p>
+        {% endif %}
+        
+        {% if element.content.description %}
+        <p class="description">{{ element.content.description }}</p>
+        {% endif %}
+        
+        {% if element.content.image_url %}
+        <img src="{{ element.content.image_url }}" alt="{{ element.content.headline }}" style="max-width: 100%; border-radius: 8px; margin-top: 20px;">
+        {% endif %}
+        
+        {% if element.content.cta_text and element.content.cta_url %}
+        <a href="{{ element.content.cta_url }}" class="cta-button">{{ element.content.cta_text }}</a>
+        {% endif %}
+    </div>
+</section>
