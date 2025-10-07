@@ -16,7 +16,7 @@ import os
 from unittest.mock import Mock, patch
 
 from backend.services.canva_translator import CanvaTranslator, CanvaTranslationError
-from backend.models.onepager import (
+from backend.models.onepager_canva import (
     OnePagerLayout,
     OnePagerElement,
     ElementType,

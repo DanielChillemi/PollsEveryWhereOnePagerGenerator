@@ -7,7 +7,7 @@ MongoDB data models for users, Brand Kits, and one-pager projects.
 
 from backend.models.user import UserCreate, UserInDB, UserResponse
 from backend.models.profile import BrandProfile
-from backend.models.onepager import (
+from backend.models.onepager_canva import (
     OnePagerLayout,
     OnePagerElement,
     ElementType,

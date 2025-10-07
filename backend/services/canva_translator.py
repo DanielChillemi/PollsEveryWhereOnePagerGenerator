@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional
 import logging
 import os
 
-from backend.models.onepager import OnePagerLayout, OnePagerElement, ElementType
+from backend.models.onepager_canva import OnePagerLayout, OnePagerElement, ElementType
 from backend.models.profile import BrandProfile
 from backend.integrations.canva.canva_client import CanvaClient
 from backend.config import settings
