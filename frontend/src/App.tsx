@@ -1,10 +1,11 @@
 /**
  * App Component
- * 
+ *
  * Main application with routing configuration
  * Handles authentication flow and protected routes
  */
 
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
@@ -14,9 +15,25 @@ import { BrandKitEditPage } from './pages/BrandKitEditPage'
 import { BrandKitListPage } from './pages/BrandKitListPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
+import { useAuthStore } from './stores/authStore'
 
 function App() {
   const { isAuthenticated } = useAuth()
+  const initializeAuth = useAuthStore((state) => state.initializeAuth)
+  const isInitialized = useAuthStore((state) => state.isInitialized)
+
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
+
+  // Show loading while initializing auth
+  if (!isInitialized) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <BrowserRouter>
