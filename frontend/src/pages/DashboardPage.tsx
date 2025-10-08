@@ -133,14 +133,20 @@ export function DashboardPage() {
                 borderRadius="lg"
                 p="lg"
                 textAlign="center"
-                opacity={0.6}
+                cursor="pointer"
+                onClick={() => navigate('/onepager/create')}
+                transition="all 0.2s"
+                _hover={{
+                  boxShadow: 'lg',
+                  transform: 'translateY(-2px)',
+                }}
               >
                 <Text fontSize="48px" mb="sm">🎨</Text>
                 <Heading size="md" color="brand.text" mb="sm">
                   Smart Canvas
                 </Heading>
                 <Text fontSize="sm" color="brand.textLight">
-                  Coming Soon - AI-powered one-pager creation
+                  AI-powered one-pager creation with instant PDF export
                 </Text>
               </Box>
             </SimpleGrid>
