@@ -5,7 +5,8 @@
  * Allows users to rearrange sections visually
  */
 
-import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
