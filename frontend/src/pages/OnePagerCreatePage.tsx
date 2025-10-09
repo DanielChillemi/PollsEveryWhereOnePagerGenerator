@@ -22,10 +22,6 @@ import {
   Textarea,
   Select,
   Button,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  FormHelperText,
   Spinner,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
@@ -156,10 +152,10 @@ export function OnePagerCreatePage() {
               )}
 
               {/* Title */}
-              <FormControl isInvalid={!!errors.title} isRequired>
-                <FormLabel fontWeight={600} fontSize="16px" color="#2d3748">
-                  One-Pager Title
-                </FormLabel>
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  One-Pager Title <Text as="span" color="red.500">*</Text>
+                </Text>
                 <Input
                   value={formData.title}
                   onChange={(e) =>
@@ -176,15 +172,15 @@ export function OnePagerCreatePage() {
                   }}
                 />
                 {errors.title && (
-                  <FormErrorMessage>{errors.title}</FormErrorMessage>
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.title}</Text>
                 )}
-              </FormControl>
+              </Box>
 
               {/* AI Prompt */}
-              <FormControl isInvalid={!!errors.input_prompt} isRequired>
-                <FormLabel fontWeight={600} fontSize="16px" color="#2d3748">
-                  Describe Your One-Pager
-                </FormLabel>
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Describe Your One-Pager <Text as="span" color="red.500">*</Text>
+                </Text>
                 <Textarea
                   value={formData.input_prompt}
                   onChange={(e) =>
@@ -203,11 +199,11 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                   }}
                 />
                 <HStack justify="space-between" mt={2}>
-                  <FormHelperText fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color="gray.600">
                     {formData.input_prompt.length < 10 && formData.input_prompt.length > 0
                       ? `${10 - formData.input_prompt.length} more characters needed`
                       : 'Be specific for best results'}
-                  </FormHelperText>
+                  </Text>
                   <Text
                     fontSize="sm"
                     color={
@@ -222,15 +218,15 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                   </Text>
                 </HStack>
                 {errors.input_prompt && (
-                  <FormErrorMessage>{errors.input_prompt}</FormErrorMessage>
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.input_prompt}</Text>
                 )}
-              </FormControl>
+              </Box>
 
               {/* Brand Kit Selection */}
-              <FormControl>
-                <FormLabel fontWeight={600} fontSize="16px" color="#2d3748">
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
                   Brand Kit (Optional)
-                </FormLabel>
+                </Text>
                 <Select
                   value={formData.brand_kit_id}
                   onChange={(e) =>
@@ -252,16 +248,16 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                     </option>
                   )}
                 </Select>
-                <FormHelperText fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="gray.600" mt={1}>
                   Apply your brand colors and fonts to the generated one-pager
-                </FormHelperText>
-              </FormControl>
+                </Text>
+              </Box>
 
               {/* Target Audience */}
-              <FormControl isInvalid={!!errors.target_audience}>
-                <FormLabel fontWeight={600} fontSize="16px" color="#2d3748">
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
                   Target Audience (Optional)
-                </FormLabel>
+                </Text>
                 <Input
                   value={formData.target_audience}
                   onChange={(e) =>
@@ -280,13 +276,13 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                     boxShadow: '0 0 0 1px #864CBD',
                   }}
                 />
-                <FormHelperText fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="gray.600" mt={1}>
                   Helps AI tailor content and tone for your specific audience
-                </FormHelperText>
+                </Text>
                 {errors.target_audience && (
-                  <FormErrorMessage>{errors.target_audience}</FormErrorMessage>
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.target_audience}</Text>
                 )}
-              </FormControl>
+              </Box>
 
               {/* Submit Button */}
               <Button

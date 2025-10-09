@@ -8,7 +8,6 @@
  * - Navigation to detail/create pages
  */
 
-import { useState, useRef } from 'react';
 import {
   Box,
   Container,
@@ -19,32 +18,26 @@ import {
   SimpleGrid,
   Button,
   Badge,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  useDisclosure,
   Spinner,
+  Center,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useOnePagers, useDeleteOnePager } from '../hooks/useOnePager';
 
 export function OnePagerListPage() {
   const navigate = useNavigate();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef<HTMLButtonElement>(null);
-
   const { data: onepagers, isLoading, error } = useOnePagers();
   const deleteMutation = useDeleteOnePager();
 
-  const handleDelete = async () => {
-    if (deleteId) {
-      await deleteMutation.mutateAsync(deleteId);
-      onClose();
-      setDeleteId(null);
+  const handleDelete = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteMutation.mutateAsync(id);
+    } catch (error) {
+      console.error('Failed to delete OnePager:', error);
     }
   };
 
@@ -266,10 +259,7 @@ export function OnePagerListPage() {
                         size="sm"
                         colorScheme="red"
                         variant="outline"
-                        onClick={() => {
-                          setDeleteId(onepager.id);
-                          onOpen();
-                        }}
+                        onClick={() => handleDelete(onepager.id, onepager.title)}
                       >
                         Delete
                       </Button>
@@ -281,40 +271,6 @@ export function OnePagerListPage() {
           )}
         </VStack>
       </Container>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent borderRadius="16px">
-            <AlertDialogHeader fontSize="lg" fontWeight={700}>
-              Delete One-Pager
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure? This action cannot be undone. All content and version
-              history will be permanently deleted.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose} variant="outline">
-                Cancel
-              </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDelete}
-                ml={3}
-                isLoading={deleteMutation.isPending}
-              >
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
     </Box>
   );
 }
