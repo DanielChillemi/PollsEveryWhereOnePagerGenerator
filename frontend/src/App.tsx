@@ -13,6 +13,9 @@ import { DashboardPage } from './pages/DashboardPage'
 import { BrandKitCreatePage } from './pages/BrandKitCreatePage'
 import { BrandKitEditPage } from './pages/BrandKitEditPage'
 import { BrandKitListPage } from './pages/BrandKitListPage'
+import { CanvasTestPage } from './pages/CanvasTestPage'
+import { OnePagerCreatePage } from './pages/OnePagerCreatePage'
+import { OnePagerCanvasPage } from './pages/OnePagerCanvasPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
 import { useAuthStore } from './stores/authStore'
@@ -86,6 +89,34 @@ function App() {
           element={
             <ProtectedRoute>
               <BrandKitListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* One-Pager Routes */}
+        <Route
+          path="/onepager/create"
+          element={
+            <ProtectedRoute>
+              <OnePagerCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onepager/:id"
+          element={
+            <ProtectedRoute>
+              <OnePagerCanvasPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Smart Canvas Test Page */}
+        <Route
+          path="/canvas-test"
+          element={
+            <ProtectedRoute>
+              <CanvasTestPage />
             </ProtectedRoute>
           }
         />

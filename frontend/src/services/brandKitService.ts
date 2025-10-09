@@ -74,7 +74,7 @@ export const brandKitService = {
   /**
    * Get all Brand Kits for the current user
    */
-  async getAll(token: string): Promise<BrandKit | null> {
+  async getAll(token: string): Promise<BrandKit[]> {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/v1/brand-kits/me`, {
         headers: {

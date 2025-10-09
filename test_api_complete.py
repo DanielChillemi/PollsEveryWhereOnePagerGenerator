@@ -33,10 +33,10 @@ async def register_and_login():
         # Try to register
         print("   • Attempting to register user...")
         register_response = await client.post(
-            f"{BASE_URL}/auth/register",
+            f"{BASE_URL}/auth/signup",
             json={
                 "email": TEST_USER["email"],
-                "username": TEST_USER["username"],
+                "username": TEST_USER["full_name"],
                 "password": TEST_USER["password"]
             }
         )
