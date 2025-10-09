@@ -19,7 +19,6 @@ import {
   Textarea,
   Spinner,
   Badge,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOnePager, useIterateOnePager } from '../hooks/useOnePager';
@@ -29,7 +28,7 @@ import { PDFExportModal } from '../components/onepager/PDFExportModal';
 export function OnePagerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isOpen: isExportOpen, onOpen: onExportOpen, onClose: onExportClose } = useDisclosure();
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const { data: onepager, isLoading, error } = useOnePager(id!);
   const iterateMutation = useIterateOnePager();
@@ -140,7 +139,7 @@ export function OnePagerDetailPage() {
               </Button>
               <Button
                 colorScheme="purple"
-                onClick={onExportOpen}
+                onClick={() => setIsExportOpen(true)}
                 leftIcon={<Text>📄</Text>}
               >
                 Export PDF
@@ -329,7 +328,7 @@ export function OnePagerDetailPage() {
       {onepager && (
         <PDFExportModal
           isOpen={isExportOpen}
-          onClose={onExportClose}
+          onClose={() => setIsExportOpen(false)}
           onepagerId={onepager.id}
           title={onepager.title}
         />

@@ -7,17 +7,8 @@
 
 import { useState } from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
   Button,
   VStack,
-  Radio,
-  RadioGroup,
   Text,
   HStack,
   Spinner,
@@ -81,65 +72,110 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
     },
   };
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
-      <ModalOverlay bg="rgba(0, 0, 0, 0.4)" backdropFilter="blur(4px)" />
-      <ModalContent borderRadius="16px">
-        <ModalHeader fontSize="24px" fontWeight={700}>
-          Export as PDF
-        </ModalHeader>
-        <ModalCloseButton />
+  if (!isOpen) return null;
 
-        <ModalBody>
+  return (
+    <Box
+      position="fixed"
+      top={0}
+      left={0}
+      right={0}
+      bottom={0}
+      bg="rgba(0, 0, 0, 0.4)"
+      backdropFilter="blur(4px)"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      zIndex={1000}
+      onClick={onClose}
+    >
+      <Box
+        bg="white"
+        borderRadius="16px"
+        maxW="600px"
+        w="90%"
+        maxH="90vh"
+        overflowY="auto"
+        onClick={(e) => e.stopPropagation()}
+        boxShadow="0 20px 60px rgba(0, 0, 0, 0.3)"
+      >
+        {/* Header */}
+        <Box p={6} borderBottom="1px solid #e2e8f0">
+          <HStack justify="space-between">
+            <Text fontSize="24px" fontWeight={700}>
+              Export as PDF
+            </Text>
+            <Button variant="ghost" onClick={onClose} size="sm">
+              ✕
+            </Button>
+          </HStack>
+        </Box>
+
+        {/* Body */}
+        <Box p={6}>
           <VStack gap={6} align="stretch">
             {/* Format Selection */}
             <Box>
               <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={3}>
                 Select Page Format:
               </Text>
-              <RadioGroup value={format} onChange={(val) => setFormat(val as PDFFormat)}>
-                <VStack align="stretch" gap={3}>
-                  {(Object.keys(formatDescriptions) as PDFFormat[]).map((formatKey) => {
-                    const info = formatDescriptions[formatKey];
-                    return (
-                      <Box
-                        key={formatKey}
-                        p={4}
-                        borderRadius="12px"
-                        border="2px solid"
-                        borderColor={format === formatKey ? '#864CBD' : '#e2e8f0'}
-                        bg={format === formatKey ? 'rgba(134, 76, 189, 0.05)' : 'white'}
-                        cursor="pointer"
-                        onClick={() => setFormat(formatKey)}
-                        transition="all 0.2s"
-                        _hover={{
-                          borderColor: '#864CBD',
-                          bg: 'rgba(134, 76, 189, 0.05)',
-                        }}
-                      >
-                        <Radio value={formatKey} colorScheme="purple">
-                          <HStack gap={3}>
-                            <Text fontSize="24px">{info.icon}</Text>
-                            <VStack align="start" gap={0}>
-                              <HStack gap={2}>
-                                <Text fontWeight={600} fontSize="16px">
-                                  {info.name}
-                                </Text>
-                                <Text fontSize="sm" color="gray.600">
-                                  ({info.dimensions})
-                                </Text>
-                              </HStack>
-                              <Text fontSize="sm" color="gray.600">
-                                {info.description}
-                              </Text>
-                            </VStack>
+              <VStack align="stretch" gap={3}>
+                {(Object.keys(formatDescriptions) as PDFFormat[]).map((formatKey) => {
+                  const info = formatDescriptions[formatKey];
+                  const isSelected = format === formatKey;
+                  return (
+                    <Box
+                      key={formatKey}
+                      p={4}
+                      borderRadius="12px"
+                      border="2px solid"
+                      borderColor={isSelected ? '#864CBD' : '#e2e8f0'}
+                      bg={isSelected ? 'rgba(134, 76, 189, 0.05)' : 'white'}
+                      cursor="pointer"
+                      onClick={() => setFormat(formatKey)}
+                      transition="all 0.2s"
+                      _hover={{
+                        borderColor: '#864CBD',
+                        bg: 'rgba(134, 76, 189, 0.05)',
+                      }}
+                    >
+                      <HStack gap={3}>
+                        {/* Selection indicator */}
+                        <Box
+                          w="20px"
+                          h="20px"
+                          borderRadius="full"
+                          border="2px solid"
+                          borderColor={isSelected ? '#864CBD' : '#cbd5e0'}
+                          bg={isSelected ? '#864CBD' : 'white'}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          flexShrink={0}
+                        >
+                          {isSelected && (
+                            <Box w="8px" h="8px" borderRadius="full" bg="white" />
+                          )}
+                        </Box>
+                        <Text fontSize="24px">{info.icon}</Text>
+                        <VStack align="start" gap={0} flex="1">
+                          <HStack gap={2}>
+                            <Text fontWeight={600} fontSize="16px">
+                              {info.name}
+                            </Text>
+                            <Text fontSize="sm" color="gray.600">
+                              ({info.dimensions})
+                            </Text>
                           </HStack>
-                        </Radio>
-                      </Box>
-                    );
-                  })}
-                </VStack>
-              </RadioGroup>
+                          <Text fontSize="sm" color="gray.600">
+                            {info.description}
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </Box>
+                  );
+                })}
+              </VStack>
             </Box>
 
             {/* Info Box */}
@@ -163,22 +199,25 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
               </HStack>
             </Box>
           </VStack>
-        </ModalBody>
+        </Box>
 
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            colorScheme="purple"
-            onClick={handleExport}
-            isLoading={exportMutation.isPending}
-            leftIcon={exportMutation.isPending ? <Spinner size="sm" /> : <Text>📥</Text>}
-          >
-            {exportMutation.isPending ? 'Generating...' : 'Download PDF'}
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        {/* Footer */}
+        <Box p={6} borderTop="1px solid #e2e8f0">
+          <HStack justify="flex-end" gap={3}>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="purple"
+              onClick={handleExport}
+              isLoading={exportMutation.isPending}
+              leftIcon={exportMutation.isPending ? <Spinner size="sm" /> : <Text>📥</Text>}
+            >
+              {exportMutation.isPending ? 'Generating...' : 'Download PDF'}
+            </Button>
+          </HStack>
+        </Box>
+      </Box>
+    </Box>
   );
 }
