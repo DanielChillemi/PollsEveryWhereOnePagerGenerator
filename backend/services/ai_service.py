@@ -165,9 +165,9 @@ IMPORTANT RULES:
 1. Always respond with valid JSON only - no other text
 2. Use the exact JSON schema provided
 3. Keep content concise and marketing-focused
-4. Include 4-6 main sections maximum
-5. Use clear, benefit-driven headlines
-6. Make the layout scannable and visual
+4. Use clear, benefit-driven headlines
+5. Make the layout scannable and visual
+6. You can include as many sections as needed to convey the message effectively
 
 Your output must be parseable JSON that follows the schema exactly."""
 
@@ -260,10 +260,21 @@ CURRENT LAYOUT:
 
 USER FEEDBACK: {user_feedback}{brand_voice_guidance}
 
-Modify the layout to address the feedback while maintaining the JSON schema.
-Return the COMPLETE updated JSON structure with all sections, not just the changes.
+CRITICAL INSTRUCTIONS:
+- If user says "Add a new section", you MUST add a NEW section to the sections array
+- If user says "Remove", you MUST delete that section
+- If user says "Modify" or "Change", update the existing content
+- When adding sections, increment the section count
+- Maintain proper section ordering with the "order" field
+- Give each section a unique "id" (e.g., "section-1", "section-2", "section-6" if adding 6th)
+- Return the COMPLETE updated JSON structure with ALL sections (existing + new)
 
-Return ONLY valid JSON, no other text."""
+EXAMPLES:
+- "Add a new section about pricing" → Add section-6 with pricing content
+- "Make headline catchier" → Modify existing headline
+- "Remove the benefits list" → Delete that section from array
+
+Return ONLY valid JSON matching the exact schema, no other text."""
 
     def _parse_ai_response(self, response_text: str) -> Dict[str, Any]:
         """

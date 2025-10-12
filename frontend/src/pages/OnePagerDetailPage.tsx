@@ -19,19 +19,28 @@ import {
   Textarea,
   Spinner,
   Badge,
+  ButtonGroup,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useOnePager, useIterateOnePager } from '../hooks/useOnePager';
+import { useOnePager, useIterateOnePager, useUpdateOnePager } from '../hooks/useOnePager';
+import { useBrandKits } from '../hooks/useBrandKit';
 import { DraggableSectionList } from '../components/onepager/DraggableSectionList';
 import { PDFExportModal } from '../components/onepager/PDFExportModal';
+import { toaster } from '../components/ui/toaster';
+import '../styles/wireframe-mode.css';
+
+type ViewMode = 'wireframe' | 'styled';
 
 export function OnePagerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('styled');
 
   const { data: onepager, isLoading, error } = useOnePager(id!);
+  const { data: brandKits } = useBrandKits();
   const iterateMutation = useIterateOnePager();
+  const updateMutation = useUpdateOnePager();
 
   const [feedback, setFeedback] = useState('');
 
@@ -47,14 +56,66 @@ export function OnePagerDetailPage() {
         },
       });
       setFeedback('');
+
+      // Show success notification
+      toaster.create({
+        title: 'AI Refinement Complete!',
+        description: 'Your one-pager has been updated. The page will refresh to show changes.',
+        type: 'success',
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Iteration failed:', error);
+      toaster.create({
+        title: 'Refinement Failed',
+        description: 'Could not refine the one-pager. Please try again.',
+        type: 'error',
+        duration: 3000,
+      });
     }
   };
 
   const handleSectionReorder = (newSections: any[]) => {
     // TODO: Implement auto-save to backend
     console.log('Sections reordered:', newSections);
+  };
+
+  const handleLinkBrandKit = async () => {
+    // Get the first available brand kit
+    if (brandKits && Array.isArray(brandKits) && brandKits.length > 0) {
+      const brandKitId = brandKits[0].id;
+
+      try {
+        await updateMutation.mutateAsync({
+          id: id!,
+          data: { brand_kit_id: brandKitId },
+        });
+
+        toaster.create({
+          title: 'Brand Kit Linked!',
+          description: `Linked to ${brandKits[0].company_name}`,
+          type: 'success',
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error('Failed to link brand kit:', error);
+        toaster.create({
+          title: 'Link Failed',
+          description: 'Could not link brand kit. Please try again.',
+          type: 'error',
+          duration: 3000,
+        });
+      }
+    } else {
+      toaster.create({
+        title: 'No Brand Kit Found',
+        description: 'Please create a brand kit first',
+        type: 'warning',
+        duration: 3000,
+      });
+      // Navigate to brand kit creation
+      navigate('/brand-kit/create');
+    }
   };
 
   // Loading State
@@ -130,6 +191,29 @@ export function OnePagerDetailPage() {
             </HStack>
 
             <HStack gap={2}>
+              {/* View Mode Toggle */}
+              <ButtonGroup size="md" isAttached variant="outline">
+                <Button
+                  onClick={() => setViewMode('wireframe')}
+                  bg={viewMode === 'wireframe' ? 'gray.100' : 'white'}
+                  borderColor={viewMode === 'wireframe' ? 'gray.400' : 'gray.200'}
+                  fontWeight={viewMode === 'wireframe' ? 600 : 400}
+                  _hover={{ bg: 'gray.50' }}
+                >
+                  🔲 Wireframe
+                </Button>
+                <Button
+                  onClick={() => setViewMode('styled')}
+                  bg={viewMode === 'styled' ? 'purple.50' : 'white'}
+                  borderColor={viewMode === 'styled' ? 'purple.400' : 'gray.200'}
+                  color={viewMode === 'styled' ? 'purple.700' : 'gray.700'}
+                  fontWeight={viewMode === 'styled' ? 600 : 400}
+                  _hover={{ bg: 'purple.50' }}
+                >
+                  🎨 Styled
+                </Button>
+              </ButtonGroup>
+
               <Button
                 colorScheme="purple"
                 variant="outline"
@@ -159,6 +243,8 @@ export function OnePagerDetailPage() {
             position={{ base: 'static', lg: 'sticky' }}
             top="100px"
             alignSelf="start"
+            maxH="calc(100vh - 120px)"
+            overflowY="auto"
           >
             <VStack gap={6} align="stretch">
               {/* Brand Kit Info */}
@@ -186,7 +272,12 @@ export function OnePagerDetailPage() {
                     <Text fontSize="sm" color="gray.600">
                       No brand kit linked
                     </Text>
-                    <Button size="sm" variant="outline" colorScheme="purple">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      colorScheme="purple"
+                      onClick={handleLinkBrandKit}
+                    >
                       Link Brand Kit
                     </Button>
                   </VStack>
@@ -241,9 +332,11 @@ export function OnePagerDetailPage() {
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     placeholder="e.g., Make headline more attention-grabbing, add pricing section, emphasize benefits..."
-                    minH="120px"
+                    minH="80px"
+                    maxH="120px"
                     fontSize="sm"
                     borderColor="#e2e8f0"
+                    resize="vertical"
                     _focus={{
                       borderColor: '#864CBD',
                       boxShadow: '0 0 0 1px #864CBD',
@@ -259,6 +352,14 @@ export function OnePagerDetailPage() {
                     isLoading={iterateMutation.isPending}
                     isDisabled={!feedback.trim() || feedback.length < 5}
                     leftIcon={<Text>🔄</Text>}
+                    color="white"
+                    bg="purple.600"
+                    _hover={{ bg: 'purple.700' }}
+                    _disabled={{
+                      bg: 'gray.300',
+                      color: 'gray.500',
+                      cursor: 'not-allowed'
+                    }}
                   >
                     {iterateMutation.isPending ? 'Refining...' : 'Iterate with AI'}
                   </Button>
@@ -275,49 +376,70 @@ export function OnePagerDetailPage() {
           {/* Canvas Area */}
           <Box flex="1" minW="0">
             <VStack gap={6} align="stretch">
-              {/* Headline Section */}
-              <Box
-                bg="white"
-                p={8}
-                borderRadius="16px"
-                boxShadow="sm"
-                border="1px solid #e2e8f0"
-              >
-                <VStack align="start" gap={4}>
-                  <Heading
-                    fontSize={{ base: '32px', md: '42px' }}
-                    fontWeight={700}
-                    color="#2d3748"
-                    lineHeight="1.2"
-                  >
-                    {onepager.content.headline}
-                  </Heading>
-                  {onepager.content.subheadline && (
-                    <Text
-                      fontSize={{ base: '18px', md: '22px' }}
-                      color="#4a5568"
-                      lineHeight="1.5"
-                    >
-                      {onepager.content.subheadline}
-                    </Text>
-                  )}
-                </VStack>
+              {/* View Mode Indicator */}
+              <Box textAlign="center">
+                <Badge
+                  className={viewMode === 'wireframe' ? 'wireframe-badge' : 'styled-badge'}
+                  px={4}
+                  py={2}
+                  borderRadius="full"
+                  fontSize="xs"
+                  fontWeight={700}
+                >
+                  {viewMode === 'wireframe' ? '🔲 WIREFRAME MODE' : '🎨 STYLED MODE'}
+                </Badge>
               </Box>
 
-              {/* Sections */}
-              <Box>
-                <HStack justify="space-between" mb={4}>
-                  <Heading size="md" color="#2d3748">
-                    Content Sections
-                  </Heading>
-                  <Text fontSize="sm" color="gray.600">
-                    Drag to reorder • Hover to edit/delete
-                  </Text>
-                </HStack>
-                <DraggableSectionList
-                  sections={onepager.content.sections}
-                  onReorder={handleSectionReorder}
-                />
+              {/* Canvas Content with Mode Class */}
+              <Box className={viewMode === 'wireframe' ? 'wireframe-mode' : 'styled-mode'}>
+                {/* Headline Section */}
+                <Box
+                  className="section-container"
+                  bg="white"
+                  p={8}
+                  borderRadius="16px"
+                  boxShadow="sm"
+                  border="1px solid #e2e8f0"
+                  mb={4}
+                  position="relative"
+                >
+                  <Text className="section-type-label">HEADLINE</Text>
+                  <VStack align="start" gap={4}>
+                    <Heading
+                      fontSize={{ base: '32px', md: '42px' }}
+                      fontWeight={700}
+                      color="#2d3748"
+                      lineHeight="1.2"
+                    >
+                      {onepager.content.headline}
+                    </Heading>
+                    {onepager.content.subheadline && (
+                      <Text
+                        fontSize={{ base: '18px', md: '22px' }}
+                        color="#4a5568"
+                        lineHeight="1.5"
+                      >
+                        {onepager.content.subheadline}
+                      </Text>
+                    )}
+                  </VStack>
+                </Box>
+
+                {/* Sections */}
+                <Box>
+                  <HStack justify="space-between" mb={4}>
+                    <Heading size="md" color="#2d3748">
+                      Content Sections
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600">
+                      Drag to reorder • Hover to edit/delete
+                    </Text>
+                  </HStack>
+                  <DraggableSectionList
+                    sections={onepager.content.sections}
+                    onReorder={handleSectionReorder}
+                  />
+                </Box>
               </Box>
             </VStack>
           </Box>

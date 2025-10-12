@@ -55,9 +55,22 @@ apiClient.interceptors.response.use(
           // Refresh failed, clear tokens and redirect to login
           localStorage.removeItem('access_token')
           localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user')
+
+          // Show user-friendly message
+          console.error('Session expired. Please log in again.')
+
+          // Redirect to login page
           window.location.href = '/login'
           return Promise.reject(refreshError)
         }
+      } else {
+        // No refresh token available, clear auth and redirect
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user')
+        console.error('No refresh token found. Please log in again.')
+        window.location.href = '/login'
       }
     }
 

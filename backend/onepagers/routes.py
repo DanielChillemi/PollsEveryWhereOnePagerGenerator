@@ -15,6 +15,9 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timezone
 from bson import ObjectId
 from typing import List, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 from backend.onepagers.schemas import (
     OnePagerCreate,
@@ -549,11 +552,19 @@ async def iterate_onepager(
         )
 
         # Update content from AI response
-        if "headline" in refined_data:
-            update_doc["content.headline"] = refined_data["headline"]
-        if "subheadline" in refined_data:
-            update_doc["content.subheadline"] = refined_data.get("subheadline")
-        if "sections" in refined_data:
+        # AI returns {"content": {"headline": ..., "sections": [...]}} structure
+        if "content" in refined_data:
+            content_data = refined_data["content"]
+            if "headline" in content_data:
+                update_doc["content.headline"] = content_data["headline"]
+            if "subheadline" in content_data:
+                update_doc["content.subheadline"] = content_data.get("subheadline")
+            if "sections" in content_data:
+                logger.info(f"🔍 AI returned {len(content_data['sections'])} sections (was {len(onepager['content']['sections'])} sections)")
+                update_doc["content.sections"] = content_data["sections"]
+        # Fallback: check top level (for backwards compatibility)
+        elif "sections" in refined_data:
+            logger.info(f"🔍 AI returned {len(refined_data['sections'])} sections (was {len(onepager['content']['sections'])} sections)")
             update_doc["content.sections"] = refined_data["sections"]
 
         # Update generation metadata
@@ -564,22 +575,7 @@ async def iterate_onepager(
     # Note: layout_changes, style_overrides, and apply_brand_styles
     # are not currently part of OnePagerIterate schema, so we skip them
 
-    # Create version snapshot
-    version_snapshot = {
-        "version": len(onepager.get("version_history", [])) + 1,
-        "snapshot": {
-            "content": onepager["content"],
-            "layout": onepager.get("layout", []),
-            "style_overrides": onepager.get("style_overrides", {}),
-            "status": onepager["status"]
-        },
-        "created_at": now,
-        "description": iteration_data.feedback[:200] if iteration_data.feedback else "Manual update"
-    }
-
-    update_doc["version_history"] = onepager.get("version_history", []) + [version_snapshot]
-
-    # Update in database
+    # Update in database first
     await db.onepagers.update_one(
         {"_id": ObjectId(onepager_id)},
         {"$set": update_doc}
@@ -588,7 +584,25 @@ async def iterate_onepager(
     # Fetch updated document
     updated_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
 
-    return OnePagerResponse(**onepager_helper(updated_onepager))
+    # Create version snapshot with UPDATED content
+    version_snapshot = {
+        "version": len(onepager.get("version_history", [])) + 1,
+        "content": updated_onepager["content"],  # Use updated content
+        "layout": updated_onepager.get("layout", []),
+        "created_at": now,
+        "change_description": iteration_data.feedback[:200] if iteration_data.feedback else "Manual update"
+    }
+
+    # Add version to history
+    await db.onepagers.update_one(
+        {"_id": ObjectId(onepager_id)},
+        {"$push": {"version_history": version_snapshot}}
+    )
+
+    # Fetch final document with version history
+    final_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    return OnePagerResponse(**onepager_helper(final_onepager))
 
 
 @router.delete(
