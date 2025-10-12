@@ -180,11 +180,17 @@ Your output must be parseable JSON that follows the schema exactly."""
         """Build prompt for initial generation."""
         brand_info = ""
         if brand_context:
+            brand_voice = brand_context.get('brand_voice', 'Professional and clear')
             brand_info = f"""
 BRAND CONTEXT:
 - Company: {brand_context.get('company_name', 'N/A')}
-- Brand Voice: {brand_context.get('brand_voice', 'Professional and clear')}
+- Brand Voice: {brand_voice}
 - Primary Color: {brand_context.get('color_palette', {}).get('primary', '#007ACC')}
+
+TONE & STYLE GUIDANCE:
+- Write all content in a tone that matches: "{brand_voice}"
+- Ensure headlines, body text, and CTAs reflect this brand voice
+- Maintain consistency with the brand's communication style throughout
 """
 
         audience_info = ""
@@ -237,12 +243,22 @@ Generate ONLY the JSON, no other text."""
         brand_context: Optional[Dict[str, Any]]
     ) -> str:
         """Build prompt for layout refinement."""
+        brand_voice_guidance = ""
+        if brand_context and brand_context.get('brand_voice'):
+            brand_voice = brand_context['brand_voice']
+            brand_voice_guidance = f"""
+
+BRAND VOICE: {brand_voice}
+- Maintain this brand voice in all content modifications
+- Ensure tone and style remain consistent with: "{brand_voice}"
+"""
+
         return f"""Refine this marketing one-pager based on user feedback:
 
 CURRENT LAYOUT:
 {json.dumps(current_layout, indent=2)}
 
-USER FEEDBACK: {user_feedback}
+USER FEEDBACK: {user_feedback}{brand_voice_guidance}
 
 Modify the layout to address the feedback while maintaining the JSON schema.
 Return the COMPLETE updated JSON structure with all sections, not just the changes.

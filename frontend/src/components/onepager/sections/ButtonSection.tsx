@@ -9,11 +9,12 @@ import { Button, Input, HStack } from '@chakra-ui/react';
 
 interface Props {
   text: string;
+  url?: string;
   isEditing?: boolean;
   onUpdate?: (newText: string) => void;
 }
 
-export function ButtonSection({ text, isEditing, onUpdate }: Props) {
+export function ButtonSection({ text, url, isEditing, onUpdate }: Props) {
   if (isEditing && onUpdate) {
     return (
       <HStack gap={2}>
@@ -28,6 +29,12 @@ export function ButtonSection({ text, isEditing, onUpdate }: Props) {
     );
   }
 
+  const handleClick = () => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <Button
       h="56px"
@@ -37,9 +44,11 @@ export function ButtonSection({ text, isEditing, onUpdate }: Props) {
       fontWeight={600}
       background="linear-gradient(135deg, #864CBD 0%, #1568B8 100%)"
       color="white"
+      cursor={url ? 'pointer' : 'default'}
+      onClick={handleClick}
       _hover={{
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(134, 76, 189, 0.4)',
+        transform: url ? 'translateY(-2px)' : 'none',
+        boxShadow: url ? '0 6px 20px rgba(134, 76, 189, 0.4)' : 'none',
       }}
       transition="all 0.3s ease"
     >

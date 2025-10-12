@@ -71,6 +71,7 @@ async def create_onepager(
     # Fetch brand kit if provided
     brand_context = None
     brand_kit_id_obj = None
+    brand_kit = None
 
     if onepager_data.brand_kit_id:
         if not ObjectId.is_valid(onepager_data.brand_kit_id):
@@ -99,20 +100,129 @@ async def create_onepager(
             "typography": brand_kit.get("typography")
         }
 
-    # Generate initial wireframe using AI
-    wireframe_data = await ai_service.generate_initial_wireframe(
-        user_prompt=onepager_data.input_prompt,
-        brand_context=brand_context,
-        target_audience=onepager_data.target_audience
-    )
+    # Validate product_id if provided and belongs to the brand kit
+    product_data = None
+    if onepager_data.product_id and brand_kit:
+        products = brand_kit.get("products", [])
+        product_data = next((p for p in products if p.get("id") == onepager_data.product_id), None)
+        if not product_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product with ID '{onepager_data.product_id}' not found in Brand Kit"
+            )
 
-    # Build content from AI wireframe
+    # Generate initial wireframe using AI (if input_prompt provided)
+    wireframe_data = {}
+    if onepager_data.input_prompt:
+        wireframe_data = await ai_service.generate_initial_wireframe(
+            user_prompt=onepager_data.input_prompt,
+            brand_context=brand_context,
+            target_audience=onepager_data.target_audience
+        )
+
+    # Build content sections from structured data
+    sections = []
+
+    # If AI generated sections, use those
+    if wireframe_data.get("sections"):
+        sections = [ContentSection(**section) for section in wireframe_data["sections"]]
+    else:
+        # Otherwise, build sections from structured form data
+        section_order = 0
+
+        # Hero section with problem
+        if onepager_data.problem:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-hero-{section_order}",
+                type="hero",
+                title="The Challenge",
+                content=onepager_data.problem,
+                order=section_order
+            ))
+
+        # Solution section
+        if onepager_data.solution:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-solution-{section_order}",
+                type="text",
+                title="Our Solution",
+                content=onepager_data.solution,
+                order=section_order
+            ))
+
+        # Features list
+        if onepager_data.features:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-features-{section_order}",
+                type="list",
+                title="Key Features",
+                content=onepager_data.features,
+                order=section_order
+            ))
+
+        # Benefits list
+        if onepager_data.benefits:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-benefits-{section_order}",
+                type="list",
+                title="Benefits",
+                content=onepager_data.benefits,
+                order=section_order
+            ))
+
+        # Integrations (if provided)
+        if onepager_data.integrations:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-integrations-{section_order}",
+                type="list",
+                title="Integrations",
+                content=onepager_data.integrations,
+                order=section_order
+            ))
+
+        # Social proof (if provided)
+        if onepager_data.social_proof:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-social-{section_order}",
+                type="text",
+                title="What Our Customers Say",
+                content=onepager_data.social_proof,
+                order=section_order
+            ))
+
+        # CTA button
+        if onepager_data.cta:
+            section_order += 1
+            sections.append(ContentSection(
+                id=f"section-cta-{section_order}",
+                type="button",
+                title=None,
+                content={
+                    "text": onepager_data.cta.text,
+                    "url": onepager_data.cta.url
+                },
+                order=section_order
+            ))
+
+    # Build content from form data (prioritize form data over AI-generated)
     content = OnePagerContent(
-        headline=wireframe_data.get("headline", "Your One-Pager"),
+        headline=wireframe_data.get("headline", onepager_data.title),
         subheadline=wireframe_data.get("subheadline"),
-        sections=[
-            ContentSection(**section) for section in wireframe_data.get("sections", [])
-        ]
+        sections=sections,
+        problem=onepager_data.problem,
+        solution=onepager_data.solution,
+        features=onepager_data.features,
+        benefits=onepager_data.benefits,
+        integrations=onepager_data.integrations or [],
+        social_proof=onepager_data.social_proof,
+        cta=onepager_data.cta.model_dump() if onepager_data.cta else None,
+        visuals=[visual.model_dump() for visual in onepager_data.visuals]
     )
 
     # Create basic layout blocks from sections
@@ -138,10 +248,11 @@ async def create_onepager(
         "layout": layout,
         "style_overrides": {},
         "generation_metadata": {
-            "prompts": [onepager_data.input_prompt],
+            "prompts": [onepager_data.input_prompt] if onepager_data.input_prompt else [],
             "iterations": 0,
             "ai_model": settings.ai_model_name,
-            "last_generated_at": now
+            "last_generated_at": now,
+            "product_id": onepager_data.product_id
         },
         "version_history": [],
         "created_at": now,
@@ -265,6 +376,89 @@ async def get_onepager(
     return OnePagerResponse(**onepager_helper(onepager))
 
 
+@router.patch(
+    "/{onepager_id}",
+    response_model=OnePagerResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "One-pager not found"},
+        403: {"model": ErrorResponse, "description": "Not authorized to update this one-pager"}
+    }
+)
+async def update_onepager(
+    onepager_id: str,
+    brand_kit_id: Optional[str] = None,
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Update one-pager metadata (like brand_kit_id).
+
+    Simple endpoint for updating basic metadata without triggering AI.
+    """
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Find one-pager
+    onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this one-pager"
+        )
+
+    # Build update document
+    update_doc = {"updated_at": datetime.now(timezone.utc)}
+
+    if brand_kit_id is not None:
+        if brand_kit_id == "":
+            # Remove brand kit
+            update_doc["brand_kit_id"] = None
+        else:
+            # Validate brand kit ID and ownership
+            if not ObjectId.is_valid(brand_kit_id):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid brand kit ID format"
+                )
+
+            brand_kit = await db.brand_kits.find_one({
+                "_id": ObjectId(brand_kit_id),
+                "user_id": ObjectId(current_user.id),
+                "is_active": True
+            })
+
+            if not brand_kit:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Brand kit not found or not accessible"
+                )
+
+            update_doc["brand_kit_id"] = ObjectId(brand_kit_id)
+
+    # Update in database
+    await db.onepagers.update_one(
+        {"_id": ObjectId(onepager_id)},
+        {"$set": update_doc}
+    )
+
+    # Fetch updated document
+    updated_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    return OnePagerResponse(**onepager_helper(updated_onepager))
+
+
 @router.put(
     "/{onepager_id}/iterate",
     response_model=OnePagerResponse,
@@ -367,26 +561,8 @@ async def iterate_onepager(
         update_doc["generation_metadata.iterations"] = onepager["generation_metadata"].get("iterations", 0) + 1
         update_doc["generation_metadata.last_generated_at"] = now
 
-    # Handle direct layout modifications
-    if iteration_data.layout_changes:
-        update_doc["layout"] = [block.model_dump() for block in iteration_data.layout_changes]
-
-    # Handle style override updates
-    if iteration_data.style_overrides:
-        # Merge with existing overrides
-        existing_overrides = onepager.get("style_overrides", {})
-        existing_overrides.update(iteration_data.style_overrides)
-        update_doc["style_overrides"] = existing_overrides
-
-    # Handle brand styling toggle
-    if iteration_data.apply_brand_styles:
-        update_doc["status"] = OnePagerStatus.STYLED.value
-    elif onepager["status"] == OnePagerStatus.STYLED.value:
-        # If currently styled and not explicitly applying, keep as styled
-        pass
-    else:
-        # Otherwise keep as wireframe
-        update_doc["status"] = OnePagerStatus.WIREFRAME.value
+    # Note: layout_changes, style_overrides, and apply_brand_styles
+    # are not currently part of OnePagerIterate schema, so we skip them
 
     # Create version snapshot
     version_snapshot = {

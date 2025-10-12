@@ -23,70 +23,98 @@ interface Props {
 /**
  * Main renderer component
  * Routes to appropriate section component based on type
+ * Wraps each section with section-container for wireframe mode styling
  */
 export function SectionRenderer({ section, isEditing, onUpdate }: Props) {
+  // Render section type label (visible only in wireframe mode)
+  const SectionLabel = () => (
+    <Text className="section-type-label">{section.type.toUpperCase()}</Text>
+  );
+
   // Type-safe rendering based on section.type
+  let sectionContent;
+
   switch (section.type) {
     case 'heading':
-      return (
+      sectionContent = (
         <HeadingSection
           content={section.content as string}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'text':
-      return (
+      sectionContent = (
         <TextSection
           content={section.content as string}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'list':
-      return (
+      sectionContent = (
         <ListSection
           items={section.content as string[]}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'button':
-      return (
+      // Handle both string and object content formats
+      const buttonContent = typeof section.content === 'string'
+        ? section.content
+        : (section.content as any)?.text || 'Button';
+
+      sectionContent = (
         <ButtonSection
-          text={section.content as string}
+          text={buttonContent}
+          url={(section.content as any)?.url}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'hero':
-      return (
+      // Handle both string and object content formats for hero
+      const heroData = typeof section.content === 'string'
+        ? {
+            headline: section.title || 'Headline',
+            description: section.content
+          }
+        : (section.content as any);
+
+      sectionContent = (
         <HeroSection
-          data={section.content as any}
+          data={heroData}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'features':
-      return (
+      sectionContent = (
         <FeaturesSection
           data={section.content as any}
           isEditing={isEditing}
           onUpdate={onUpdate}
         />
       );
+      break;
 
     case 'testimonials':
     case 'cta':
     case 'footer':
     case 'image':
       // Future enhancement: implement these section types
-      return (
+      sectionContent = (
         <Box
           p={6}
           bg="gray.50"
@@ -102,10 +130,11 @@ export function SectionRenderer({ section, isEditing, onUpdate }: Props) {
           </Text>
         </Box>
       );
+      break;
 
     default:
       // Fallback: render as text
-      return (
+      sectionContent = (
         <TextSection
           content={String(section.content)}
           isEditing={isEditing}
@@ -113,4 +142,12 @@ export function SectionRenderer({ section, isEditing, onUpdate }: Props) {
         />
       );
   }
+
+  // Wrap with section container for consistent wireframe styling
+  return (
+    <Box className="section-container" position="relative">
+      <SectionLabel />
+      {sectionContent}
+    </Box>
+  );
 }

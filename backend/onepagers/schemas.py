@@ -37,6 +37,16 @@ class OnePagerContent(BaseModel):
     subheadline: Optional[str] = Field(None, description="Supporting subheadline")
     sections: List[ContentSection] = Field(default_factory=list, description="Content sections")
 
+    # New structured fields from user journey
+    problem: Optional[str] = Field(None, description="Problem statement")
+    solution: Optional[str] = Field(None, description="Solution statement")
+    features: List[str] = Field(default_factory=list, description="Product features")
+    benefits: List[str] = Field(default_factory=list, description="Product benefits")
+    integrations: List[str] = Field(default_factory=list, description="Integration names")
+    social_proof: Optional[str] = Field(None, description="Testimonials or social proof")
+    cta: Optional[Dict[str, str]] = Field(None, description="Call-to-action data")
+    visuals: List[Dict[str, str]] = Field(default_factory=list, description="Images and visuals")
+
 
 class LayoutBlock(BaseModel):
     """Layout block positioning."""
@@ -66,25 +76,64 @@ class VersionSnapshot(BaseModel):
 
 # Request Models
 
+class CTAData(BaseModel):
+    """Call-to-action data."""
+    text: str = Field(..., description="CTA button text")
+    url: str = Field(..., description="CTA URL")
+
+
+class VisualData(BaseModel):
+    """Visual/image data."""
+    url: str = Field(..., description="Image URL")
+    type: str = Field(default="image", description="Visual type")
+    alt_text: Optional[str] = Field(None, description="Alt text for accessibility")
+
+
 class OnePagerCreate(BaseModel):
     """Request model for creating a new one-pager."""
     title: str = Field(..., min_length=1, max_length=200, description="One-pager title")
-    input_prompt: str = Field(
-        ..., 
-        min_length=10, 
-        max_length=2000,
-        description="Description for AI generation"
-    )
+
+    # Product selection (optional - will preload fields if provided)
+    product_id: Optional[str] = Field(None, description="Product ID from Brand Kit")
+
+    # Core content fields (can be preloaded from product or entered manually)
+    problem: str = Field(..., min_length=10, max_length=2000, description="Problem statement")
+    solution: str = Field(..., min_length=10, max_length=2000, description="Solution statement")
+    features: List[str] = Field(default_factory=list, description="Product features")
+    benefits: List[str] = Field(default_factory=list, description="Product benefits")
+
+    # Optional fields
+    integrations: Optional[List[str]] = Field(None, description="Integration names")
+    social_proof: Optional[str] = Field(None, max_length=1000, description="Testimonials or social proof")
+    cta: CTAData = Field(..., description="Call-to-action")
+    visuals: List[VisualData] = Field(default_factory=list, description="Images and visuals")
+
+    # Brand and audience
     brand_kit_id: Optional[str] = Field(None, description="Brand kit ID to use")
     target_audience: Optional[str] = Field(None, max_length=500, description="Target audience")
-    
+
+    # AI generation (optional - for custom AI prompts)
+    input_prompt: Optional[str] = Field(
+        None,
+        max_length=2000,
+        description="Additional AI generation prompt"
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
                 "title": "Product Launch One-Pager",
-                "input_prompt": "Create a one-pager for our new SaaS product targeting IT managers",
+                "product_id": "abc123",
+                "problem": "Marketing teams struggle to create professional collateral quickly",
+                "solution": "Our AI-powered tool generates marketing one-pagers in minutes",
+                "features": ["AI content generation", "Brand kit integration", "PDF export"],
+                "benefits": ["Save 10 hours per week", "Consistent branding", "Professional results"],
+                "integrations": ["Canva", "Google Drive", "Slack"],
+                "social_proof": "\"This tool saved us countless hours!\" - John Doe, CMO",
+                "cta": {"text": "Start Free Trial", "url": "https://example.com/signup"},
+                "visuals": [{"url": "https://example.com/hero.jpg", "type": "hero"}],
                 "brand_kit_id": "507f1f77bcf86cd799439011",
-                "target_audience": "IT decision makers in mid-size companies"
+                "target_audience": "Marketing managers in SMBs"
             }
         }
 
@@ -221,5 +270,7 @@ __all__ = [
     "OnePagerContent",
     "LayoutBlock",
     "GenerationMetadata",
-    "VersionSnapshot"
+    "VersionSnapshot",
+    "CTAData",
+    "VisualData"
 ]
