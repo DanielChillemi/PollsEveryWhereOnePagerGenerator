@@ -4,224 +4,260 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI-Powered Marketing One-Pager Co-Creation Tool - a MarTech application for iterative, human-in-the-loop marketing material creation. Built for AI Native Demo Day in partnership with Poll Everywhere.
+AI-Powered Marketing One-Pager Co-Creation Tool for Poll Everywhere AI Native Demo Day. This MarTech application enables iterative, human-in-the-loop creation of marketing materials through progressive refinement from low-fidelity drafts to polished outputs.
 
-**Key Principle:** Progressive refinement from low-fidelity drafts (ASCII layouts, wireframes) to polished marketing materials, not "one-shot" AI generation.
+**Core Principle:** Never implement "one-shot" AI generation. Always support iterative refinement with human feedback at each step.
 
 ## Architecture
 
 ### Monorepo Structure
 ```
 PollsEveryWhereOnePagerGenerator/
-├── backend/          # FastAPI Python backend
-├── frontend/         # React + TypeScript + Vite frontend
-└── DevDocuments/     # Planning & gap analysis docs
+├── backend/          # FastAPI Python backend (MongoDB, JWT, OpenAI, Playwright)
+├── frontend/         # React 19 + TypeScript + Vite + Chakra UI
+└── DevDocuments/     # Planning docs, gap analysis
 ```
 
-### Backend Architecture (Python + FastAPI)
+### Backend (FastAPI + MongoDB)
 
-**Tech Stack:** FastAPI, MongoDB, JWT Auth, OpenAI GPT-4, Playwright PDF export
+**Tech Stack:** Python 3.13+, FastAPI, Motor (async MongoDB), OpenAI GPT-4, Playwright PDF export
 
-**Key Modules:**
-- `auth/` - JWT authentication with bcrypt
-- `brand_kits/` - Brand asset management (products, audiences, colors, fonts, voice)
-- `onepagers/` - One-pager CRUD and AI iteration
+**Module Structure:**
+- `auth/` - JWT authentication with bcrypt, dependency injection pattern
+- `brand_kits/` - Brand asset management with soft delete (`is_active` flag)
+- `onepagers/` - One-pager CRUD with AI iteration endpoints
 - `services/ai_service.py` - OpenAI integration with brand context
-- `services/export_service.py` - Playwright-based PDF generation
-- `database/mongodb.py` - MongoDB connection manager
+- `services/pdf_generator_playwright.py` - HTML-to-PDF conversion
+- `database/mongodb.py` - Connection manager with async context
 
-**Important Design Patterns:**
-1. **Dependency Injection**: Auth uses `get_current_user()` dependency
-2. **Soft Delete**: Brand kits use `is_active` flag, not hard delete
-3. **Brand Context**: AI service accepts `brand_context` dict from brand kits
-4. **Iterative AI**: Separate endpoints for initial generation (`POST /onepagers`) and refinement (`POST /onepagers/{id}/iterate`)
+**Critical Design Patterns:**
 
-**Python 3.13 Fix:** Windows requires `ProactorEventLoopPolicy` for Playwright - see `main.py:13-15`
+1. **Section Content Polymorphism**: `ContentSection.content` can be `str | List[str] | Dict[str, Any]`
+   - Hero: `{headline: str, subheadline?: str, description?: str}` or plain `str`
+   - Button: `{text: str, url: str}` or plain `str`
+   - List: `List[str]`
+   - Text/Heading: `str`
 
-### Frontend Architecture (React + TypeScript)
+2. **Auto-Generation from Structured Data**: When `input_prompt` is absent, backend builds sections from structured fields:
+   ```python
+   # backend/onepagers/routes.py:114-211
+   if onepager_data.problem:
+       sections.append(ContentSection(type="hero", content=problem))
+   if onepager_data.solution:
+       sections.append(ContentSection(type="text", content=solution))
+   # ... features, benefits, cta, etc.
+   ```
 
-**Tech Stack:** React 19, TypeScript, Vite, Chakra UI, TanStack Query, Zustand, React Router
+3. **Brand Context Flow**: Brand kit data → `brand_context` dict → AI prompts with colors/fonts/voice
 
-**State Management:**
-- `stores/authStore.ts` - JWT tokens, user state (Zustand)
-- `@tanstack/react-query` - Server state caching
+**Python 3.13 Compatibility:** Windows requires `asyncio.WindowsProactorEventLoopPolicy()` for Playwright - see `main.py:13-15`
 
-**Key Directories:**
-- `pages/` - Route components (Dashboard, Create, Edit, Detail)
-- `components/onepager/` - One-pager canvas, sections, drag-drop
-- `services/` - API client layers
-- `hooks/` - React Query hooks for API calls
-- `types/` - TypeScript interfaces
+### Frontend (React 19 + TypeScript)
+
+**Tech Stack:** React 19, TypeScript, Vite, Chakra UI v3, TanStack Query v5, Zustand, React Router v7, @dnd-kit
+
+**State Architecture:**
+- `stores/authStore.ts` - JWT tokens, user state (Zustand, persisted to localStorage)
+- TanStack Query - Server state with automatic caching/invalidation
+- Component-local state for UI (forms, modals, edit modes)
 
 **Critical Components:**
-- `pages/CreateOnePager.tsx` - One-pager creation form (matches backend schema)
-- `pages/OnePagerDetailPage.tsx` - Canvas editor with AI iteration
-- `components/onepager/DraggableSectionList.tsx` - Drag-to-reorder with @dnd-kit
-- `components/onepager/sections/` - Section renderers (Hero, Text, Features, etc.)
 
-**Type Safety:** `frontend/src/types/onepager.ts` defines `OnePagerCreateData` matching backend `OnePagerCreate` schema
+1. **SectionRenderer** (`components/onepager/SectionRenderer.tsx:28-139`)
+   - Handles polymorphic section content types
+   - Must check `typeof section.content` before rendering
+   - Supports both string and object formats for button/hero sections
+
+2. **Section Components** (`components/onepager/sections/`)
+   - Each section type (Hero, Text, List, Button) has dedicated component
+   - Button sections accept `{text, url}` and handle clicks with `window.open(url, '_blank')`
+   - Hero sections require `{headline, subheadline?, description?}` object
+
+3. **Type Safety**: `types/onepager.ts` must match `backend/onepagers/schemas.py` exactly
+   - `OnePagerCreateData` ↔ `OnePagerCreate`
+   - `ContentSection` ↔ `ContentSection`
 
 ## Development Commands
 
 ### Backend
 ```bash
-# Start development server (auto-reload)
-cd PollsEveryWhereOnePagerGenerator
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-
-# View API docs
-open http://localhost:8000/docs
-
-# Run auth tests
-python test_auth_flow.py
-
-# Python virtual environment
-python -m venv .venv
+# Activate virtual environment
 source .venv/bin/activate  # macOS/Linux
 .venv\Scripts\activate     # Windows
+
+# Start dev server with auto-reload
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+
+# View interactive API docs
+open http://localhost:8000/docs
+
+# Run backend tests
+python test_auth_flow.py
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Database check (MongoDB must be running)
+curl http://localhost:8000/health
 ```
 
 ### Frontend
 ```bash
-# Start dev server (Vite HMR)
-cd PollsEveryWhereOnePagerGenerator/frontend
+cd frontend
+
+# Start Vite dev server with HMR
 npm run dev
+# Opens http://localhost:5173
 
-# Open http://localhost:5173
-
-# Build for production
-npm run build
-
-# Type check
+# Type checking without emit
 npx tsc --noEmit
 
-# Lint
+# Lint with ESLint
 npm run lint
+
+# Production build
+npm run build
+
+# Install dependencies
+npm install
 ```
 
-### Environment Setup
-Backend requires `.env` file with:
-- `MONGODB_URL` - MongoDB connection string
-- `JWT_SECRET_KEY` - JWT signing key
-- `JWT_REFRESH_SECRET_KEY` - Refresh token key
-- `OPENAI_API_KEY` - OpenAI API key (required)
-- `FRONTEND_URL` - CORS allowed origin (default: http://localhost:5173)
+### Environment Variables
 
-## Critical API Schema Alignment
-
-**Backend Schema** (`backend/onepagers/schemas.py` - OnePagerCreate):
-```python
-title: str (required)
-problem: str (required, 10-2000 chars)
-solution: str (required, 10-2000 chars)
-features: List[str] (optional)
-benefits: List[str] (optional)
-cta: dict with {text, url} (required)
-product_id: str (optional)
-brand_kit_id: str (optional)
-target_audience: str (optional)
+Backend `.env` (required):
+```bash
+MONGODB_URL=mongodb://localhost:27017        # Or MongoDB Atlas connection string
+JWT_SECRET_KEY=<random-secret>
+JWT_REFRESH_SECRET_KEY=<random-secret>
+OPENAI_API_KEY=<openai-api-key>              # Required for AI generation
+FRONTEND_URL=http://localhost:5173           # CORS allowed origin
 ```
 
-**Frontend Must Match** (`frontend/src/pages/CreateOnePager.tsx`):
-- Form state must include all required fields
-- Submit payload must exclude empty optional fields
-- CTA must be object with `text` and `url` strings
+Frontend `.env` (optional):
+```bash
+VITE_API_BASE_URL=http://localhost:8000      # Backend API URL
+```
 
-**Common Bug:** Select components with dynamic options can crash if not properly guarded with `Array.isArray()` checks.
+## Critical Integration Points
 
-## Current Status (Week 2)
+### Backend-Frontend Schema Alignment
 
-**Backend: 100% Complete** ✅
-- Authentication, Brand Kits, AI Generation, PDF Export all functional
+**OnePager Creation Payload**:
+```typescript
+// Frontend must send
+{
+  title: string,                    // Required
+  problem: string,                  // Required, 10-2000 chars
+  solution: string,                 // Required, 10-2000 chars
+  features?: string[],              // Optional list
+  benefits?: string[],              // Optional list
+  cta: {text: string, url: string}, // Required object
+  brand_kit_id?: string,            // Optional ObjectId
+  target_audience?: string,         // Optional
+  input_prompt?: string             // Optional AI prompt
+}
+```
 
-**Frontend: 80% Complete** ⚠️
-- Auth UI, Dashboard, Brand Kit forms, Canvas editor implemented
-- **Critical Gaps** (see `DevDocuments/WEEK_2_MVP_GAP_ANALYSIS.md`):
-  1. Enhanced One-Pager Creation Form (product dropdown, structured fields)
-  2. Canvas Wireframe/Styled Toggle
-  3. Canvas Interactive Editing (inline edit, repositioning, zoom)
-  4. Auto-Save System
-  5. One-Pager History Sidebar
-  6. Brand Voice Integration in AI prompts
+**Backend Section Generation Logic** (`backend/onepagers/routes.py:114-211`):
+- If `input_prompt` exists → call OpenAI for AI-generated sections
+- Else → auto-build sections from structured data (problem, solution, features, benefits, cta)
+- Both paths populate `ContentSection[]` array
 
-## Iterative AI Workflow
+**Frontend Section Rendering** (`frontend/src/components/onepager/SectionRenderer.tsx`):
+- Must handle polymorphic `section.content` types
+- Check `typeof section.content` before casting
+- Button: Extract `{text, url}` from content object
+- Hero: Convert string to `{headline, description}` if needed
 
-**Core Loop:**
-1. User creates one-pager with structured input (problem, solution, features, etc.)
-2. Backend calls OpenAI GPT-4 with brand context
-3. AI generates wireframe sections (low-fidelity structure)
-4. User provides feedback via iteration panel
-5. Backend refines with feedback + previous context
-6. Repeat until user satisfied
-7. Export to PDF with brand styling
+### Common Type Mismatches
 
-**Never:** Implement single-shot generation without iteration capability.
+**Problem:** React error "Objects are not valid as a React child"
+**Cause:** Rendering object content directly (e.g., `{text, url}`) without extracting fields
+**Solution:**
+```typescript
+// Wrong
+<Button>{section.content}</Button>
 
-## PDF Export Architecture
+// Right
+const buttonContent = typeof section.content === 'string'
+  ? section.content
+  : (section.content as any)?.text || 'Button';
+```
 
-**Technology:** Playwright (headless browser) renders HTML → PDF
-- Supports Letter (8.5×11"), A4, Tabloid (11×17") formats
-- Applies brand colors, fonts, logo from Brand Kit
-- Generates selectable text, high-quality output
-- Endpoint: `POST /api/v1/onepagers/{id}/export/pdf?format=letter`
+## Testing & Debugging
 
-## Known Issues
+### Backend Testing
+```bash
+# Manual API testing
+curl -X POST http://localhost:8000/api/v1/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!","full_name":"Test User"}'
 
-1. **Browser Cache Battles:** Vite HMR updates don't always clear browser cache
-   - Solution: Hard refresh with `Cmd+Shift+R` or clear site data
-   - Use incognito mode for testing fresh loads
+# Interactive Swagger UI
+open http://localhost:8000/docs
 
-2. **React "Objects are not valid as React child":** Often caused by:
-   - Rendering objects directly instead of strings
-   - Missing `Array.isArray()` checks before `.map()`
-   - Incorrect component exports (named vs default)
+# Check MongoDB collections
+# Collections: users, brand_kits, onepagers
+```
 
-3. **401 Unauthorized on Brand Kit fetch:** JWT token expiry
-   - Frontend should handle refresh token flow
-   - Check `useAuthStore` for token state
+### Frontend Debugging
 
-## Development Workflow Guidance
+**Browser Cache Issues:**
+- Vite HMR doesn't always clear browser cache
+- Solution: Hard refresh (`Cmd+Shift+R` or `Ctrl+Shift+R`)
+- Use incognito mode for clean state testing
 
-**When Adding New Features:**
-1. Check `WEEK_2_MVP_GAP_ANALYSIS.md` for planned work
-2. Update both backend schema AND frontend types
-3. Test with incognito browser to avoid cache issues
-4. Verify API contract with `/docs` Swagger UI
+**React DevTools:**
+- Check Zustand store: `useAuthStore.getState()`
+- Inspect TanStack Query cache for stale data
+- Monitor Network tab for API responses
 
-**When Debugging Frontend:**
-1. Check browser Console for React errors
-2. Verify Network tab for API responses
-3. Inspect Zustand store state in React DevTools
-4. Check TanStack Query cache for stale data
+**Common Errors:**
+1. "Objects are not valid as React child" → Content type mismatch in section rendering
+2. 401 Unauthorized → JWT token expired, check `useAuthStore` token state
+3. Empty sections array → Missing `input_prompt` and structured data
 
-**When Modifying AI Logic:**
-1. Edit `backend/services/ai_service.py`
-2. Ensure brand context (colors, fonts, voice) passed to prompts
-3. Test with real OpenAI API key, not mocks
-4. Preserve conversation history for iteration
+## Known Issues & Solutions
 
-## Testing Strategy
+### Issue: OnePager Canvas Shows "No sections yet"
+**Root Cause:** Backend didn't generate sections because `input_prompt` was absent and structured data wasn't converted to sections.
 
-**Backend:**
-- Use `test_auth_flow.py` for auth validation
-- Interactive testing via `/docs` Swagger UI
-- MongoDB collections: `users`, `brand_kits`, `onepagers`
+**Fix Applied:** `backend/onepagers/routes.py:123-211` now auto-generates sections from structured fields when AI is not invoked.
 
-**Frontend:**
-- Manual testing with browser DevTools
-- Type checking with `npx tsc --noEmit`
-- API integration testing with real backend
+### Issue: React Error in ButtonSection
+**Root Cause:** Backend sends `{text, url}` object but frontend expected string.
 
-## Deployment Notes
+**Fix Applied:**
+- `SectionRenderer.tsx:68-82` extracts text/url from object
+- `ButtonSection.tsx:11-47` accepts `url` prop and implements click handler
 
-- Backend: Designed for Vercel Serverless Functions (FastAPI)
-- Frontend: Vercel static hosting
-- Database: MongoDB Atlas cloud
-- Monitoring: Configured for Sentry/DataDog (not implemented)
+## Current Development Status
+
+**Backend:** ✅ 100% Complete
+- Authentication, Brand Kits, AI Generation, PDF Export
+
+**Frontend:** ⚠️ 80% Complete (see `DevDocuments/WEEK_2_MVP_GAP_ANALYSIS.md`)
+
+**Remaining Gaps:**
+1. Enhanced creation form with product dropdown
+2. Wireframe/Styled canvas toggle
+3. Canvas interactive editing (inline edit, zoom)
+4. Auto-save system
+5. One-pager history sidebar
+6. Brand voice integration in AI prompts
+
+## Deployment Architecture
+
+**Target Platform:** Vercel (both frontend and backend)
+- Frontend: Static hosting with Vite build output
+- Backend: Serverless Functions (FastAPI adapter required)
+- Database: MongoDB Atlas
+- AI: OpenAI API (cloud)
+
+**Note:** Playwright requires special configuration for serverless environments. Consider migrating to cloud PDF generation service for production.
 
 ## Additional Resources
 
-- Main README: Comprehensive setup instructions
+- API Documentation: http://localhost:8000/docs (when running)
 - Gap Analysis: `DevDocuments/WEEK_2_MVP_GAP_ANALYSIS.md`
-- API Docs: http://localhost:8000/docs when backend running
+- Main README: Setup instructions and tech stack details
