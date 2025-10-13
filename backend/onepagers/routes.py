@@ -798,17 +798,30 @@ async def export_onepager_pdf(
         has_hero_section = False
         if "content" in onepager_doc and "sections" in onepager_doc["content"]:
             for idx, section in enumerate(onepager_doc["content"]["sections"]):
+                section_type = section.get("type", "text_block")
+                section_content = section.get("content", {})
+
+                # Handle hero type: convert string content to proper dict format
+                if section_type == "hero" and isinstance(section_content, str):
+                    # Use OnePager's headline as the hero headline
+                    section_content = {
+                        "headline": onepager_doc["content"].get("headline", section.get("title", "")),
+                        "subheadline": onepager_doc["content"].get("subheadline", ""),
+                        "description": section_content
+                    }
+                    has_hero_section = True
+
                 element = {
                     "id": section.get("id", f"section-{idx}"),
-                    "type": section.get("type", "text_block"),
-                    "content": section.get("content", {}),
+                    "type": section_type,
+                    "content": section_content,
                     "styling": section.get("styling"),
                     "order": section.get("order", idx)
                 }
                 onepager_layout_data["elements"].append(element)
-                
+
                 # Track if we already have a hero section
-                if section.get("type") == "hero":
+                if section_type == "hero":
                     has_hero_section = True
 
         # Add headline as hero element if exists and no hero section already present

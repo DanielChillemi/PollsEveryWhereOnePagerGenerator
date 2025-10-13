@@ -203,17 +203,33 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
 
         {/* Footer */}
         <Box p={6} borderTop="1px solid #e2e8f0">
-          <HStack justify="flex-end" gap={3}>
-            <Button variant="ghost" onClick={onClose}>
+          <HStack justify="flex-end" gap={3} w="full">
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              size="md"
+            >
               Cancel
             </Button>
             <Button
               colorScheme="purple"
               onClick={handleExport}
               isLoading={exportMutation.isPending}
-              leftIcon={exportMutation.isPending ? <Spinner size="sm" /> : <Text>📥</Text>}
+              size="md"
+              color="white"
+              bg="purple.600"
+              _hover={{ bg: 'purple.700' }}
             >
-              {exportMutation.isPending ? 'Generating...' : 'Download PDF'}
+              {exportMutation.isPending ? (
+                <>
+                  <Spinner size="sm" mr={2} />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  📥 Download PDF
+                </>
+              )}
             </Button>
           </HStack>
         </Box>

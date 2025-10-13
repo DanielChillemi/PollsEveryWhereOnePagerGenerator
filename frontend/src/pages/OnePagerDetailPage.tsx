@@ -370,6 +370,39 @@ export function OnePagerDetailPage() {
                   )}
                 </VStack>
               </Box>
+
+              {/* PDF Export Panel */}
+              <Box
+                bg="white"
+                p={6}
+                borderRadius="12px"
+                boxShadow="sm"
+                border="1px solid #e2e8f0"
+              >
+                <Heading size="sm" mb={4} color="#2d3748">
+                  📄 Export PDF
+                </Heading>
+                <VStack gap={3} align="stretch">
+                  <Text fontSize="sm" color="gray.600">
+                    Download your one-pager as a professional PDF in your preferred format.
+                  </Text>
+                  <Button
+                    colorScheme="purple"
+                    w="full"
+                    onClick={() => setIsExportOpen(true)}
+                    leftIcon={<Text>📥</Text>}
+                    size="lg"
+                    color="white"
+                    bg="purple.600"
+                    _hover={{ bg: 'purple.700' }}
+                  >
+                    Export PDF
+                  </Button>
+                  <Text fontSize="xs" color="gray.500" textAlign="center">
+                    Available formats: Letter, A4, Tabloid
+                  </Text>
+                </VStack>
+              </Box>
             </VStack>
           </Box>
 

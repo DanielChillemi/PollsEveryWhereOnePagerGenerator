@@ -1,0 +1,18 @@
+{# Button Section Template #}
+<section class="section" style="text-align: center; padding: 40px 80px;">
+    {% if element.title %}
+    <h3 style="margin-bottom: 24px;">{{ element.title }}</h3>
+    {% endif %}
+
+    {% if element.content is mapping %}
+        {% if element.content.text and element.content.url %}
+        <a href="{{ element.content.url }}" class="cta-button" style="display: inline-block; background-color: var(--color-primary); color: white; padding: 16px 48px; font-size: 20px; font-weight: 600; text-decoration: none; border-radius: 8px;">
+            {{ element.content.text }}
+        </a>
+        {% endif %}
+    {% elif element.content is string %}
+    <button class="cta-button" style="display: inline-block; background-color: var(--color-primary); color: white; padding: 16px 48px; font-size: 20px; font-weight: 600; text-decoration: none; border-radius: 8px; border: none;">
+        {{ element.content }}
+    </button>
+    {% endif %}
+</section>
