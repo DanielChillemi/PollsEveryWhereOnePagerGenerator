@@ -61,8 +61,10 @@ def extract_key_stats(onepager: OnePagerLayout) -> List[Dict[str, str]]:
                 for item in content:
                     if isinstance(item, str):
                         all_text += item + " "
-        if hasattr(element, 'title') and element.title:
-            all_text += element.title + " "
+        # Safely get title attribute
+        element_title = getattr(element, 'title', None)
+        if element_title:
+            all_text += element_title + " "
 
     # Pattern matching for common stat formats
     patterns = [
@@ -99,8 +101,9 @@ def extract_key_stats(onepager: OnePagerLayout) -> List[Dict[str, str]]:
 
     # If no stats found, generate defaults from content analysis
     if len(stats) == 0:
-        # Count features
-        feature_count = sum(1 for el in onepager.elements if 'feature' in str(el.title).lower() or el.type == 'list')
+        # Count features - safely get title
+        feature_count = sum(1 for el in onepager.elements
+                          if ('feature' in str(getattr(el, 'title', '')).lower() or el.type == 'list'))
         if feature_count > 0:
             stats.append({
                 'number': str(feature_count * 5) + '+',  # Estimate features
@@ -108,8 +111,9 @@ def extract_key_stats(onepager: OnePagerLayout) -> List[Dict[str, str]]:
                 'icon': '⚡'
             })
 
-        # Count benefits
-        benefit_count = sum(1 for el in onepager.elements if 'benefit' in str(el.title).lower())
+        # Count benefits - safely get title
+        benefit_count = sum(1 for el in onepager.elements
+                          if 'benefit' in str(getattr(el, 'title', '')).lower())
         if benefit_count > 0:
             stats.append({
                 'number': str(benefit_count * 3),
