@@ -682,6 +682,11 @@ async def export_onepager_pdf(
         enum=["letter", "a4", "tabloid"],
         description="Page format: letter (8.5×11\"), a4 (8.27×11.69\"), or tabloid (11×17\")"
     ),
+    template: str = Query(
+        "minimalist",
+        enum=["minimalist", "bold", "business", "product"],
+        description="Template style: minimalist (clean 2-column), bold (diagonal/asymmetric), business (data-focused grid), product (visual showcase)"
+    ),
     current_user: UserInDB = Depends(get_current_active_user),
     db: AsyncIOMotorDatabase = Depends(get_db)
 ):
@@ -846,10 +851,10 @@ async def export_onepager_pdf(
         onepager = OnePagerLayout(**onepager_layout_data)
         brand_kit = BrandKitInDB(**brand_kit_doc)
 
-        # Generate HTML with Brand Kit styling
-        logger.info("Generating HTML from onepager layout")
+        # Generate HTML with Brand Kit styling and selected template
+        logger.info(f"Generating HTML from onepager layout with template: {template}")
         html_generator = PDFHTMLGenerator()
-        html = html_generator.generate_html(onepager, brand_kit)
+        html = html_generator.generate_html(onepager, brand_kit, template_name=template)
 
         # Generate PDF
         logger.info(f"Generating PDF with format: {format}")

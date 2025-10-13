@@ -2,6 +2,15 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+export interface Product {
+  id: string;
+  name: string;
+  default_problem?: string;
+  default_solution?: string;
+  features?: string[];
+  benefits?: string[];
+}
+
 export interface BrandKitData {
   company_name: string;
   primary_color: string;
@@ -15,6 +24,7 @@ export interface BrandKitData {
     name: string;
     description: string;
   }>;
+  products?: Product[];
 }
 
 export interface BrandKit extends BrandKitData {
@@ -22,6 +32,7 @@ export interface BrandKit extends BrandKitData {
   user_id: string;
   created_at: string;
   updated_at: string;
+  products?: Product[];
 }
 
 /**
@@ -74,7 +85,7 @@ export const brandKitService = {
   /**
    * Get all Brand Kits for the current user
    */
-  async getAll(token: string): Promise<BrandKit | null> {
+  async getAll(token: string): Promise<BrandKit[]> {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/v1/brand-kits/me`, {
         headers: {

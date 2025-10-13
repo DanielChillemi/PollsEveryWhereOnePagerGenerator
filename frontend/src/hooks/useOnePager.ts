@@ -128,7 +128,7 @@ export const useExportPDF = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   return useMutation({
-    mutationFn: ({ id, format }: { id: string; format: PDFFormat }) =>
-      onepagerService.exportPDF(id, format, accessToken!),
+    mutationFn: ({ id, format, template }: { id: string; format: PDFFormat; template: string }) =>
+      onepagerService.exportPDF(id, format, template, accessToken!),
   });
 };

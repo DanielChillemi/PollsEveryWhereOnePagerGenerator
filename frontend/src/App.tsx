@@ -14,11 +14,12 @@ import { BrandKitCreatePage } from './pages/BrandKitCreatePage'
 import { BrandKitEditPage } from './pages/BrandKitEditPage'
 import { BrandKitListPage } from './pages/BrandKitListPage'
 import { OnePagerListPage } from './pages/OnePagerListPage'
-import { OnePagerCreatePage } from './pages/OnePagerCreatePage'
+import { CreateOnePager } from './pages/CreateOnePager'
 import { OnePagerDetailPage } from './pages/OnePagerDetailPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
 import { useAuthStore } from './stores/authStore'
+import { Toaster } from './components/ui/toaster'
 
 function App() {
   const { isAuthenticated } = useAuth()
@@ -39,8 +40,9 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <BrowserRouter>
+        <Routes>
         {/* Default route - redirect based on auth status */}
         <Route
           path="/"
@@ -106,7 +108,7 @@ function App() {
           path="/onepager/create"
           element={
             <ProtectedRoute>
-              <OnePagerCreatePage />
+              <CreateOnePager />
             </ProtectedRoute>
           }
         />
@@ -121,8 +123,10 @@ function App() {
 
         {/* 404 fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+      <Toaster />
+    </>
   )
 }
 

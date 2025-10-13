@@ -30,15 +30,21 @@ import { useBrandKits } from '../hooks/useBrandKit';
 import type { OnePagerCreateData } from '../types/onepager';
 
 export function OnePagerCreatePage() {
+  // Fixed: Removed duplicate default export
   const navigate = useNavigate();
   const createMutation = useCreateOnePager();
   const { data: brandKits } = useBrandKits();
 
   const [formData, setFormData] = useState<OnePagerCreateData>({
     title: '',
-    input_prompt: '',
+    problem: '',
+    solution: '',
+    features: [],
+    benefits: [],
+    cta: { text: '', url: '' },
     brand_kit_id: '',
     target_audience: '',
+    input_prompt: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,12 +58,24 @@ export function OnePagerCreatePage() {
       newErrors.title = 'Title must be less than 200 characters';
     }
 
-    if (!formData.input_prompt.trim()) {
-      newErrors.input_prompt = 'AI prompt is required';
-    } else if (formData.input_prompt.length < 10) {
-      newErrors.input_prompt = 'Prompt must be at least 10 characters';
-    } else if (formData.input_prompt.length > 2000) {
-      newErrors.input_prompt = 'Prompt must be less than 2000 characters';
+    if (!formData.problem.trim()) {
+      newErrors.problem = 'Problem statement is required';
+    } else if (formData.problem.length < 10) {
+      newErrors.problem = 'Problem must be at least 10 characters';
+    } else if (formData.problem.length > 2000) {
+      newErrors.problem = 'Problem must be less than 2000 characters';
+    }
+
+    if (!formData.solution.trim()) {
+      newErrors.solution = 'Solution statement is required';
+    } else if (formData.solution.length < 10) {
+      newErrors.solution = 'Solution must be at least 10 characters';
+    } else if (formData.solution.length > 2000) {
+      newErrors.solution = 'Solution must be less than 2000 characters';
+    }
+
+    if (!formData.cta.text.trim() || !formData.cta.url.trim()) {
+      newErrors.cta = 'Call-to-action text and URL are required';
     }
 
     if (formData.target_audience && formData.target_audience.length > 500) {
@@ -75,9 +93,14 @@ export function OnePagerCreatePage() {
 
     try {
       // Remove empty optional fields
-      const submitData = { ...formData };
+      const submitData: any = { ...formData };
       if (!submitData.brand_kit_id) delete submitData.brand_kit_id;
       if (!submitData.target_audience) delete submitData.target_audience;
+      if (!submitData.input_prompt) delete submitData.input_prompt;
+      if (!submitData.product_id) delete submitData.product_id;
+      if (!submitData.integrations || submitData.integrations.length === 0) delete submitData.integrations;
+      if (!submitData.social_proof) delete submitData.social_proof;
+      if (!submitData.visuals || submitData.visuals.length === 0) delete submitData.visuals;
 
       const result = await createMutation.mutateAsync(submitData);
       // Navigate to detail page to view AI-generated content
@@ -118,7 +141,7 @@ export function OnePagerCreatePage() {
               color="rgba(255, 255, 255, 0.9)"
               maxW="700px"
             >
-              Describe your vision and let AI create a professional marketing one-pager in seconds
+              Define your product's problem, solution, and key details for AI-powered one-pager generation
             </Text>
           </VStack>
         </Container>
@@ -176,20 +199,18 @@ export function OnePagerCreatePage() {
                 )}
               </Box>
 
-              {/* AI Prompt */}
+              {/* Problem Statement */}
               <Box>
                 <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
-                  Describe Your One-Pager <Text as="span" color="red.500">*</Text>
+                  Problem Statement <Text as="span" color="red.500">*</Text>
                 </Text>
                 <Textarea
-                  value={formData.input_prompt}
+                  value={formData.problem}
                   onChange={(e) =>
-                    setFormData({ ...formData, input_prompt: e.target.value })
+                    setFormData({ ...formData, problem: e.target.value })
                   }
-                  placeholder="Describe what you want in your one-pager. Include key messages, target audience, and main features you want to highlight. The more detail you provide, the better the AI can generate relevant content.
-
-Example: Create a one-pager for our new SaaS product targeting IT managers. Focus on security, scalability, and cost savings. Include a hero section, 3-4 key features, and a strong call-to-action."
-                  minH="200px"
+                  placeholder="What problem does this product solve? (e.g., Finding authentic, affordable Vietnamese food that's both quick and healthy can be challenging in our busy neighborhood)"
+                  minH="100px"
                   fontSize="16px"
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
@@ -198,27 +219,125 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                     boxShadow: '0 0 0 1px #864CBD',
                   }}
                 />
-                <HStack justify="space-between" mt={2}>
-                  <Text fontSize="sm" color="gray.600">
-                    {formData.input_prompt.length < 10 && formData.input_prompt.length > 0
-                      ? `${10 - formData.input_prompt.length} more characters needed`
-                      : 'Be specific for best results'}
-                  </Text>
-                  <Text
-                    fontSize="sm"
-                    color={
-                      formData.input_prompt.length > 2000
-                        ? '#c53030'
-                        : formData.input_prompt.length > 1800
-                        ? '#dd6b20'
-                        : 'gray.600'
+                {errors.problem && (
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.problem}</Text>
+                )}
+              </Box>
+
+              {/* Solution Statement */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Solution Statement <Text as="span" color="red.500">*</Text>
+                </Text>
+                <Textarea
+                  value={formData.solution}
+                  onChange={(e) =>
+                    setFormData({ ...formData, solution: e.target.value })
+                  }
+                  placeholder="How does this product solve the problem? (e.g., Vietspot brings authentic Vietnamese flavors to your neighborhood with traditional pho and banh mi made fresh daily)"
+                  minH="100px"
+                  fontSize="16px"
+                  borderRadius="12px"
+                  border="2px solid #e2e8f0"
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+                {errors.solution && (
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.solution}</Text>
+                )}
+              </Box>
+
+              {/* Features (comma-separated) */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Features (Optional)
+                </Text>
+                <Textarea
+                  value={formData.features.join(', ')}
+                  onChange={(e) =>
+                    setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(f => f) })
+                  }
+                  placeholder="Enter features separated by commas (e.g., Traditional pho options, House-made banh mi, Fresh herbs daily)"
+                  minH="80px"
+                  fontSize="16px"
+                  borderRadius="12px"
+                  border="2px solid #e2e8f0"
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  Separate multiple features with commas
+                </Text>
+              </Box>
+
+              {/* Benefits (comma-separated) */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Benefits (Optional)
+                </Text>
+                <Textarea
+                  value={formData.benefits.join(', ')}
+                  onChange={(e) =>
+                    setFormData({ ...formData, benefits: e.target.value.split(',').map(b => b.trim()).filter(b => b) })
+                  }
+                  placeholder="Enter benefits separated by commas (e.g., Quick service under 10 min, Affordable pricing, Authentic family recipes)"
+                  minH="80px"
+                  fontSize="16px"
+                  borderRadius="12px"
+                  border="2px solid #e2e8f0"
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  Separate multiple benefits with commas
+                </Text>
+              </Box>
+
+              {/* Call-to-Action */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Call-to-Action <Text as="span" color="red.500">*</Text>
+                </Text>
+                <VStack gap={3} align="stretch">
+                  <Input
+                    value={formData.cta.text}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cta: { ...formData.cta, text: e.target.value } })
                     }
-                  >
-                    {formData.input_prompt.length}/2000
-                  </Text>
-                </HStack>
-                {errors.input_prompt && (
-                  <Text color="red.500" fontSize="sm" mt={1}>{errors.input_prompt}</Text>
+                    placeholder="Button text (e.g., Order Now, Visit Us, Get Started)"
+                    h="56px"
+                    fontSize="16px"
+                    borderRadius="12px"
+                    border="2px solid #e2e8f0"
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  />
+                  <Input
+                    value={formData.cta.url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cta: { ...formData.cta, url: e.target.value } })
+                    }
+                    placeholder="URL (e.g., https://vietspot.com/order)"
+                    h="56px"
+                    fontSize="16px"
+                    borderRadius="12px"
+                    border="2px solid #e2e8f0"
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  />
+                </VStack>
+                {errors.cta && (
+                  <Text color="red.500" fontSize="sm" mt={1}>{errors.cta}</Text>
                 )}
               </Box>
 
@@ -323,9 +442,9 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
                   p={4}
                 >
                   <Text fontSize="sm" color="#2d3748" lineHeight="1.6">
-                    <strong>💡 Pro Tip:</strong> Generation typically takes 3-7 seconds. The AI will
-                    create a wireframe layout with 4-6 sections based on your description. You
-                    can refine it afterwards using our Smart Canvas editor.
+                    <strong>💡 Pro Tip:</strong> Be specific with your problem and solution statements.
+                    The AI will create a professional one-pager layout in 3-7 seconds based on your inputs.
+                    You can refine it afterwards using our Smart Canvas editor.
                   </Text>
                 </Box>
               )}
@@ -336,5 +455,3 @@ Example: Create a one-pager for our new SaaS product targeting IT managers. Focu
     </Box>
   );
 }
-
-export default OnePagerCreatePage;

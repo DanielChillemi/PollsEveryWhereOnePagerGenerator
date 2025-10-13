@@ -87,7 +87,7 @@ export const onepagerService = {
   },
 
   /**
-   * Update OnePager metadata (title, status, style overrides)
+   * Update OnePager metadata (title, status, style overrides, brand_kit_id)
    * Does NOT trigger AI generation
    */
   async update(
@@ -95,12 +95,20 @@ export const onepagerService = {
     data: OnePagerUpdateData,
     token: string
   ): Promise<OnePager> {
-    const response = await axios.put(`${API_BASE_URL}/api/v1/onepagers/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const params = new URLSearchParams();
+    if (data.brand_kit_id !== undefined) {
+      params.append('brand_kit_id', data.brand_kit_id || '');
+    }
+
+    const response = await axios.patch(
+      `${API_BASE_URL}/api/v1/onepagers/${id}?${params}`,
+      null,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return {
       ...response.data,
@@ -152,9 +160,9 @@ export const onepagerService = {
    * Uses in-house Playwright-based PDF engine
    * Returns binary Blob for download
    */
-  async exportPDF(id: string, format: PDFFormat, token: string): Promise<Blob> {
+  async exportPDF(id: string, format: PDFFormat, template: string, token: string): Promise<Blob> {
     const response = await axios.get(
-      `${API_BASE_URL}/api/v1/onepagers/${id}/export/pdf?format=${format}`,
+      `${API_BASE_URL}/api/v1/onepagers/${id}/export/pdf?format=${format}&template=${template}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

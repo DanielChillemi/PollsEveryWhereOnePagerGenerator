@@ -179,26 +179,39 @@ class PDFHTMLGenerator:
     def generate_html(
         self,
         onepager: OnePagerLayout,
-        brand_kit: BrandKitInDB
+        brand_kit: BrandKitInDB,
+        template_name: str = "minimalist"
     ) -> str:
         """
         Generate complete HTML with Brand Kit styling.
-        
+
         Args:
             onepager: OnePager layout data structure
             brand_kit: Brand Kit with colors, fonts, logo
-        
+            template_name: Template style to use (minimalist, bold, business, product)
+
         Returns:
             Complete HTML string ready for PDF conversion
-        
+
         Raises:
             PDFHTMLGeneratorError: If HTML generation fails
         """
         try:
-            logger.info(f"Generating HTML for onepager: {onepager.title}")
-            
-            # Load base template
-            template = self.env.get_template('onepager_base.html')
+            logger.info(f"Generating HTML for onepager: {onepager.title} with template: {template_name}")
+
+            # Map template names to template files
+            template_map = {
+                "minimalist": "onepager_minimalist.html",
+                "bold": "onepager_bold.html",
+                "business": "onepager_business.html",
+                "product": "onepager_product.html"
+            }
+
+            # Fallback to minimalist if template not found
+            template_file = template_map.get(template_name, "onepager_minimalist.html")
+
+            # Load selected template
+            template = self.env.get_template(template_file)
             
             # Convert Pydantic models to dicts for Jinja2
             onepager_dict = self._prepare_onepager_data(onepager)

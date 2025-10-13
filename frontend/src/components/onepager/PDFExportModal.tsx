@@ -26,6 +26,7 @@ interface Props {
 
 export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
   const [format, setFormat] = useState<PDFFormat>('letter');
+  const [template, setTemplate] = useState<string>('minimalist');
   const exportMutation = useExportPDF();
 
   const handleExport = async () => {
@@ -33,13 +34,14 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
       const blob = await exportMutation.mutateAsync({
         id: onepagerId,
         format,
+        template,
       });
 
       // Create download link
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${title.replace(/\s+/g, '_')}_${format}.pdf`;
+      link.download = `${title.replace(/\s+/g, '_')}_${template}_${format}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -69,6 +71,29 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
       dimensions: '11" × 17"',
       description: 'Large format for presentations',
       icon: '📰',
+    },
+  };
+
+  const templateDescriptions = {
+    minimalist: {
+      name: 'Minimalist',
+      description: 'Clean 2-column layout with subtle gradients',
+      icon: '✨',
+    },
+    bold: {
+      name: 'Bold & Creative',
+      description: 'Diagonal layouts and asymmetric design',
+      icon: '🎨',
+    },
+    business: {
+      name: 'Professional Business',
+      description: 'Data-focused grid with metrics dashboard',
+      icon: '📊',
+    },
+    product: {
+      name: 'Product Showcase',
+      description: 'Visual-first gallery layout',
+      icon: '🖼️',
     },
   };
 
@@ -114,6 +139,64 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
         {/* Body */}
         <Box p={6}>
           <VStack gap={6} align="stretch">
+            {/* Template Selection */}
+            <Box>
+              <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={3}>
+                Select Design Template:
+              </Text>
+              <VStack align="stretch" gap={3}>
+                {(Object.keys(templateDescriptions) as string[]).map((templateKey) => {
+                  const info = templateDescriptions[templateKey as keyof typeof templateDescriptions];
+                  const isSelected = template === templateKey;
+                  return (
+                    <Box
+                      key={templateKey}
+                      p={4}
+                      borderRadius="12px"
+                      border="2px solid"
+                      borderColor={isSelected ? '#864CBD' : '#e2e8f0'}
+                      bg={isSelected ? 'rgba(134, 76, 189, 0.05)' : 'white'}
+                      cursor="pointer"
+                      onClick={() => setTemplate(templateKey)}
+                      transition="all 0.2s"
+                      _hover={{
+                        borderColor: '#864CBD',
+                        bg: 'rgba(134, 76, 189, 0.05)',
+                      }}
+                    >
+                      <HStack gap={3}>
+                        <Box
+                          w="20px"
+                          h="20px"
+                          borderRadius="full"
+                          border="2px solid"
+                          borderColor={isSelected ? '#864CBD' : '#cbd5e0'}
+                          bg={isSelected ? '#864CBD' : 'white'}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          flexShrink={0}
+                        >
+                          {isSelected && (
+                            <Box w="8px" h="8px" borderRadius="full" bg="white" />
+                          )}
+                        </Box>
+                        <Text fontSize="24px">{info.icon}</Text>
+                        <VStack align="start" gap={0} flex="1">
+                          <Text fontWeight={600} fontSize="16px">
+                            {info.name}
+                          </Text>
+                          <Text fontSize="sm" color="gray.600">
+                            {info.description}
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </Box>
+                  );
+                })}
+              </VStack>
+            </Box>
+
             {/* Format Selection */}
             <Box>
               <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={3}>
@@ -189,9 +272,10 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
                 <Text fontSize="20px">✨</Text>
                 <VStack align="start" gap={1}>
                   <Text fontSize="sm" color="#2d3748" fontWeight={600}>
-                    Powered by In-House PDF Engine
+                    4 Professional Templates + In-House PDF Engine
                   </Text>
                   <Text fontSize="xs" color="#4a5568" lineHeight="1.6">
+                    Choose from 4 unique design styles, each optimized for different use cases.
                     Instant generation with zero API delays. Your brand styles are automatically
                     applied for professional results.
                   </Text>

@@ -55,12 +55,29 @@ export interface ContentSection {
 
 /**
  * OnePager content structure
- * Top-level content container with headline and sections
+ * Top-level content container with headline, sections, and structured fields
  */
 export interface OnePagerContent {
   headline: string;
   subheadline?: string;
   sections: ContentSection[];
+
+  // Structured content fields
+  problem?: string;
+  solution?: string;
+  features?: string[];
+  benefits?: string[];
+  integrations?: string[];
+  social_proof?: string;
+  cta?: {
+    text: string;
+    url: string;
+  };
+  visuals?: Array<{
+    url: string;
+    type?: string;
+    alt_text?: string;
+  }>;
 }
 
 /**
@@ -142,13 +159,50 @@ export interface OnePagerSummary {
 }
 
 /**
+ * Call-to-action data
+ */
+export interface CTAData {
+  text: string;
+  url: string;
+}
+
+/**
+ * Visual/image data
+ */
+export interface VisualData {
+  url: string;
+  type?: string;
+  alt_text?: string;
+}
+
+/**
  * Request payload for creating a new OnePager
+ * Enhanced with structured fields from Week 2 MVP requirements
  */
 export interface OnePagerCreateData {
   title: string;
-  input_prompt: string;
+
+  // Product selection
+  product_id?: string;
+
+  // Core content fields (required)
+  problem: string;
+  solution: string;
+  features: string[];
+  benefits: string[];
+
+  // Optional fields
+  integrations?: string[];
+  social_proof?: string;
+  cta: CTAData;
+  visuals?: VisualData[];
+
+  // Brand and audience
   brand_kit_id?: string;
   target_audience?: string;
+
+  // AI generation (optional)
+  input_prompt?: string;
 }
 
 /**
@@ -167,6 +221,7 @@ export interface OnePagerUpdateData {
   title?: string;
   status?: OnePagerStatus;
   style_overrides?: Record<string, any>;
+  brand_kit_id?: string;
 }
 
 /**

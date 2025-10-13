@@ -63,6 +63,22 @@ class BrandAsset(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Asset name")
 
 
+class Product(BaseModel):
+    """
+    Product definition in Brand Kit.
+
+    Contains product information that can be used to prepopulate
+    one-pager creation forms.
+    """
+    id: Optional[str] = Field(default=None, description="Product ID (auto-generated)")
+    name: str = Field(..., min_length=1, max_length=200, description="Product name")
+    description: str = Field(..., min_length=1, max_length=2000, description="Product description")
+    benefits: List[str] = Field(default_factory=list, description="Product benefits")
+    features: List[str] = Field(default_factory=list, description="Product features")
+    default_problem: Optional[str] = Field(None, max_length=1000, description="Default problem statement")
+    default_solution: Optional[str] = Field(None, max_length=1000, description="Default solution statement")
+
+
 class BrandKitBase(BaseModel):
     """Base brand kit fields."""
     company_name: str = Field(..., min_length=1, max_length=200, description="Company name")
@@ -72,6 +88,7 @@ class BrandKitBase(BaseModel):
     typography: Typography = Field(default_factory=Typography)
     logo_url: Optional[str] = None
     assets: List[BrandAsset] = Field(default_factory=list, description="Brand assets")
+    products: List[Product] = Field(default_factory=list, description="Products for one-pager generation")
 
 
 class BrandKitCreate(BrandKitBase):
@@ -88,6 +105,7 @@ class BrandKitUpdate(BaseModel):
     typography: Optional[Typography] = None
     logo_url: Optional[str] = None
     assets: Optional[List[BrandAsset]] = None
+    products: Optional[List[Product]] = None
 
 
 class BrandKitInDB(BrandKitBase):
@@ -128,6 +146,7 @@ class BrandKitResponse(BaseModel):
     typography: Typography
     logo_url: Optional[str]
     assets: List[BrandAsset]
+    products: List[Product]
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -167,6 +186,7 @@ def brand_kit_helper(brand_kit: dict) -> dict:
         }),
         "logo_url": brand_kit.get("logo_url"),
         "assets": brand_kit.get("assets", []),
+        "products": brand_kit.get("products", []),
         "is_active": brand_kit.get("is_active", True),
         "created_at": brand_kit["created_at"],
         "updated_at": brand_kit["updated_at"]

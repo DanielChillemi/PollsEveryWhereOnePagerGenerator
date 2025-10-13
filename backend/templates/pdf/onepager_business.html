@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ onepager.title }}</title>
+
+    {# Google Fonts Integration #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {% if brand.typography %}
+    <link href="https://fonts.googleapis.com/css2?family={{ brand.typography.heading_font | replace(' ', '+') }}:wght@600;700;800&family={{ brand.typography.body_font | replace(' ', '+') }}:wght@400;500;600&display=swap" rel="stylesheet">
+    {% endif %}
+
+    <style>
+        /* CSS Variables from Brand Kit */
+        :root {
+            --color-primary: {{ brand.color_palette.primary }};
+            --color-secondary: {{ brand.color_palette.secondary }};
+            --color-accent: {{ brand.color_palette.accent }};
+            --color-text: {{ brand.color_palette.text }};
+            --color-background: {{ brand.color_palette.background }};
+            --font-heading: '{{ brand.typography.heading_font }}', sans-serif;
+            --font-body: '{{ brand.typography.body_font }}', sans-serif;
+        }
+
+        /* Print-specific: Force single page */
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 11in;
+                width: 8.5in;
+            }
+            .page-container {
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: #ffffff;
+            line-height: 1.5;
+            font-size: 10pt;
+            height: 11in;
+            width: 8.5in;
+            overflow: hidden;
+        }
+
+        /* Page Container */
+        .page-container {
+            height: 11in;
+            width: 8.5in;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        /* BUSINESS DESIGN: Professional Header with Logo Bar */
+        .header-business {
+            background: linear-gradient(
+                to right,
+                var(--color-primary) 0%,
+                color-mix(in srgb, var(--color-primary) 90%, black) 100%
+            );
+            padding: 0.35in 0.6in;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 4px solid var(--color-accent);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.15in;
+        }
+
+        .brand-logo {
+            max-height: 60px;
+            max-width: 180px;
+            object-fit: contain;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .brand-name {
+            font-family: var(--font-heading);
+            font-size: 20pt;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .header-tagline {
+            font-size: 11pt;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            max-width: 3in;
+            text-align: right;
+        }
+
+        /* BUSINESS DESIGN: Executive Summary Hero */
+        .executive-summary {
+            background: linear-gradient(
+                to bottom,
+                #f8fafc 0%,
+                #ffffff 100%
+            );
+            padding: 0.4in 0.6in;
+            border-left: 6px solid var(--color-primary);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .executive-summary h1 {
+            font-family: var(--font-heading);
+            font-size: 28pt;
+            font-weight: 800;
+            color: var(--color-text);
+            margin-bottom: 0.12in;
+            line-height: 1.1;
+        }
+
+        .executive-summary .subtitle {
+            font-size: 12pt;
+            color: #6b7280;
+            font-weight: 500;
+            line-height: 1.4;
+            max-width: 7in;
+        }
+
+        /* BUSINESS DESIGN: Metrics Dashboard Grid */
+        .metrics-dashboard {
+            background: white;
+            padding: 0.3in 0.6in;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.25in;
+        }
+
+        .metric-box {
+            background: linear-gradient(
+                135deg,
+                #ffffff 0%,
+                #f9fafb 100%
+            );
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.2in;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--color-primary);
+        }
+
+        .metric-box:nth-child(2)::before {
+            background: var(--color-accent);
+        }
+
+        .metric-box:nth-child(3)::before {
+            background: var(--color-secondary);
+        }
+
+        .metric-box:nth-child(4)::before {
+            background: var(--color-primary);
+        }
+
+        .metric-value {
+            font-family: var(--font-heading);
+            font-size: 32pt;
+            font-weight: 800;
+            color: var(--color-primary);
+            line-height: 1;
+            margin: 0.08in 0;
+        }
+
+        .metric-label {
+            font-size: 8.5pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* BUSINESS DESIGN: Structured Content Grid */
+        .content-grid {
+            flex: 1;
+            padding: 0.35in 0.6in;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(2, 1fr);
+            gap: 0.25in;
+            background: #fafafa;
+        }
+
+        .content-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.25in;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .content-box-header {
+            display: flex;
+            align-items: center;
+            gap: 0.1in;
+            margin-bottom: 0.15in;
+            padding-bottom: 0.1in;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .content-box-icon {
+            font-size: 18pt;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            color: white;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .content-box h3 {
+            font-family: var(--font-heading);
+            font-size: 13pt;
+            font-weight: 700;
+            color: var(--color-text);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .content-box p {
+            font-size: 9.5pt;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 0.08in;
+        }
+
+        .content-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .content-box ul li {
+            font-size: 9.5pt;
+            line-height: 1.5;
+            color: #4b5563;
+            margin-bottom: 0.06in;
+            padding-left: 0.2in;
+            position: relative;
+        }
+
+        .content-box ul li::before {
+            content: '■';
+            position: absolute;
+            left: 0;
+            color: var(--color-accent);
+            font-size: 6pt;
+            top: 0.06in;
+        }
+
+        /* Key Points Highlight Box */
+        .key-points-box {
+            background: linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--color-primary) 8%, white 92%) 0%,
+                color-mix(in srgb, var(--color-accent) 5%, white 95%) 100%
+            );
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .key-points-box ul li::before {
+            content: '✓';
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 11pt;
+            top: 0;
+        }
+
+        /* BUSINESS DESIGN: Professional Footer with Action Bar */
+        .footer-business {
+            background: linear-gradient(
+                to right,
+                color-mix(in srgb, var(--color-primary) 95%, black 5%) 0%,
+                var(--color-primary) 50%,
+                color-mix(in srgb, var(--color-primary) 95%, black 5%) 100%
+            );
+            padding: 0.3in 0.6in;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 4px solid var(--color-accent);
+        }
+
+        .footer-business h3 {
+            font-family: var(--font-heading);
+            font-size: 18pt;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .footer-cta-group {
+            display: flex;
+            align-items: center;
+            gap: 0.15in;
+        }
+
+        .cta-button-business {
+            display: inline-block;
+            background: white;
+            color: var(--color-primary);
+            padding: 0.12in 0.35in;
+            font-size: 11pt;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid white;
+        }
+
+        .cta-button-business:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Data Table Style for Lists */
+        .data-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.05in;
+        }
+
+        .data-list-item {
+            display: flex;
+            align-items: center;
+            padding: 0.06in 0.08in;
+            background: #f9fafb;
+            border-radius: 4px;
+            border-left: 3px solid var(--color-accent);
+        }
+
+        .data-list-item:nth-child(even) {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        {# Professional Header #}
+        <div class="header-business">
+            <div class="logo-area">
+                {% if brand.logo %}
+                <img src="{{ brand.logo }}" alt="{{ brand.company_name if brand.company_name else onepager.title }}" class="brand-logo">
+                {% elif brand.company_name %}
+                <div class="brand-name">{{ brand.company_name }}</div>
+                {% endif %}
+            </div>
+            {% set hero_element = onepager.elements | selectattr('type', 'equalto', 'hero') | list | first %}
+            {% if hero_element and hero_element.content.subheadline %}
+            <div class="header-tagline">{{ hero_element.content.subheadline }}</div>
+            {% endif %}
+        </div>
+
+        {# Executive Summary #}
+        {% set hero_elements = onepager.elements | selectattr('type', 'equalto', 'hero') | list %}
+        {% if hero_elements %}
+            {% set element = hero_elements[0] %}
+            <div class="executive-summary">
+                {% if element.content.headline %}
+                <h1>{{ element.content.headline }}</h1>
+                {% endif %}
+                {% if element.content.description %}
+                <p class="subtitle">{{ element.content.description }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# Metrics Dashboard #}
+        {% if key_stats and key_stats|length > 0 %}
+        <div class="metrics-dashboard">
+            <div class="metrics-grid">
+                {% for stat in key_stats[:4] %}
+                <div class="metric-box">
+                    <div class="metric-value">{{ stat.number }}</div>
+                    <div class="metric-label">{{ stat.label }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Structured Content Grid #}
+        <div class="content-grid">
+            {# Collect sections #}
+            {% set list_sections = [] %}
+            {% set text_sections = [] %}
+            {% for element in onepager.elements | sort(attribute='order') %}
+                {% if element.type == 'list' %}
+                    {% do list_sections.append(element) %}
+                {% elif element.type == 'text' or element.type == 'text_block' %}
+                    {% do text_sections.append(element) %}
+                {% endif %}
+            {% endfor %}
+
+            {# Box 1: First List (Features) #}
+            {% if list_sections|length > 0 %}
+                {% set element = list_sections[0] %}
+                <div class="content-box key-points-box">
+                    <div class="content-box-header">
+                        <div class="content-box-icon">
+                            {% if element.get('title') and 'feature' in element.title.lower() %}⚡{% elif element.get('title') and 'benefit' in element.title.lower() %}🎯{% else %}📊{% endif %}
+                        </div>
+                        {% if element.title %}
+                        <h3>{{ element.title }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+                    <ul>
+                        {% for item in element.content[:6] %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Box 2: First Text #}
+            {% if text_sections|length > 0 %}
+                {% set element = text_sections[0] %}
+                <div class="content-box">
+                    <div class="content-box-header">
+                        <div class="content-box-icon">📄</div>
+                        {% if element.title %}
+                        <h3>{{ element.title }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if element.content is string %}
+                    <p>{{ element.content[:250] }}{% if element.content|length > 250 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Box 3: Second List (Benefits) #}
+            {% if list_sections|length > 1 %}
+                {% set element = list_sections[1] %}
+                <div class="content-box">
+                    <div class="content-box-header">
+                        <div class="content-box-icon">
+                            {% if element.get('title') and 'benefit' in element.title.lower() %}🎯{% elif element.get('title') and 'feature' in element.title.lower() %}⚡{% else %}📋{% endif %}
+                        </div>
+                        {% if element.title %}
+                        <h3>{{ element.title }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+                    <ul>
+                        {% for item in element.content[:6] %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Box 4: Second Text or Third List #}
+            {% if text_sections|length > 1 %}
+                {% set element = text_sections[1] %}
+                <div class="content-box">
+                    <div class="content-box-header">
+                        <div class="content-box-icon">💡</div>
+                        {% if element.title %}
+                        <h3>{{ element.title }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if element.content is string %}
+                    <p>{{ element.content[:250] }}{% if element.content|length > 250 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+            {% elif list_sections|length > 2 %}
+                {% set element = list_sections[2] %}
+                <div class="content-box">
+                    <div class="content-box-header">
+                        <div class="content-box-icon">✓</div>
+                        {% if element.title %}
+                        <h3>{{ element.title }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+                    <ul>
+                        {% for item in element.content[:6] %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Professional Footer with CTA #}
+        {% set button_elements = onepager.elements | selectattr('type', 'equalto', 'button') | list %}
+        {% if button_elements %}
+            {% set button = button_elements[0] %}
+            <div class="footer-business">
+                <h3>Take the Next Step</h3>
+                <div class="footer-cta-group">
+                    {% if button.content is mapping and button.content.text and button.content.url %}
+                    <a href="{{ button.content.url }}" class="cta-button-business">{{ button.content.text }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

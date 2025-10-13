@@ -15,6 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timezone
 from bson import ObjectId
 from typing import Optional
+import uuid
 
 from backend.brand_kits.schemas import (
     BrandKitCreate,
@@ -80,6 +81,15 @@ async def create_brand_kit(
 
     # Create brand kit document
     now = datetime.now(timezone.utc)
+
+    # Generate IDs for products if not provided
+    products_with_ids = []
+    for product in brand_kit_data.products:
+        product_dict = product.model_dump()
+        if not product_dict.get("id"):
+            product_dict["id"] = str(uuid.uuid4())
+        products_with_ids.append(product_dict)
+
     brand_kit_doc = {
         "user_id": ObjectId(current_user.id),
         "company_name": brand_kit_data.company_name,
@@ -89,6 +99,7 @@ async def create_brand_kit(
         "typography": brand_kit_data.typography.model_dump(),
         "logo_url": brand_kit_data.logo_url,
         "assets": [asset.model_dump() for asset in brand_kit_data.assets],
+        "products": products_with_ids,
         "is_active": True,
         "created_at": now,
         "updated_at": now
@@ -276,6 +287,15 @@ async def update_brand_kit(
         update_doc["logo_url"] = update_data.logo_url
     if update_data.assets is not None:
         update_doc["assets"] = [asset.model_dump() for asset in update_data.assets]
+    if update_data.products is not None:
+        # Generate IDs for products if not provided
+        products_with_ids = []
+        for product in update_data.products:
+            product_dict = product.model_dump()
+            if not product_dict.get("id"):
+                product_dict["id"] = str(uuid.uuid4())
+            products_with_ids.append(product_dict)
+        update_doc["products"] = products_with_ids
 
     # Update in database
     await db.brand_kits.update_one(

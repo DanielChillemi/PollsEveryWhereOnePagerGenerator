@@ -1,0 +1,159 @@
+/**
+ * Wireframe Mode Styles
+ *
+ * Applied when viewing one-pager in wireframe (grayscale structure) mode.
+ * Removes brand styling to show layout and content hierarchy.
+ */
+
+/* Wireframe mode container */
+.wireframe-mode {
+  /* Force grayscale colors */
+  filter: grayscale(100%);
+}
+
+/* Wireframe section styling */
+.wireframe-mode .section-container {
+  background: #ffffff !important;
+  border: 2px dashed #cccccc !important;
+  border-radius: 4px !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Wireframe text styling */
+.wireframe-mode h1,
+.wireframe-mode h2,
+.wireframe-mode h3,
+.wireframe-mode h4,
+.wireframe-mode h5,
+.wireframe-mode h6 {
+  color: #333333 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+.wireframe-mode p,
+.wireframe-mode span,
+.wireframe-mode div,
+.wireframe-mode li {
+  color: #666666 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+/* Wireframe buttons */
+.wireframe-mode button,
+.wireframe-mode a[role="button"] {
+  background: #f5f5f5 !important;
+  color: #333333 !important;
+  border: 2px solid #cccccc !important;
+  border-radius: 4px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+/* Wireframe lists */
+.wireframe-mode ul,
+.wireframe-mode ol {
+  color: #666666 !important;
+}
+
+/* Remove background gradients and images */
+.wireframe-mode [style*="background-image"],
+.wireframe-mode [style*="background-gradient"],
+.wireframe-mode [style*="linear-gradient"] {
+  background-image: none !important;
+  background: #f9f9f9 !important;
+}
+
+/* Simplify shadows */
+.wireframe-mode [style*="box-shadow"] {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Show section labels in wireframe mode */
+.wireframe-mode .section-type-label {
+  display: block !important;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #999999;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* Styled mode (default) */
+.styled-mode {
+  /* No special styling - uses brand colors/fonts */
+}
+
+/* Hide section type labels in styled mode */
+.styled-mode .section-type-label {
+  display: none;
+}
+
+/* Wireframe mode indicator badge */
+.wireframe-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f0f0f0;
+  color: #666666;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #dddddd;
+  z-index: 10;
+}
+
+/* Styled mode indicator badge */
+.styled-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #864CBD 0%, #1568B8 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+}
+
+/* Wireframe hero section */
+.wireframe-mode .hero-section {
+  background: #f5f5f5 !important;
+  border: 2px dashed #cccccc !important;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wireframe features grid */
+.wireframe-mode .features-grid {
+  background: transparent !important;
+}
+
+.wireframe-mode .feature-card {
+  background: #ffffff !important;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 4px !important;
+}
+
+/* Responsive wireframe */
+@media (max-width: 768px) {
+  .wireframe-mode .section-container {
+    padding: 12px !important;
+  }
+
+  .wireframe-mode h1 {
+    font-size: 24px !important;
+  }
+
+  .wireframe-mode h2 {
+    font-size: 20px !important;
+  }
+}

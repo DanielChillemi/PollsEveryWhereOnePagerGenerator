@@ -5,7 +5,9 @@ import { ColorPicker } from './ColorPicker';
 import { FontSelector } from './FontSelector';
 import { LogoUploader } from './LogoUploader';
 import { TargetAudienceInput } from './TargetAudienceInput';
+import { ProductInput } from './ProductInput';
 import type { TargetAudience } from './TargetAudienceInput';
+import type { Product } from './ProductInput';
 
 interface BrandKitFormData {
   company_name: string;
@@ -17,6 +19,7 @@ interface BrandKitFormData {
   primary_font: string;
   logo_url: string;
   target_audiences: TargetAudience[];
+  products: Product[];
 }
 
 interface BrandKitFormProps {
@@ -46,6 +49,14 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
     primary_font: initialData?.primary_font || 'Source Sans Pro',
     logo_url: initialData?.logo_url || '',
     target_audiences: initialData?.target_audiences || [{ name: '', description: '' }],
+    products: initialData?.products || [{
+      name: '',
+      description: '',
+      benefits: [''],
+      features: [''],
+      default_problem: '',
+      default_solution: '',
+    }],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -215,6 +226,20 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
               {errors.target_audiences}
             </Text>
           )}
+        </FormSection>
+
+        {/* Divider */}
+        <Box h="2px" bg="#e2e8f0" borderRadius="full" />
+
+        {/* Products */}
+        <FormSection
+          title="Products"
+          description="Define your products with benefits, features, and default messaging"
+        >
+          <ProductInput
+            value={formData.products}
+            onChange={(products) => setFormData({ ...formData, products })}
+          />
         </FormSection>
 
         {/* Submit Button */}
