@@ -70,15 +70,9 @@
             overflow: hidden;
         }
 
-        /* Hero Section - Compact at top with Multi-Color Gradient */
+        /* Hero Section - Compact at top */
         .hero-section {
-            background: linear-gradient(
-                135deg,
-                var(--color-primary) 0%,
-                color-mix(in srgb, var(--color-primary) 75%, var(--color-secondary) 25%) 35%,
-                color-mix(in srgb, var(--color-primary) 70%, var(--color-accent) 30%) 65%,
-                color-mix(in srgb, var(--color-primary) 85%, black) 100%
-            );
+            background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 85%, black) 100%);
             color: white;
             padding: 0.8in 0.6in 0.6in 0.6in;
             text-align: center;
@@ -86,7 +80,6 @@
             overflow: hidden;
         }
 
-        /* Decorative Circles - Multiple overlapping */
         .hero-section::before {
             content: '';
             position: absolute;
@@ -94,21 +87,8 @@
             right: -10%;
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 50%, transparent 70%);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 50%;
-            z-index: 0;
-        }
-
-        .hero-section::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-            border-radius: 50%;
-            z-index: 0;
         }
 
         .hero-section h1 {
@@ -143,74 +123,6 @@
             z-index: 1;
         }
 
-        /* Brand Logo in Hero */
-        .brand-logo {
-            position: absolute;
-            top: 0.3in;
-            right: 0.5in;
-            max-height: 50px;
-            max-width: 200px;
-            object-fit: contain;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 12px;
-            border-radius: 8px;
-        }
-
-        .brand-name {
-            position: absolute;
-            top: 0.3in;
-            right: 0.5in;
-            font-family: var(--font-heading);
-            font-size: 16pt;
-            font-weight: 800;
-            color: white;
-            opacity: 0.95;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Stats Bar - Key Metrics Highlight */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 0.2in;
-            padding: 0.3in 0.6in;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 0.12in;
-        }
-
-        .stat-icon {
-            font-size: 20pt;
-            margin-bottom: 0.05in;
-        }
-
-        .stat-number {
-            font-family: var(--font-heading);
-            font-size: 28pt;
-            font-weight: 900;
-            color: var(--color-primary);
-            line-height: 1;
-            margin: 0.03in 0;
-        }
-
-        .stat-label {
-            font-size: 9pt;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
         /* Main Content Area - 2 Column Layout */
         .content-area {
             flex: 1;
@@ -219,37 +131,6 @@
             gap: 0.35in;
             padding: 0.4in 0.6in;
             background: #f9fafb;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Content Area Decorations - Organic Shapes */
-        .content-area::before {
-            content: '';
-            position: absolute;
-            top: 15%;
-            right: 8%;
-            width: 180px;
-            height: 180px;
-            background: var(--color-accent);
-            opacity: 0.04;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            transform: rotate(45deg);
-            z-index: 0;
-        }
-
-        .content-area::after {
-            content: '';
-            position: absolute;
-            bottom: 20%;
-            left: 5%;
-            width: 120px;
-            height: 120px;
-            background: var(--color-secondary);
-            opacity: 0.03;
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-            transform: rotate(-30deg);
-            z-index: 0;
         }
 
         /* Column Styling */
@@ -257,30 +138,19 @@
             display: flex;
             flex-direction: column;
             gap: 0.25in;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Section Cards with Gradient Borders */
+        /* Section Cards */
         .section-card {
             background: white;
             border-radius: 8px;
             padding: 0.25in 0.28in;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border-left: 4px solid;
-            border-image: linear-gradient(
-                to bottom,
-                var(--color-accent),
-                color-mix(in srgb, var(--color-accent) 60%, var(--color-secondary) 40%)
-            ) 1;
+            border-left: 3px solid var(--color-accent);
         }
 
         .section-card.primary-border {
-            border-image: linear-gradient(
-                to bottom,
-                var(--color-primary),
-                color-mix(in srgb, var(--color-primary) 70%, var(--color-accent) 30%)
-            ) 1;
+            border-left-color: var(--color-primary);
         }
 
         .section-card h3 {
@@ -348,15 +218,9 @@
             margin-bottom: 0.1in;
         }
 
-        /* CTA Footer with Enhanced Gradient */
+        /* CTA Footer */
         .cta-footer {
-            background: linear-gradient(
-                135deg,
-                var(--color-accent) 0%,
-                color-mix(in srgb, var(--color-accent) 65%, var(--color-secondary) 35%) 30%,
-                color-mix(in srgb, var(--color-accent) 75%, var(--color-primary) 25%) 60%,
-                color-mix(in srgb, var(--color-accent) 85%, black) 100%
-            );
+            background: linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 85%, black) 100%);
             color: white;
             padding: 0.35in 0.6in;
             text-align: center;
@@ -364,35 +228,6 @@
             align-items: center;
             justify-content: center;
             gap: 0.3in;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* CTA Footer Decorations - Triangles and Circles */
-        .cta-footer::before {
-            content: '';
-            position: absolute;
-            top: -25px;
-            left: 12%;
-            width: 0;
-            height: 0;
-            border-left: 35px solid transparent;
-            border-right: 35px solid transparent;
-            border-bottom: 50px solid rgba(255, 255, 255, 0.08);
-            z-index: 0;
-        }
-
-        .cta-footer::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: 10%;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            transform: translateY(-50%);
-            z-index: 0;
         }
 
         .cta-footer h3 {
@@ -400,8 +235,6 @@
             font-size: 18pt;
             font-weight: 700;
             margin: 0;
-            position: relative;
-            z-index: 1;
         }
 
         .cta-button {
@@ -416,8 +249,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s;
             font-family: var(--font-heading);
-            position: relative;
-            z-index: 1;
         }
 
         .cta-button:hover {
@@ -447,20 +278,10 @@
             color: #374151;
         }
 
-        /* Highlight Box with Enhanced Gradient */
+        /* Highlight Box */
         .highlight-box {
-            background: linear-gradient(
-                135deg,
-                color-mix(in srgb, var(--color-secondary) 12%, white 88%) 0%,
-                color-mix(in srgb, var(--color-accent) 8%, white 92%) 50%,
-                color-mix(in srgb, var(--color-secondary) 5%, white 95%) 100%
-            );
-            border-left: 3px solid;
-            border-image: linear-gradient(
-                to bottom,
-                var(--color-secondary),
-                var(--color-accent)
-            ) 1;
+            background: linear-gradient(135deg, rgba(134, 76, 189, 0.08) 0%, rgba(134, 76, 189, 0.03) 100%);
+            border-left: 3px solid var(--color-secondary);
             border-radius: 6px;
             padding: 0.18in 0.22in;
             margin: 0.12in 0;
@@ -482,13 +303,6 @@
         {% for element in onepager.elements | sort(attribute='order') %}
             {% if element.type == 'hero' and not hero_rendered %}
                 <div class="hero-section">
-                    {# Brand Logo or Company Name #}
-                    {% if brand.logo %}
-                    <img src="{{ brand.logo }}" alt="{{ brand.company_name if brand.company_name else onepager.title }}" class="brand-logo">
-                    {% elif brand.company_name %}
-                    <div class="brand-name">{{ brand.company_name }}</div>
-                    {% endif %}
-
                     {% if element.content.headline %}
                     <h1>{{ element.content.headline }}</h1>
                     {% endif %}
@@ -502,19 +316,6 @@
                 {% set hero_rendered = true %}
             {% endif %}
         {% endfor %}
-
-        {# Stats Bar - Key Metrics #}
-        {% if key_stats and key_stats|length > 0 %}
-        <div class="stats-bar">
-            {% for stat in key_stats %}
-            <div class="stat-card">
-                <div class="stat-icon">{{ stat.icon }}</div>
-                <div class="stat-number">{{ stat.number }}</div>
-                <div class="stat-label">{{ stat.label }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
         {# Main Content - Two Column Layout #}
         <div class="content-area">
@@ -591,16 +392,17 @@
         </div>
 
         {# CTA Footer - Must be last #}
-        {% set button_elements = onepager.elements | selectattr('type', 'equalto', 'button') | list %}
-        {% if button_elements %}
-            {% set button = button_elements[0] %}
-            <div class="cta-footer">
-                {% if button.content is mapping and button.content.text and button.content.url %}
-                    <h3>Ready to Get Started?</h3>
-                    <a href="{{ button.content.url }}" class="cta-button">{{ button.content.text }}</a>
+        <div class="cta-footer">
+            {% for element in onepager.elements | sort(attribute='order') %}
+                {% if element.type == 'button' %}
+                    {% if element.content is mapping and element.content.text and element.content.url %}
+                        <h3>Ready to Get Started?</h3>
+                        <a href="{{ element.content.url }}" class="cta-button">{{ element.content.text }}</a>
+                    {% endif %}
+                    {% break %}
                 {% endif %}
-            </div>
-        {% endif %}
+            {% endfor %}
+        </div>
     </div>
 </body>
 </html>

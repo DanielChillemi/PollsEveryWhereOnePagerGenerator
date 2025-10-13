@@ -16,14 +16,117 @@ Features:
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
+import re
 
 from backend.models.onepager import OnePagerLayout
 from backend.models.brand_kit import BrandKitInDB
 
 
 logger = logging.getLogger(__name__)
+
+
+def extract_key_stats(onepager: OnePagerLayout) -> List[Dict[str, str]]:
+    """
+    Extract key statistics from one-pager content for visual highlights.
+
+    Looks for patterns like:
+    - "50+ clients", "100+ customers"
+    - "99% satisfaction", "95% rating"
+    - "$1M revenue", "$500K sales"
+    - "10 years", "15+ years experience"
+
+    Args:
+        onepager: OnePager layout data
+
+    Returns:
+        List of stat dicts with keys: number, label, icon
+        Maximum 4 stats returned
+    """
+    stats = []
+
+    # Combine all text content from elements
+    all_text = f"{onepager.title} "
+    for element in onepager.elements:
+        if hasattr(element, 'content'):
+            content = element.content
+            if isinstance(content, str):
+                all_text += content + " "
+            elif isinstance(content, dict):
+                for value in content.values():
+                    if isinstance(value, str):
+                        all_text += value + " "
+            elif isinstance(content, list):
+                for item in content:
+                    if isinstance(item, str):
+                        all_text += item + " "
+        if hasattr(element, 'title') and element.title:
+            all_text += element.title + " "
+
+    # Pattern matching for common stat formats
+    patterns = [
+        # Number + unit patterns (50+, 100+, 1000+)
+        (r'(\d+\+?)\s+(clients?|customers?|users?|businesses?|companies?)', '👥', 'clients'),
+        (r'(\d+\+?)\s+(years?|decades?)', '⏰', 'years'),
+        (r'(\d+\+?)\s+(locations?|stores?|branches?)', '📍', 'locations'),
+        (r'(\d+\+?)\s+(products?|items?|dishes?|services?)', '📦', 'products'),
+        (r'(\d+\+?)\s+(employees?|team members?|staff)', '👔', 'team'),
+        # Percentage patterns
+        (r'(\d+%)\s+(satisfaction|happy|rating|success)', '⭐', 'satisfaction'),
+        (r'(\d+%)\s+(growth|increase)', '📈', 'growth'),
+        # Money patterns
+        (r'(\$[\d,]+[KMB]?)\s+(revenue|sales|saved|value)', '💰', 'value'),
+    ]
+
+    for pattern, icon, label_fallback in patterns:
+        matches = re.finditer(pattern, all_text, re.IGNORECASE)
+        for match in matches:
+            number = match.group(1)
+            label = match.group(2).capitalize()
+
+            stats.append({
+                'number': number,
+                'label': label,
+                'icon': icon
+            })
+
+            if len(stats) >= 4:
+                break
+
+        if len(stats) >= 4:
+            break
+
+    # If no stats found, generate defaults from content analysis
+    if len(stats) == 0:
+        # Count features
+        feature_count = sum(1 for el in onepager.elements if 'feature' in str(el.title).lower() or el.type == 'list')
+        if feature_count > 0:
+            stats.append({
+                'number': str(feature_count * 5) + '+',  # Estimate features
+                'label': 'Features',
+                'icon': '⚡'
+            })
+
+        # Count benefits
+        benefit_count = sum(1 for el in onepager.elements if 'benefit' in str(el.title).lower())
+        if benefit_count > 0:
+            stats.append({
+                'number': str(benefit_count * 3),
+                'label': 'Benefits',
+                'icon': '🎯'
+            })
+
+        # Default stats if still empty
+        if len(stats) == 0:
+            stats = [
+                {'number': '100%', 'label': 'Quality', 'icon': '⭐'},
+                {'number': '24/7', 'label': 'Support', 'icon': '💬'},
+                {'number': 'Fast', 'label': 'Delivery', 'icon': '🚀'}
+            ]
+
+    logger.info(f"Extracted {len(stats)} key stats from onepager")
+    return stats[:4]  # Max 4 stats
 
 
 class PDFHTMLGeneratorError(Exception):
@@ -55,12 +158,13 @@ class PDFHTMLGenerator:
         
         logger.info(f"Initializing PDFHTMLGenerator with template_dir: {template_dir}")
         
-        # Initialize Jinja2 environment
+        # Initialize Jinja2 environment with 'do' extension for list manipulation
         self.env = Environment(
             loader=FileSystemLoader(template_dir),
             autoescape=select_autoescape(['html', 'xml']),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
+            extensions=['jinja2.ext.do']
         )
         
         # Add custom filters
@@ -95,11 +199,15 @@ class PDFHTMLGenerator:
             # Convert Pydantic models to dicts for Jinja2
             onepager_dict = self._prepare_onepager_data(onepager)
             brand_dict = self._prepare_brand_data(brand_kit)
-            
+
+            # Extract key statistics for visual highlights
+            key_stats = extract_key_stats(onepager)
+
             # Render template
             html = template.render(
                 onepager=onepager_dict,
                 brand=brand_dict,
+                key_stats=key_stats,
                 now=datetime.now()
             )
             
