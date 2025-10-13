@@ -819,6 +819,7 @@ async def export_onepager_pdf(
                 element = {
                     "id": section.get("id", f"section-{idx}"),
                     "type": section_type,
+                    "title": section.get("title"),  # Include title from section
                     "content": section_content,
                     "styling": section.get("styling"),
                     "order": section.get("order", idx)

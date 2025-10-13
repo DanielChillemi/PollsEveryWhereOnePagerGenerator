@@ -187,10 +187,23 @@ BRAND CONTEXT:
 - Brand Voice: {brand_voice}
 - Primary Color: {brand_context.get('color_palette', {}).get('primary', '#007ACC')}
 
-TONE & STYLE GUIDANCE:
-- Write all content in a tone that matches: "{brand_voice}"
-- Ensure headlines, body text, and CTAs reflect this brand voice
-- Maintain consistency with the brand's communication style throughout
+CRITICAL BRAND VOICE REQUIREMENTS:
+Your content MUST embody this brand voice: "{brand_voice}"
+
+Apply the brand voice to every element:
+- HEADLINES: Capture attention while staying true to the voice tone
+- SUBHEADLINES: Support the main message in the same voice
+- BODY TEXT: Explain benefits and features using the brand's communication style
+- LISTS: Keep bullet points aligned with the voice (formal vs. casual, technical vs. accessible)
+- CALL-TO-ACTION: Use action words that match the brand's personality
+
+Examples of voice application:
+- If voice is "Bold and innovative" → Use strong, confident language, challenge status quo
+- If voice is "Friendly and approachable" → Use conversational tone, simple language, empathy
+- If voice is "Professional and authoritative" → Use formal language, data-driven, expertise
+- If voice is "Playful and creative" → Use humor, metaphors, unexpected angles
+
+The brand voice should be immediately recognizable throughout the entire one-pager.
 """
 
         audience_info = ""
@@ -248,9 +261,17 @@ Generate ONLY the JSON, no other text."""
             brand_voice = brand_context['brand_voice']
             brand_voice_guidance = f"""
 
-BRAND VOICE: {brand_voice}
-- Maintain this brand voice in all content modifications
-- Ensure tone and style remain consistent with: "{brand_voice}"
+CRITICAL BRAND VOICE REQUIREMENTS:
+Brand Voice: "{brand_voice}"
+
+When making ANY modifications:
+1. PRESERVE the brand voice in all existing content
+2. APPLY the brand voice to any new content you add
+3. ENSURE tone consistency across all sections (headlines, body, CTAs)
+4. REFLECT the brand's personality in word choice and phrasing
+
+All changes must maintain the "{brand_voice}" tone throughout the entire document.
+Even small edits must stay true to this brand voice.
 """
 
         return f"""Refine this marketing one-pager based on user feedback:

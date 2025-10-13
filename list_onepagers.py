@@ -1,23 +1,33 @@
+"""List all OnePagers in database"""
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+MONGODB_URL = os.getenv("MONGODB_URL")
 
 async def list_onepagers():
-    client = AsyncIOMotorClient('mongodb://localhost:27017')
-    db = client.marketing_onepager
-    
-    count = await db.onepagers.count_documents({})
-    print(f'Total one-pagers in database: {count}')
-    
-    if count > 0:
-        onepagers = await db.onepagers.find().limit(10).to_list(length=10)
-        print(f'\nListing up to 10 one-pagers:')
-        for op in onepagers:
-            print(f"  - Title: {op['title']}")
-            print(f"    ID: {op['_id']}")
-            print(f"    Status: {op['status']}")
-            print(f"    Sections: {len(op.get('content', {}).get('sections', []))}")
-            print()
-    
-    client.close()
+    """List all OnePagers"""
+    client = AsyncIOMotorClient(MONGODB_URL)
+    db = client.onepager_db
 
-asyncio.run(list_onepagers())
+    try:
+        onepagers = await db.onepagers.find().to_list(length=100)
+
+        print(f"📊 Total OnePagers: {len(onepagers)}\n")
+
+        for onepager in onepagers:
+            print(f"ID: {onepager['_id']}")
+            print(f"Title: {onepager['title']}")
+            print(f"Sections: {len(onepager['content']['sections'])}")
+            print(f"Version History: {len(onepager.get('version_history', []))}")
+            print(f"Updated: {onepager['updated_at']}")
+            print("-" * 60)
+
+    finally:
+        client.close()
+
+if __name__ == "__main__":
+    asyncio.run(list_onepagers())

@@ -41,13 +41,38 @@ export function OnePagerCreatePage() {
     solution: '',
     features: [],
     benefits: [],
+    integrations: [],
+    social_proof: '',
     cta: { text: '', url: '' },
     brand_kit_id: '',
     target_audience: '',
     input_prompt: '',
+    product_id: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Get selected brand kit for product dropdown
+  const selectedBrandKit = brandKits?.find(kit => kit.id === formData.brand_kit_id);
+
+  // Handle product selection and auto-populate fields
+  const handleProductSelect = (productId: string) => {
+    const product = selectedBrandKit?.products?.find(p => p.id === productId);
+
+    if (product) {
+      setFormData({
+        ...formData,
+        product_id: productId,
+        problem: product.default_problem || formData.problem,
+        solution: product.default_solution || formData.solution,
+        features: product.features?.length > 0 ? product.features : formData.features,
+        benefits: product.benefits?.length > 0 ? product.benefits : formData.benefits,
+      });
+    } else {
+      // Clear product selection
+      setFormData({ ...formData, product_id: '' });
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -299,6 +324,56 @@ export function OnePagerCreatePage() {
                 </Text>
               </Box>
 
+              {/* Integrations (comma-separated) */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Integrations (Optional)
+                </Text>
+                <Textarea
+                  value={formData.integrations?.join(', ') || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, integrations: e.target.value.split(',').map(i => i.trim()).filter(i => i) })
+                  }
+                  placeholder="Enter integrations separated by commas (e.g., Slack, Google Drive, Salesforce)"
+                  minH="80px"
+                  fontSize="16px"
+                  borderRadius="12px"
+                  border="2px solid #e2e8f0"
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  Separate multiple integrations with commas
+                </Text>
+              </Box>
+
+              {/* Social Proof */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Social Proof / Testimonial (Optional)
+                </Text>
+                <Textarea
+                  value={formData.social_proof || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, social_proof: e.target.value })
+                  }
+                  placeholder="Enter customer testimonial or social proof (e.g., '4.9 stars on Google' or 'Voted Best Pho in the neighborhood by City Magazine')"
+                  minH="100px"
+                  fontSize="16px"
+                  borderRadius="12px"
+                  border="2px solid #e2e8f0"
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  Add customer quotes, ratings, or awards to build credibility
+                </Text>
+              </Box>
+
               {/* Call-to-Action */}
               <Box>
                 <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
@@ -348,9 +423,9 @@ export function OnePagerCreatePage() {
                 </Text>
                 <Select
                   value={formData.brand_kit_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, brand_kit_id: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '' });
+                  }}
                   h="56px"
                   fontSize="16px"
                   borderRadius="12px"
@@ -361,16 +436,47 @@ export function OnePagerCreatePage() {
                   }}
                 >
                   <option value="">No Brand Kit (Use default styling)</option>
-                  {brandKits && brandKits.length > 0 && brandKits[0] && (
-                    <option value={brandKits[0].id}>
-                      {brandKits[0].company_name}
+                  {brandKits?.map(kit => (
+                    <option key={kit.id} value={kit.id}>
+                      {kit.company_name}
                     </option>
-                  )}
+                  ))}
                 </Select>
                 <Text fontSize="sm" color="gray.600" mt={1}>
                   Apply your brand colors and fonts to the generated one-pager
                 </Text>
               </Box>
+
+              {/* Product Selection (shows if brand kit has products) */}
+              {selectedBrandKit && selectedBrandKit.products && selectedBrandKit.products.length > 0 && (
+                <Box>
+                  <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                    Product (Optional)
+                  </Text>
+                  <Select
+                    value={formData.product_id || ''}
+                    onChange={(e) => handleProductSelect(e.target.value)}
+                    h="56px"
+                    fontSize="16px"
+                    borderRadius="12px"
+                    border="2px solid #e2e8f0"
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  >
+                    <option value="">Select a product to auto-populate fields</option>
+                    {selectedBrandKit.products.map(product => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
+                    💡 Select a product to auto-fill problem, solution, features, and benefits
+                  </Text>
+                </Box>
+              )}
 
               {/* Target Audience */}
               <Box>

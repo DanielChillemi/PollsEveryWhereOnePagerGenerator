@@ -445,10 +445,10 @@
                 <div class="content-box key-points-box">
                     <div class="content-box-header">
                         <div class="content-box-icon">
-                            {% if element.get('title') and 'feature' in element.title.lower() %}⚡{% elif element.get('title') and 'benefit' in element.title.lower() %}🎯{% else %}📊{% endif %}
+                            {% if element.get('title') and 'feature' in element.get('title', '').lower() %}⚡{% elif element.get('title') and 'benefit' in element.get('title', '').lower() %}🎯{% else %}📊{% endif %}
                         </div>
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                     </div>
                     {% if element.content is iterable and element.content is not string and element.content is not mapping %}
@@ -467,8 +467,8 @@
                 <div class="content-box">
                     <div class="content-box-header">
                         <div class="content-box-icon">📄</div>
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                     </div>
                     {% if element.content is string %}
@@ -483,10 +483,10 @@
                 <div class="content-box">
                     <div class="content-box-header">
                         <div class="content-box-icon">
-                            {% if element.get('title') and 'benefit' in element.title.lower() %}🎯{% elif element.get('title') and 'feature' in element.title.lower() %}⚡{% else %}📋{% endif %}
+                            {% if element.get('title') and 'benefit' in element.get('title', '').lower() %}🎯{% elif element.get('title') and 'feature' in element.get('title', '').lower() %}⚡{% else %}📋{% endif %}
                         </div>
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                     </div>
                     {% if element.content is iterable and element.content is not string and element.content is not mapping %}
@@ -505,8 +505,8 @@
                 <div class="content-box">
                     <div class="content-box-header">
                         <div class="content-box-icon">💡</div>
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                     </div>
                     {% if element.content is string %}
@@ -518,8 +518,8 @@
                 <div class="content-box">
                     <div class="content-box-header">
                         <div class="content-box-icon">✓</div>
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                     </div>
                     {% if element.content is iterable and element.content is not string and element.content is not mapping %}

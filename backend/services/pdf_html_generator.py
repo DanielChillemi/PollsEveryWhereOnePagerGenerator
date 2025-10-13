@@ -268,10 +268,10 @@ class PDFHTMLGenerator:
     def _prepare_brand_data(self, brand_kit: BrandKitInDB) -> Dict[str, Any]:
         """
         Convert BrandKitInDB to dict suitable for template rendering.
-        
+
         Args:
             brand_kit: BrandKit model
-        
+
         Returns:
             Dictionary with template-friendly structure
         """
@@ -281,7 +281,7 @@ class PDFHTMLGenerator:
         except AttributeError:
             # Fallback for Pydantic v1
             data = brand_kit.dict()
-        
+
         # Ensure required fields exist with defaults
         if 'color_palette' not in data or data['color_palette'] is None:
             data['color_palette'] = {
@@ -291,7 +291,7 @@ class PDFHTMLGenerator:
                 'text': '#1f2937',
                 'background': '#ffffff'
             }
-        
+
         if 'typography' not in data or data['typography'] is None:
             data['typography'] = {
                 'heading_font': 'Montserrat',
@@ -299,7 +299,12 @@ class PDFHTMLGenerator:
                 'heading_size': '32px',
                 'body_size': '16px'
             }
-        
+
+        # Map logo_url to logo for template compatibility
+        if 'logo_url' in data and data['logo_url']:
+            data['logo'] = data['logo_url']
+            logger.debug(f"Mapped logo_url to logo for template rendering")
+
         logger.debug(f"Prepared brand data for: {data.get('company_name', 'Unknown')}")
         return data
     

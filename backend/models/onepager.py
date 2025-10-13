@@ -115,6 +115,7 @@ class OnePagerElement(BaseModel):
     """Single element in one-pager layout."""
     id: str = Field(description="Unique element identifier")
     type: ElementType = Field(description="Element type")
+    title: Optional[str] = Field(None, description="Element title (for sections)")
     content: Union[str, List[str], Dict[str, Any]] = Field(
         description="Element content (text string, list of items, or structured dict)"
     )
@@ -122,7 +123,7 @@ class OnePagerElement(BaseModel):
     position: Optional[Position] = Field(None, description="Element position (if absolute)")
     order: int = Field(description="Display order within the layout")
     visible: bool = Field(default=True, description="Whether element is visible")
-    
+
     class Config:
         use_enum_values = True
 

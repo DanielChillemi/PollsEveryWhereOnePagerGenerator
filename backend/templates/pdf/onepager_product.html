@@ -444,7 +444,7 @@
                 <div class="feature-card showcase-large">
                     <div class="feature-image">
                         <div class="feature-icon">
-                            {% if element.get('title') and 'feature' in element.title.lower() %}⚡{% elif element.get('title') and 'benefit' in element.title.lower() %}🎯{% elif element.get('title') and 'product' in element.title.lower() %}📦{% else %}✨{% endif %}
+                            {% if element.get('title') and 'feature' in element.get('title', '').lower() %}⚡{% elif element.get('title') and 'benefit' in element.get('title', '').lower() %}🎯{% elif element.get('title') and 'product' in element.get('title', '').lower() %}📦{% else %}✨{% endif %}
                         </div>
                         {# Stats Badge #}
                         {% if key_stats and key_stats|length > 0 %}
@@ -455,8 +455,8 @@
                         {% endif %}
                     </div>
                     <div class="feature-content">
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                         {% if element.content is iterable and element.content is not string and element.content is not mapping %}
                         <ul>
@@ -477,8 +477,8 @@
                         <div class="feature-icon">📄</div>
                     </div>
                     <div class="feature-content">
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                         {% if element.content is string %}
                         <p>{{ element.content[:150] }}{% if element.content|length > 150 %}...{% endif %}</p>
@@ -493,12 +493,12 @@
                 <div class="feature-card">
                     <div class="feature-image">
                         <div class="feature-icon">
-                            {% if element.get('title') and 'benefit' in element.title.lower() %}🎯{% elif element.get('title') and 'feature' in element.title.lower() %}⚡{% else %}💎{% endif %}
+                            {% if element.get('title') and 'benefit' in element.get('title', '').lower() %}🎯{% elif element.get('title') and 'feature' in element.get('title', '').lower() %}⚡{% else %}💎{% endif %}
                         </div>
                     </div>
                     <div class="feature-content">
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                         {% if element.content is iterable and element.content is not string and element.content is not mapping %}
                         <ul>
@@ -526,8 +526,8 @@
                         {% endif %}
                     </div>
                     <div class="feature-content">
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                         {% if element.content is iterable and element.content is not string and element.content is not mapping %}
                         <ul>
@@ -545,8 +545,8 @@
                         <div class="feature-icon">💡</div>
                     </div>
                     <div class="feature-content">
-                        {% if element.title %}
-                        <h3>{{ element.title }}</h3>
+                        {% if element.get('title') %}
+                        <h3>{{ element.get('title') }}</h3>
                         {% endif %}
                         {% if element.content is string %}
                         <p>{{ element.content[:150] }}{% if element.content|length > 150 %}...{% endif %}</p>
