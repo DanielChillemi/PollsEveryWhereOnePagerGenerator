@@ -146,6 +146,27 @@ export const useUpdateOnePagerContent = () => {
 };
 
 /**
+ * Restore OnePager to a previous version
+ * Reverts to specified version snapshot
+ * Invalidates cache to show restored content
+ */
+export const useRestoreOnePagerVersion = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, version }: { id: string; version: number }) =>
+      onepagerService.restoreVersion(id, version, accessToken!),
+    onSuccess: (_, variables) => {
+      // Invalidate specific OnePager to refetch restored content
+      queryClient.invalidateQueries({ queryKey: ['onepager', variables.id] });
+      // Invalidate list (updated_at timestamp changed)
+      queryClient.invalidateQueries({ queryKey: ['onepagers'] });
+    },
+  });
+};
+
+/**
  * Export OnePager to PDF
  * Returns Blob for download
  * Does NOT invalidate cache (read-only operation)

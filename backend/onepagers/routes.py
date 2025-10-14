@@ -694,6 +694,108 @@ async def iterate_onepager(
     return OnePagerResponse(**onepager_helper(final_onepager))
 
 
+@router.post(
+    "/{onepager_id}/restore/{version}",
+    response_model=OnePagerResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "One-pager or version not found"},
+        403: {"model": ErrorResponse, "description": "Not authorized to restore this one-pager"}
+    }
+)
+async def restore_onepager_version(
+    onepager_id: str,
+    version: int,
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Restore a one-pager to a previous version from version history.
+
+    Reverts the one-pager's content and layout to a specific version snapshot.
+    Creates a new version snapshot documenting the restore action.
+
+    **Path Parameters:**
+    - onepager_id: MongoDB ObjectId of the one-pager
+    - version: Version number to restore to
+
+    **Returns:**
+    - Updated one-pager with restored content
+
+    **Errors:**
+    - 404: One-pager or version not found
+    - 403: User doesn't own this one-pager
+    """
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Find one-pager
+    onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to restore this one-pager"
+        )
+
+    # Find the version snapshot
+    version_history = onepager.get("version_history", [])
+    version_snapshot = next((v for v in version_history if v["version"] == version), None)
+
+    if not version_snapshot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Version {version} not found in version history"
+        )
+
+    # Build update document with restored content
+    now = datetime.now(timezone.utc)
+    update_doc = {
+        "content": version_snapshot["content"],
+        "layout": version_snapshot["layout"],
+        "updated_at": now
+    }
+
+    # Update in database
+    await db.onepagers.update_one(
+        {"_id": ObjectId(onepager_id)},
+        {"$set": update_doc}
+    )
+
+    # Fetch updated document
+    updated_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    # Create new version snapshot for the restore action
+    restore_snapshot = {
+        "version": len(version_history) + 1,
+        "content": version_snapshot["content"],
+        "layout": version_snapshot["layout"],
+        "created_at": now,
+        "change_description": f"Restored to version {version}"
+    }
+
+    # Add restore snapshot to history
+    await db.onepagers.update_one(
+        {"_id": ObjectId(onepager_id)},
+        {"$push": {"version_history": restore_snapshot}}
+    )
+
+    # Fetch final document with updated history
+    final_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    return OnePagerResponse(**onepager_helper(final_onepager))
+
+
 @router.delete(
     "/{onepager_id}",
     status_code=status.HTTP_204_NO_CONTENT,

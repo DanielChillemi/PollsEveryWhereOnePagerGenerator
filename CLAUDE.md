@@ -25,8 +25,8 @@ PollsEveryWhereOnePagerGenerator/
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
 │   │   ├── pages/             # Route pages
-│   │   ├── hooks/             # React hooks for API calls
-│   │   ├── services/          # API client, auth logic
+│   │   ├── hooks/             # TanStack Query hooks for API calls
+│   │   ├── services/          # API client services
 │   │   ├── stores/            # Zustand state management
 │   │   └── types/             # TypeScript definitions
 └── DevDocuments/               # Planning docs, gap analysis
@@ -44,7 +44,7 @@ PollsEveryWhereOnePagerGenerator/
    - **List sections**: `List[str]`
    - **Text sections**: `str`
 
-   **IMPORTANT**: When hero type has string content, PDF export converts it (`routes.py:805-812`):
+   **IMPORTANT**: When hero type has string content, PDF export converts it (`routes.py:1001-1008`):
    ```python
    if section_type == "hero" and isinstance(section_content, str):
        section_content = {
@@ -54,7 +54,7 @@ PollsEveryWhereOnePagerGenerator/
        }
    ```
 
-2. **Auto-Generation from Structured Data**: When `input_prompt` is missing, backend auto-builds sections from form fields (`routes.py:126-214`):
+2. **Auto-Generation from Structured Data**: When `input_prompt` is missing, backend auto-builds sections from form fields (`routes.py:128-215`):
    ```python
    if onepager_data.problem:
        sections.append(ContentSection(type="hero", title="The Challenge", content=problem))
@@ -65,19 +65,34 @@ PollsEveryWhereOnePagerGenerator/
    # ... benefits, integrations, social_proof, cta button
    ```
 
-3. **AI Iteration with Context Preservation** (`routes.py:473-605`):
+3. **AI Iteration with Context Preservation** (`routes.py:562-694`):
    - Fetches brand_kit for brand context
    - Calls `ai_service.refine_layout()` with current content + user feedback
    - AI returns nested structure: `{content: {headline, subheadline, sections}}`
-   - Backend parses nested structure first, then falls back to flat structure
-   - Creates version snapshot **after** update (not before) to save correct content
+   - Backend parses nested structure first (`routes.py:645-653`), then falls back to flat structure (`routes.py:655-657`)
+   - Updates database FIRST, then creates version snapshot with updated content (`routes.py:667-693`)
 
-4. **PDF Generation Pipeline** (`routes.py:678-882`):
+4. **Version History System** (`routes.py:697-796`):
+   - Version snapshots created after AI iterations
+   - Each snapshot contains: version number, content, layout, timestamp, change description
+   - `POST /{onepager_id}/restore/{version}` endpoint reverts to previous version
+   - Restore action creates new snapshot documenting the restore
+   - Frontend displays timeline with version comparison
+
+5. **Direct Content Updates** (`routes.py:466-551`):
+   - `PATCH /{onepager_id}/content` endpoint for non-AI updates
+   - Used for drag-and-drop reordering, inline editing, section deletion
+   - Does NOT trigger AI processing or create version snapshots
+   - Enables immediate user edits without AI latency
+
+6. **PDF Generation Pipeline** (`routes.py:856-1079`):
    - Fetch OnePager + Brand Kit from MongoDB
    - Convert to `OnePagerLayout` format (elements array with hero, text, list, button types)
-   - Generate HTML via Jinja2 template (`templates/pdf/onepager_base.html`)
+   - Handle hero content type conversion (string → dict) at export time
+   - Generate HTML via Jinja2 template with selected template style
    - Convert HTML to PDF via Playwright (headless Chromium)
    - Return as StreamingResponse with download headers
+   - Supports multiple templates: minimalist, bold, business, product
 
 **Database Collections:**
 - `users` - User accounts (email, hashed password, JWT tokens)
@@ -88,29 +103,43 @@ PollsEveryWhereOnePagerGenerator/
 
 ### Frontend (React 19 + TypeScript + Chakra UI v3)
 
-**Tech Stack:** React 19, TypeScript, Vite, Chakra UI v3, TanStack Query v5, Zustand, React Router v7, @dnd-kit
+**Tech Stack:** React 19, TypeScript, Vite, Chakra UI v3, TanStack Query v5, Zustand, React Router v7, @dnd-kit, date-fns
 
 **State Architecture:**
 - **Zustand** (`stores/authStore.ts`): JWT tokens, user state (persisted to localStorage)
-- **TanStack Query**: Server state with automatic caching/invalidation
+- **TanStack Query v5**: Server state with automatic caching/invalidation via hooks
 - **Component-local state**: UI state (forms, modals, edit modes)
 
-**Critical Components:**
+**Critical Patterns:**
 
-1. **SectionRenderer** (`components/onepager/SectionRenderer.tsx`):
-   - Handles polymorphic section content types
-   - Must check `typeof section.content` before rendering
-   - Delegates to type-specific components (HeroSection, TextSection, ListSection, ButtonSection)
+1. **TanStack Query Hooks Pattern** (`hooks/useOnePager.ts`, `hooks/useBrandKit.ts`):
+   - All API calls wrapped in custom hooks using TanStack Query
+   - Mutations automatically invalidate relevant queries on success
+   - Example: `useRestoreOnePagerVersion()` invalidates both detail and list caches
+   - Query keys structured hierarchically: `['onepager', id]`, `['onepagers', {skip, limit}]`
 
-2. **Section Components** (`components/onepager/sections/`):
+2. **Service Layer** (`services/onepagerService.ts`, `services/brandKitService.ts`):
+   - Axios-based API clients with centralized error handling
+   - Transform MongoDB `_id` to frontend `id` convention
+   - All services accept `token: string` parameter from Zustand auth store
+   - Consistent pattern: `async function(data, token) => Promise<T>`
+
+3. **Component Architecture**:
+   - **SectionRenderer** (`components/onepager/SectionRenderer.tsx`): Handles polymorphic section content types, delegates to type-specific components
+   - **DraggableSectionList** (`components/onepager/DraggableSectionList.tsx`): @dnd-kit integration for section reordering with inline edit/delete
+   - **VersionHistorySidebar** (`components/onepager/VersionHistorySidebar.tsx`): Timeline view with restore functionality, uses date-fns for relative timestamps
+   - **SaveStatusIndicator** (`components/common/SaveStatusIndicator.tsx`): Real-time save status display
+
+4. **Section Components** (`components/onepager/sections/`):
    - **HeroSection**: Accepts `{headline, subheadline?, description?}` object
    - **ButtonSection**: Accepts `{text, url}` and handles `window.open(url, '_blank')`
    - **ListSection**: Renders `string[]` as bullet list
    - **TextSection**: Renders plain string content
 
-3. **Type Safety**:
+5. **Type Safety**:
    - `types/onepager.ts` must match `backend/onepagers/schemas.py` exactly
-   - Key types: `OnePagerCreateData`, `OnePagerResponse`, `ContentSection`
+   - Key types: `OnePagerCreateData`, `OnePagerResponse`, `ContentSection`, `OnePagerSummary`
+   - Pydantic models on backend ensure runtime validation
 
 ## Development Commands
 
@@ -146,11 +175,11 @@ npm run dev
 # Type checking without emit
 npx tsc --noEmit
 
+# Build for production
+npm run build
+
 # Lint with ESLint
 npm run lint
-
-# Production build
-npm run build
 
 # Install dependencies
 npm install
@@ -192,9 +221,11 @@ VITE_API_BASE_URL=http://localhost:8000
 - `GET /api/v1/onepagers` - List user's OnePagers (paginated, filterable)
 - `GET /api/v1/onepagers/{id}` - Get specific OnePager
 - `PATCH /api/v1/onepagers/{id}` - Update metadata (e.g., link brand_kit_id)
+- `PATCH /api/v1/onepagers/{id}/content` - Direct content update (no AI)
 - `PUT /api/v1/onepagers/{id}/iterate` - AI iteration with user feedback
+- `POST /api/v1/onepagers/{id}/restore/{version}` - Restore to previous version
 - `DELETE /api/v1/onepagers/{id}` - Delete OnePager (hard delete)
-- `GET /api/v1/onepagers/{id}/export/pdf?format=letter|a4|tabloid` - Export to PDF
+- `GET /api/v1/onepagers/{id}/export/pdf?format=letter|a4|tabloid&template=minimalist|bold|business|product` - Export to PDF
 
 ### System
 - `GET /` - API information
@@ -213,8 +244,12 @@ VITE_API_BASE_URL=http://localhost:8000
   solution: string,                 // Required, 10-2000 chars
   features?: string[],              // Optional list
   benefits?: string[],              // Optional list
+  integrations?: string[],          // Optional list
+  social_proof?: string,            // Optional
   cta: {text: string, url: string}, // Required object
+  visuals?: Array<{type: string, url: string, description?: string}>,
   brand_kit_id?: string,            // Optional ObjectId
+  product_id?: string,              // Optional product from brand kit
   target_audience?: string,         // Optional
   input_prompt?: string             // Optional AI prompt
 }
@@ -228,8 +263,54 @@ VITE_API_BASE_URL=http://localhost:8000
 **Frontend Section Rendering:**
 - Check `typeof section.content` before rendering
 - Extract fields from object types (button needs `{text, url}`, hero needs `{headline, ...}`)
+- Use type guards to handle polymorphic content safely
 
-## Common Type Mismatches & Solutions
+## Common Patterns & Solutions
+
+### Version History Integration
+```typescript
+// Hook usage
+const restoreVersionMutation = useRestoreOnePagerVersion();
+
+// Restore handler
+const handleRestoreVersion = async (version: number) => {
+  await restoreVersionMutation.mutateAsync({ id, version });
+  // TanStack Query automatically refetches and updates UI
+};
+
+// Component
+<VersionHistorySidebar
+  versions={onepager.version_history || []}
+  currentVersion={onepager.version_history?.length || 0}
+  onRestore={handleRestoreVersion}
+  isRestoring={restoreVersionMutation.isPending}
+/>
+```
+
+### Direct Content Updates (No AI)
+```typescript
+// Hook usage
+const contentUpdateMutation = useUpdateOnePagerContent();
+
+// Section reorder (drag-and-drop)
+const handleSectionReorder = (newSections: any[]) => {
+  contentUpdateMutation.mutate({
+    id: id!,
+    data: { sections: newSections }
+  });
+};
+
+// Inline edit
+const handleSectionEdit = (sectionId: string, newContent: any) => {
+  const updatedSections = sections.map(s =>
+    s.id === sectionId ? { ...s, content: newContent } : s
+  );
+  contentUpdateMutation.mutate({
+    id: id!,
+    data: { sections: updatedSections }
+  });
+};
+```
 
 ### Problem: "Objects are not valid as React child"
 **Cause:** Rendering object content directly without extracting fields
@@ -243,17 +324,23 @@ VITE_API_BASE_URL=http://localhost:8000
 const buttonContent = typeof section.content === 'string'
   ? section.content
   : (section.content as any)?.text || 'Button';
+<Button>{buttonContent}</Button>
 ```
 
 ### Problem: Empty sections array after creation
 **Cause:** Missing `input_prompt` and backend didn't auto-generate from structured data
 
-**Solution:** Ensure `routes.py:126-214` logic builds sections from problem/solution/features/benefits/cta
+**Solution:** Ensure `routes.py:128-215` logic builds sections from problem/solution/features/benefits/cta
 
-### Problem: PDF shows empty hero headline
-**Cause:** Hero section content is string but template expects `{headline, subheadline, description}` dict
+### Problem: AI iteration not updating content
+**Root Cause:** Backend parsing AI response incorrectly
 
-**Solution:** Backend converts at PDF export time (`routes.py:805-812`)
+**Solution:** Check nested structure first (`routes.py:645-653`), then flat structure (`routes.py:655-657`)
+
+### Problem: Version history saving old content
+**Root Cause:** Snapshot created before database update
+
+**Solution:** Update DB first, fetch updated doc, then create snapshot (`routes.py:667-693`)
 
 ## PDF Generation Architecture
 
@@ -265,19 +352,25 @@ Located in `backend/templates/pdf/`:
 - `sections/list.html` - List section template
 - `sections/button.html` - Button/CTA section template
 
-**New Template Design (as of recent update):**
-- **Single page fit**: All content constrained to 8.5×11" (Letter) via `overflow: hidden`
+**Template Styles:**
+- **minimalist**: Clean 2-column layout with subtle gradients
+- **bold**: Diagonal/asymmetric design with strong visual hierarchy
+- **business**: Data-focused grid with charts and metrics
+- **product**: Visual showcase with large images and feature highlights
+
+**Design Features:**
+- **Single page fit**: All content constrained to page size via `overflow: hidden`
 - **2-column grid layout**: Left column (lists/features), Right column (text/offers)
 - **Hero section**: Gradient background at top with headline + description
 - **CTA footer**: Gradient footer with prominent button
-- **Visual elements**: Icons (⚡ Features, 🎯 Benefits), checkmarks for lists, highlight boxes for special offers
+- **Visual elements**: Icons, checkmarks for lists, highlight boxes
 - **Brand Kit integration**: CSS variables for colors/fonts auto-applied
 
 ### PDF Export Flow
-1. User clicks "Export PDF" → Frontend calls `GET /api/v1/onepagers/{id}/export/pdf?format=letter`
+1. User clicks "Export PDF" → Frontend calls `GET /api/v1/onepagers/{id}/export/pdf?format=letter&template=minimalist`
 2. Backend fetches OnePager + Brand Kit from MongoDB
 3. Converts to `OnePagerLayout` format with elements array
-4. Handles hero content type conversion (string → dict)
+4. Handles hero content type conversion (string → dict) at `routes.py:1001-1008`
 5. Renders Jinja2 template with OnePager data + Brand Kit styles
 6. Playwright launches headless Chromium, loads HTML, generates PDF
 7. Returns PDF as `StreamingResponse` with download filename
@@ -286,36 +379,6 @@ Located in `backend/templates/pdf/`:
 - Google Fonts loaded via `<link>` tags
 - Playwright waits 1 second for font loading before PDF render
 - Typical generation time: 2-5 seconds
-
-## Testing & Debugging
-
-### Backend Testing
-```bash
-# Manual API testing
-curl -X POST http://localhost:8000/api/v1/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test123!","full_name":"Test User"}'
-
-# Check MongoDB collections (use mongo shell or Compass)
-# Collections: users, brand_kits, onepagers
-# Database: marketing_onepager
-```
-
-### Frontend Debugging
-
-**Browser Cache Issues:**
-- Vite HMR doesn't always clear cache
-- Solution: Hard refresh (`Cmd+Shift+R` / `Ctrl+Shift+R`) or use incognito mode
-
-**React DevTools:**
-- Check Zustand store: `useAuthStore.getState()` in console
-- Inspect TanStack Query cache for stale data
-- Monitor Network tab for 401 errors (expired JWT)
-
-**Common Errors:**
-1. "Objects are not valid as React child" → Content type mismatch in section rendering
-2. 401 Unauthorized → JWT token expired, re-login required
-3. Empty sections → Missing `input_prompt` and structured data not provided
 
 ## AI Service Integration
 
@@ -345,37 +408,65 @@ curl -X POST http://localhost:8000/api/v1/auth/signup \
 }
 ```
 
-## Known Issues & Fixes
-
-### Issue: AI iteration not updating content
-**Root Cause:** Backend was checking for flat `{sections: []}` but AI returns nested `{content: {sections: []}}`
-
-**Fix:** `routes.py:554-568` now checks nested structure first, then falls back to flat
-
-### Issue: Version history saving old content
-**Root Cause:** Snapshot created before database update
-
-**Fix:** `routes.py:578-600` now updates DB first, fetches updated doc, then creates snapshot
-
-### Issue: PDF shows empty hero headline
-**Root Cause:** Hero content was string, but template expects dict
-
-**Fix:** `routes.py:805-812` converts string to dict at PDF export time
-
-## Current Status
+## Current Implementation Status
 
 **Backend:** ✅ 100% Complete
-- Authentication, Brand Kits, OnePagers, AI iteration, PDF export
+- Authentication with JWT
+- Brand Kits with soft delete
+- OnePagers CRUD
+- AI iteration with version history
+- Direct content updates
+- Version restore
+- PDF export with multiple templates
 
-**Frontend:** ⚠️ ~85% Complete
+**Frontend:** ✅ ~95% Complete
+- Authentication flow
+- Brand Kit management
+- OnePager creation with structured forms
+- OnePager list/detail pages
+- AI iteration interface
+- Canvas interactive editing (drag-and-drop, inline edit, delete)
+- Auto-save system with status indicator
+- Version history sidebar with restore
+- PDF export with template selection
+- Wireframe/Styled mode toggle
 
-**Known Gaps** (see `DevDocuments/WEEK_2_MVP_GAP_ANALYSIS.md`):
-1. Enhanced creation form with product dropdown
-2. Wireframe/Styled canvas toggle (partial implementation)
-3. Canvas interactive editing (inline edit, drag-and-drop reordering)
-4. Auto-save system
-5. One-pager version history sidebar
-6. Brand voice stronger integration in AI prompts
+**Recent Completions:**
+- Version History UI with timeline and restore functionality
+- Direct content updates for drag-and-drop and inline editing
+- Auto-save indicator
+- PDF template selection
+
+## Known Implementation Details
+
+### Version History
+- Snapshots created automatically after AI iterations
+- Each snapshot includes: version number, content, layout, timestamp, change description
+- Frontend displays timeline sorted newest-first
+- Restore creates new snapshot documenting the restore action
+- Uses date-fns for relative timestamps ("2 hours ago")
+
+### Auto-Save System
+- Uses TanStack Query mutation state for save status
+- Displays "Saving...", "Saved", or "Error" indicator
+- Shows last saved timestamp
+- Prevents browser close during save with beforeunload handler
+- No debouncing needed - TanStack Query handles request deduplication
+
+### Canvas Editing
+- @dnd-kit for drag-and-drop section reordering
+- Inline editing with contentEditable or modal forms
+- Section delete with confirmation
+- All edits use `PATCH /content` endpoint (no AI processing)
+- Immediate UI updates via optimistic mutations
+
+### PDF Export
+- Four template options: minimalist, bold, business, product
+- Three page formats: letter, a4, tabloid
+- Brand Kit styling applied automatically via CSS variables
+- Playwright-based generation (requires headless Chromium)
+- Streaming response with download headers
+- Hero content type conversion handled at export time
 
 ## Deployment Notes
 
@@ -385,10 +476,9 @@ curl -X POST http://localhost:8000/api/v1/auth/signup \
 - Database: MongoDB Atlas
 - AI: OpenAI API
 
-**Playwright Compatibility:** Requires special serverless configuration. Consider cloud PDF service for production (e.g., DocRaptor, PDFShift).
+**Playwright Compatibility:** Requires special serverless configuration for PDF generation. Consider cloud PDF service for production (e.g., DocRaptor, PDFShift) if Playwright setup is complex.
 
 ## Additional Resources
 
 - API Docs: http://localhost:8000/docs (when running)
-- Gap Analysis: `DevDocuments/WEEK_2_MVP_GAP_ANALYSIS.md`
-- README: Setup instructions and tech stack details
+- README: Setup instructions and project overview

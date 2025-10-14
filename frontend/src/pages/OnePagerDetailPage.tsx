@@ -22,11 +22,12 @@ import {
   ButtonGroup,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerContent } from '../hooks/useOnePager';
+import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerContent, useRestoreOnePagerVersion } from '../hooks/useOnePager';
 import { useBrandKits } from '../hooks/useBrandKit';
 import { DraggableSectionList } from '../components/onepager/DraggableSectionList';
 import { PDFExportModal } from '../components/onepager/PDFExportModal';
 import { SaveStatusIndicator } from '../components/common/SaveStatusIndicator';
+import { VersionHistorySidebar } from '../components/onepager/VersionHistorySidebar';
 import { toaster } from '../components/ui/toaster';
 import type { SaveStatus } from '../hooks/useAutoSave';
 import '../styles/wireframe-mode.css';
@@ -45,6 +46,7 @@ export function OnePagerDetailPage() {
   const iterateMutation = useIterateOnePager();
   const updateMutation = useUpdateOnePager();
   const contentUpdateMutation = useUpdateOnePagerContent();
+  const restoreVersionMutation = useRestoreOnePagerVersion();
 
   const [feedback, setFeedback] = useState('');
 
@@ -200,6 +202,32 @@ export function OnePagerDetailPage() {
       });
       // Navigate to brand kit creation
       navigate('/brand-kit/create');
+    }
+  };
+
+  const handleRestoreVersion = async (version: number) => {
+    if (!id) return;
+
+    try {
+      await restoreVersionMutation.mutateAsync({
+        id,
+        version,
+      });
+
+      toaster.create({
+        title: 'Version Restored!',
+        description: `Successfully restored to version ${version}`,
+        type: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Restore failed:', error);
+      toaster.create({
+        title: 'Restore Failed',
+        description: 'Could not restore to this version. Please try again.',
+        type: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -491,6 +519,14 @@ export function OnePagerDetailPage() {
                   </Text>
                 </VStack>
               </Box>
+
+              {/* Version History Panel */}
+              <VersionHistorySidebar
+                versions={onepager.version_history || []}
+                currentVersion={onepager.version_history?.length || 0}
+                onRestore={handleRestoreVersion}
+                isRestoring={restoreVersionMutation.isPending}
+              />
             </VStack>
           </Box>
 

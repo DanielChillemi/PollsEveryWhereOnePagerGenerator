@@ -186,6 +186,28 @@ export const onepagerService = {
   },
 
   /**
+   * Restore OnePager to a previous version
+   * Reverts content and layout to specified version snapshot
+   */
+  async restoreVersion(id: string, version: number, token: string): Promise<OnePager> {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/v1/onepagers/${id}/restore/${version}`,
+      null,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return {
+      ...response.data,
+      id: response.data._id || response.data.id,
+    };
+  },
+
+  /**
    * Export OnePager to PDF
    * Uses in-house Playwright-based PDF engine
    * Returns binary Blob for download
