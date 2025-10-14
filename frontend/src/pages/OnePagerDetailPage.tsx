@@ -7,7 +7,7 @@
  * - Top bar (back button, export PDF)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -26,7 +26,9 @@ import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerCo
 import { useBrandKits } from '../hooks/useBrandKit';
 import { DraggableSectionList } from '../components/onepager/DraggableSectionList';
 import { PDFExportModal } from '../components/onepager/PDFExportModal';
+import { SaveStatusIndicator } from '../components/common/SaveStatusIndicator';
 import { toaster } from '../components/ui/toaster';
+import type { SaveStatus } from '../hooks/useAutoSave';
 import '../styles/wireframe-mode.css';
 
 type ViewMode = 'wireframe' | 'styled';
@@ -36,6 +38,7 @@ export function OnePagerDetailPage() {
   const navigate = useNavigate();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('styled');
+  const [lastSavedAt, setLastSavedAt] = useState<Date>(new Date());
 
   const { data: onepager, isLoading, error } = useOnePager(id!);
   const { data: brandKits } = useBrandKits();
@@ -44,6 +47,34 @@ export function OnePagerDetailPage() {
   const contentUpdateMutation = useUpdateOnePagerContent();
 
   const [feedback, setFeedback] = useState('');
+
+  // Calculate save status based on mutation state
+  const saveStatus: SaveStatus = contentUpdateMutation.isPending
+    ? 'saving'
+    : contentUpdateMutation.isError
+    ? 'error'
+    : 'saved';
+
+  // Update last saved timestamp when save completes
+  useEffect(() => {
+    if (contentUpdateMutation.isSuccess) {
+      setLastSavedAt(new Date());
+    }
+  }, [contentUpdateMutation.isSuccess]);
+
+  // Warn user when trying to close browser/tab during save
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (contentUpdateMutation.isPending) {
+        e.preventDefault();
+        e.returnValue = 'Your changes are still being saved. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [contentUpdateMutation.isPending]);
 
   const handleIterate = async () => {
     if (!feedback.trim() || !id) return;
@@ -245,6 +276,9 @@ export function OnePagerDetailPage() {
             </HStack>
 
             <HStack gap={2}>
+              {/* Save Status Indicator */}
+              <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+
               {/* View Mode Toggle */}
               <ButtonGroup size="md" isAttached variant="outline">
                 <Button
