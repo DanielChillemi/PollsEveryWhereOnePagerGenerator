@@ -22,7 +22,7 @@ import {
   ButtonGroup,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useOnePager, useIterateOnePager, useUpdateOnePager } from '../hooks/useOnePager';
+import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerContent } from '../hooks/useOnePager';
 import { useBrandKits } from '../hooks/useBrandKit';
 import { DraggableSectionList } from '../components/onepager/DraggableSectionList';
 import { PDFExportModal } from '../components/onepager/PDFExportModal';
@@ -41,6 +41,7 @@ export function OnePagerDetailPage() {
   const { data: brandKits } = useBrandKits();
   const iterateMutation = useIterateOnePager();
   const updateMutation = useUpdateOnePager();
+  const contentUpdateMutation = useUpdateOnePagerContent();
 
   const [feedback, setFeedback] = useState('');
 
@@ -76,8 +77,61 @@ export function OnePagerDetailPage() {
   };
 
   const handleSectionReorder = (newSections: any[]) => {
-    // TODO: Implement auto-save to backend
+    // Update sections directly without AI processing
+    contentUpdateMutation.mutate({
+      id: id!,
+      data: {
+        sections: newSections,
+      },
+    });
     console.log('Sections reordered:', newSections);
+  };
+
+  const handleSectionEdit = (sectionId: string, newContent: any) => {
+    if (!onepager) return;
+
+    // Find and update the section
+    const updatedSections = onepager.content.sections.map((section) =>
+      section.id === sectionId
+        ? { ...section, content: newContent }
+        : section
+    );
+
+    // Send direct update to backend without AI processing
+    contentUpdateMutation.mutate({
+      id: id!,
+      data: {
+        sections: updatedSections,
+      },
+    });
+
+    console.log('Section edited:', sectionId, newContent);
+  };
+
+  const handleSectionDelete = (sectionId: string) => {
+    if (!onepager) return;
+
+    // Remove section from array
+    const updatedSections = onepager.content.sections.filter(
+      (section) => section.id !== sectionId
+    );
+
+    // Send direct update to backend without AI processing
+    contentUpdateMutation.mutate({
+      id: id!,
+      data: {
+        sections: updatedSections,
+      },
+    });
+
+    console.log('Section deleted:', sectionId);
+
+    toaster.create({
+      title: 'Section Deleted',
+      description: 'The section has been removed.',
+      type: 'success',
+      duration: 2000,
+    });
   };
 
   const handleLinkBrandKit = async () => {
@@ -471,6 +525,8 @@ export function OnePagerDetailPage() {
                   <DraggableSectionList
                     sections={onepager.content.sections}
                     onReorder={handleSectionReorder}
+                    onEdit={handleSectionEdit}
+                    onDelete={handleSectionDelete}
                   />
                 </Box>
               </Box>

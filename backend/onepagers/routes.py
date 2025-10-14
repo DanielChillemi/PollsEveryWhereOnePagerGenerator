@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 from backend.onepagers.schemas import (
     OnePagerCreate,
     OnePagerIterate,
+    OnePagerContentUpdate,
     OnePagerResponse,
     OnePagerSummary,
     OnePagerStatus,
@@ -449,6 +450,94 @@ async def update_onepager(
                 )
 
             update_doc["brand_kit_id"] = ObjectId(brand_kit_id)
+
+    # Update in database
+    await db.onepagers.update_one(
+        {"_id": ObjectId(onepager_id)},
+        {"$set": update_doc}
+    )
+
+    # Fetch updated document
+    updated_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    return OnePagerResponse(**onepager_helper(updated_onepager))
+
+
+@router.patch(
+    "/{onepager_id}/content",
+    response_model=OnePagerResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "One-pager not found"},
+        403: {"model": ErrorResponse, "description": "Not authorized to update this one-pager"}
+    }
+)
+async def update_onepager_content(
+    onepager_id: str,
+    content_update: OnePagerContentUpdate,
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Directly update one-pager content (sections, headline, subheadline).
+
+    This endpoint allows direct manipulation of sections without AI processing.
+    Useful for drag-and-drop reordering, inline editing, and section deletion.
+
+    **Path Parameters:**
+    - onepager_id: MongoDB ObjectId of the one-pager
+
+    **Request Body:**
+    - sections: Updated sections array (optional)
+    - headline: Updated headline (optional)
+    - subheadline: Updated subheadline (optional)
+
+    **Returns:**
+    - Updated one-pager document
+
+    **Errors:**
+    - 404: One-pager not found
+    - 403: User doesn't own this one-pager
+    """
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Find one-pager
+    onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this one-pager"
+        )
+
+    # Build update document
+    now = datetime.now(timezone.utc)
+    update_doc = {"updated_at": now}
+
+    # Update sections if provided
+    if content_update.sections is not None:
+        # Convert Pydantic models to dicts
+        sections_data = [section.model_dump() for section in content_update.sections]
+        update_doc["content.sections"] = sections_data
+
+    # Update headline if provided
+    if content_update.headline is not None:
+        update_doc["content.headline"] = content_update.headline
+
+    # Update subheadline if provided
+    if content_update.subheadline is not None:
+        update_doc["content.subheadline"] = content_update.subheadline
 
     # Update in database
     await db.onepagers.update_one(

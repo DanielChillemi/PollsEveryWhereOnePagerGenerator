@@ -120,6 +120,32 @@ export const useDeleteOnePager = () => {
 };
 
 /**
+ * Directly update OnePager content without AI processing
+ * Used for drag-and-drop, inline editing, and section deletion
+ * Invalidates cache to show updated content immediately
+ */
+export const useUpdateOnePagerContent = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { sections?: any[]; headline?: string; subheadline?: string };
+    }) => onepagerService.updateContent(id, data, accessToken!),
+    onSuccess: (_, variables) => {
+      // Invalidate specific OnePager to refetch updated content
+      queryClient.invalidateQueries({ queryKey: ['onepager', variables.id] });
+      // Invalidate list (updated_at timestamp changed)
+      queryClient.invalidateQueries({ queryKey: ['onepagers'] });
+    },
+  });
+};
+
+/**
  * Export OnePager to PDF
  * Returns Blob for download
  * Does NOT invalidate cache (read-only operation)

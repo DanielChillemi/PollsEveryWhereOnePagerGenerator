@@ -5,6 +5,7 @@
  * Allows users to rearrange sections visually
  */
 
+import { useState } from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import {
@@ -13,7 +14,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, VStack, HStack, IconButton, Text } from '@chakra-ui/react';
+import { Box, VStack, HStack, IconButton, Text, Button } from '@chakra-ui/react';
 import { SectionRenderer } from './SectionRenderer';
 import type { ContentSection } from '../../types/onepager';
 
@@ -21,6 +22,7 @@ interface Props {
   sections: ContentSection[];
   onReorder: (newSections: ContentSection[]) => void;
   onDelete?: (sectionId: string) => void;
+  onEdit?: (sectionId: string, newContent: any) => void;
 }
 
 /**
@@ -29,10 +31,13 @@ interface Props {
 function SortableSection({
   section,
   onDelete,
+  onEdit,
 }: {
   section: ContentSection;
   onDelete?: (id: string) => void;
+  onEdit?: (id: string, newContent: any) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
   const {
     attributes,
     listeners,
@@ -76,30 +81,71 @@ function SortableSection({
         top={2}
         right={2}
         gap={1}
-        opacity={0}
+        opacity={{ base: 1, md: 0 }}  // Always visible on mobile, hover on desktop
         transition="opacity 0.2s"
+        bg="white"
+        p={1}
+        borderRadius="8px"
+        boxShadow="sm"
       >
-        <Box
-          {...attributes}
-          {...listeners}
-          cursor="grab"
-          _active={{ cursor: 'grabbing' }}
-          p={2}
-          borderRadius="8px"
-          bg="gray.100"
-          _hover={{ bg: 'gray.200' }}
-        >
-          <Text fontSize="16px">☰</Text>
-        </Box>
-        {onDelete && (
-          <IconButton
-            aria-label="Delete section"
-            size="sm"
-            colorScheme="red"
-            variant="ghost"
-            onClick={() => onDelete(section.id)}
-            icon={<Text fontSize="16px">🗑️</Text>}
-          />
+        {!isEditing && (
+          <>
+            <Box
+              {...attributes}
+              {...listeners}
+              cursor="grab"
+              _active={{ cursor: 'grabbing' }}
+              p={2}
+              borderRadius="8px"
+              bg="gray.200"
+              _hover={{ bg: 'gray.300' }}
+              border="1px solid"
+              borderColor="gray.400"
+            >
+              <Text fontSize="16px" color="gray.700">☰</Text>
+            </Box>
+            <IconButton
+              aria-label="Edit section"
+              size="sm"
+              colorScheme="purple"
+              variant="solid"
+              onClick={() => setIsEditing(true)}
+              icon={<Text fontSize="16px">✏️</Text>}
+              bg="purple.500"
+              color="white"
+              _hover={{ bg: 'purple.600' }}
+            />
+            {onDelete && (
+              <IconButton
+                aria-label="Delete section"
+                size="sm"
+                colorScheme="red"
+                variant="solid"
+                onClick={() => {
+                  if (window.confirm('Delete this section? This action cannot be undone.')) {
+                    onDelete(section.id);
+                  }
+                }}
+                icon={<Text fontSize="16px">🗑️</Text>}
+                bg="red.500"
+                color="white"
+                _hover={{ bg: 'red.600' }}
+              />
+            )}
+          </>
+        )}
+        {isEditing && (
+          <>
+            <Button
+              size="sm"
+              colorScheme="green"
+              variant="solid"
+              onClick={() => setIsEditing(false)}
+              leftIcon={<Text fontSize="14px">✓</Text>}
+            >
+              Done
+            </Button>
+          </>
         )}
       </HStack>
 
@@ -110,19 +156,27 @@ function SortableSection({
         left={2}
         px={3}
         py={1}
-        bg="rgba(134, 76, 189, 0.1)"
+        bg={isEditing ? 'rgba(52, 211, 153, 0.15)' : 'rgba(134, 76, 189, 0.1)'}
         borderRadius="full"
         fontSize="xs"
         fontWeight={600}
-        color="#864CBD"
+        color={isEditing ? '#059669' : '#864CBD'}
         textTransform="uppercase"
       >
-        {section.type}
+        {isEditing ? '✏️ EDITING' : section.type}
       </Box>
 
       {/* Section Content */}
       <Box mt={8}>
-        <SectionRenderer section={section} />
+        <SectionRenderer
+          section={section}
+          isEditing={isEditing}
+          onUpdate={(newContent) => {
+            if (onEdit) {
+              onEdit(section.id, newContent);
+            }
+          }}
+        />
       </Box>
     </Box>
   );
@@ -131,7 +185,7 @@ function SortableSection({
 /**
  * Main draggable list component
  */
-export function DraggableSectionList({ sections, onReorder, onDelete }: Props) {
+export function DraggableSectionList({ sections, onReorder, onDelete, onEdit }: Props) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -186,6 +240,7 @@ export function DraggableSectionList({ sections, onReorder, onDelete }: Props) {
               key={section.id}
               section={section}
               onDelete={onDelete}
+              onEdit={onEdit}
             />
           ))}
         </VStack>

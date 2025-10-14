@@ -156,6 +156,36 @@ export const onepagerService = {
   },
 
   /**
+   * Directly update OnePager content (sections, headline, subheadline)
+   * Does NOT trigger AI processing - immediate direct update
+   */
+  async updateContent(
+    id: string,
+    data: {
+      sections?: any[];
+      headline?: string;
+      subheadline?: string;
+    },
+    token: string
+  ): Promise<OnePager> {
+    const response = await axios.patch(
+      `${API_BASE_URL}/api/v1/onepagers/${id}/content`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return {
+      ...response.data,
+      id: response.data._id || response.data.id,
+    };
+  },
+
+  /**
    * Export OnePager to PDF
    * Uses in-house Playwright-based PDF engine
    * Returns binary Blob for download

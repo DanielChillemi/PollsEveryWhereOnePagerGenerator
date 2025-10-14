@@ -143,13 +143,35 @@ class OnePagerUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     status: Optional[OnePagerStatus] = None
     style_overrides: Optional[Dict[str, Any]] = None
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "title": "Updated Title",
                 "status": "draft",
                 "style_overrides": {"primary_color": "#0ea5e9"}
+            }
+        }
+
+
+class OnePagerContentUpdate(BaseModel):
+    """Request model for directly updating one-pager content (sections)."""
+    sections: Optional[List[ContentSection]] = Field(None, description="Updated sections array")
+    headline: Optional[str] = Field(None, description="Updated headline")
+    subheadline: Optional[str] = Field(None, description="Updated subheadline")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "sections": [
+                    {
+                        "id": "section-1",
+                        "type": "hero",
+                        "title": "The Challenge",
+                        "content": "Problem description",
+                        "order": 0
+                    }
+                ]
             }
         }
 
@@ -262,6 +284,7 @@ class OnePagerResponse(BaseModel):
 __all__ = [
     "OnePagerCreate",
     "OnePagerUpdate",
+    "OnePagerContentUpdate",
     "OnePagerIterate",
     "OnePagerResponse",
     "OnePagerSummary",
