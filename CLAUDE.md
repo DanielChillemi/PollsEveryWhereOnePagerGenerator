@@ -437,6 +437,7 @@ Located in `backend/templates/pdf/`:
 - Auto-save indicator with last saved timestamp
 - PDF template selection (4 templates)
 - Enhanced product selection with visual feedback
+- Wireframe mode polish with paper texture and hand-drawn aesthetic
 
 ## Known Implementation Details
 
@@ -505,6 +506,68 @@ const handleProductSelect = (productId: string) => {
   }
 };
 ```
+
+### Wireframe Mode (Low-Fidelity View)
+- Toggle between styled (brand colors) and wireframe (grayscale structure) modes
+- Wireframe mode emphasizes content hierarchy and layout over branding
+- Implemented via CSS class toggle on container element (`wireframe-mode.css`)
+- Smooth 0.4s transition between modes for polished UX
+
+**Visual Features:**
+- **Paper texture background**: Subtle repeating-linear-gradient for sketch-like feel
+- **Hand-drawn aesthetic**: 2px dashed borders (#999999) on sections
+- **Sketch-like shadows**: Flat 2px 2px 0px shadows instead of soft shadows
+- **Monospace labels**: Section type labels with Courier New font
+- **Grayscale filter**: grayscale(100%) + sepia(5%) for paper-like appearance
+- **Button hover effects**: translate(-1px, -1px) with enhanced shadow
+- **Hero section overlay**: "🖼️ HERO" label positioned absolutely
+
+**Implementation** (`wireframe-mode.css`):
+```css
+/* Main wireframe container */
+.wireframe-mode {
+  filter: grayscale(100%) sepia(5%);
+  transition: filter 0.4s ease-in-out;
+  position: relative;
+}
+
+/* Paper texture background */
+.wireframe-mode::before {
+  content: '';
+  position: absolute;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.01) 0px,
+    transparent 1px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.01) 3px
+  );
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Section styling */
+.wireframe-mode .section-container {
+  background: #fafafa !important;
+  border: 2px dashed #999999 !important;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Section type labels */
+.wireframe-mode .section-type-label {
+  display: block !important;
+  font-family: 'Courier New', monospace;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+```
+
+**Toggle Integration** (`OnePagerDetailPage.tsx`):
+- State managed via `useState<'wireframe' | 'styled'>('styled')`
+- Toggle button in header controls mode switching
+- CSS class applied conditionally to canvas container
+- Mode badge shows current state (wireframe badge vs styled badge)
 
 ## Deployment Notes
 

@@ -5,54 +5,139 @@
  * Removes brand styling to show layout and content hierarchy.
  */
 
-/* Wireframe mode container */
+/* Wireframe mode container with smooth transition */
 .wireframe-mode {
-  /* Force grayscale colors */
-  filter: grayscale(100%);
+  /* Grayscale + subtle sepia for paper-like feel */
+  filter: grayscale(100%) sepia(5%);
+  transition: filter 0.4s ease-in-out;
+  position: relative;
 }
 
-/* Wireframe section styling */
+/* Paper texture background for wireframe mode */
+.wireframe-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.01) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.01) 3px
+    );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+/* Ensure content is above texture */
+.wireframe-mode > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Wireframe section styling - hand-drawn aesthetic */
 .wireframe-mode .section-container {
-  background: #ffffff !important;
-  border: 2px dashed #cccccc !important;
-  border-radius: 4px !important;
-  padding: 16px !important;
-  margin-bottom: 16px !important;
+  background: #fafafa !important;
+  border: 2px dashed #999999 !important;
+  border-radius: 2px !important;
+  padding: 20px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease;
 }
 
-/* Wireframe text styling */
+.wireframe-mode .section-container:hover {
+  border-color: #666666 !important;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Section type labels - prominent in wireframe */
+.wireframe-mode .section-type-label {
+  display: block !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #888888;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-left: 3px solid #999999;
+  display: inline-block;
+}
+
+/* Wireframe text styling - monospace for code-like feel */
 .wireframe-mode h1,
 .wireframe-mode h2,
 .wireframe-mode h3,
 .wireframe-mode h4,
 .wireframe-mode h5,
 .wireframe-mode h6 {
-  color: #333333 !important;
+  color: #1a1a1a !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+
+.wireframe-mode h1 {
+  border-bottom: 3px solid #cccccc;
+  padding-bottom: 8px;
+}
+
+.wireframe-mode h2 {
+  border-bottom: 2px solid #dddddd;
+  padding-bottom: 6px;
 }
 
 .wireframe-mode p,
 .wireframe-mode span,
 .wireframe-mode div,
 .wireframe-mode li {
-  color: #666666 !important;
+  color: #444444 !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+  line-height: 1.6 !important;
 }
 
-/* Wireframe buttons */
+/* Wireframe buttons - sketch-like */
 .wireframe-mode button,
 .wireframe-mode a[role="button"] {
-  background: #f5f5f5 !important;
+  background: #ffffff !important;
   color: #333333 !important;
-  border: 2px solid #cccccc !important;
-  border-radius: 4px !important;
+  border: 2px solid #888888 !important;
+  border-radius: 2px !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 600 !important;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease;
 }
 
-/* Wireframe lists */
+.wireframe-mode button:hover,
+.wireframe-mode a[role="button"]:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Wireframe lists - clear hierarchy */
 .wireframe-mode ul,
 .wireframe-mode ol {
-  color: #666666 !important;
+  color: #444444 !important;
+  padding-left: 24px;
+}
+
+.wireframe-mode li {
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.wireframe-mode ul li::marker {
+  color: #888888;
+  font-size: 1.2em;
 }
 
 /* Remove background gradients and images */
@@ -60,28 +145,30 @@
 .wireframe-mode [style*="background-gradient"],
 .wireframe-mode [style*="linear-gradient"] {
   background-image: none !important;
-  background: #f9f9f9 !important;
+  background: #f5f5f5 !important;
 }
 
-/* Simplify shadows */
+/* Placeholder for images in wireframe */
+.wireframe-mode img {
+  filter: grayscale(100%) contrast(0.8);
+  border: 2px dashed #bbbbbb !important;
+  background: repeating-linear-gradient(
+    45deg,
+    #f9f9f9,
+    #f9f9f9 10px,
+    #f0f0f0 10px,
+    #f0f0f0 20px
+  );
+}
+
+/* Simplify shadows - hand-drawn effect */
 .wireframe-mode [style*="box-shadow"] {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Show section labels in wireframe mode */
-.wireframe-mode .section-type-label {
-  display: block !important;
-  font-size: 10px;
-  text-transform: uppercase;
-  color: #999999;
-  font-weight: 600;
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-
-/* Styled mode (default) */
+/* Styled mode with smooth transition */
 .styled-mode {
-  /* No special styling - uses brand colors/fonts */
+  transition: filter 0.4s ease-in-out;
 }
 
 /* Hide section type labels in styled mode */
@@ -91,69 +178,155 @@
 
 /* Wireframe mode indicator badge */
 .wireframe-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: #f0f0f0;
-  color: #666666;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  background: #f5f5f5;
+  color: #555555;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid #dddddd;
-  z-index: 10;
+  letter-spacing: 1px;
+  border: 2px solid #999999;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 /* Styled mode indicator badge */
 .styled-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   background: linear-gradient(135deg, #864CBD 0%, #1568B8 100%);
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  z-index: 10;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(134, 76, 189, 0.3);
+  transition: all 0.3s ease;
 }
 
-/* Wireframe hero section */
+/* Wireframe hero section - sketch box */
 .wireframe-mode .hero-section {
-  background: #f5f5f5 !important;
-  border: 2px dashed #cccccc !important;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%) !important;
+  border: 3px dashed #aaaaaa !important;
   min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.wireframe-mode .hero-section::before {
+  content: '🖼️ HERO';
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 10px;
+  color: #999999;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border: 1px solid #cccccc;
 }
 
 /* Wireframe features grid */
 .wireframe-mode .features-grid {
   background: transparent !important;
+  gap: 16px;
 }
 
 .wireframe-mode .feature-card {
   background: #ffffff !important;
-  border: 2px solid #e0e0e0 !important;
-  border-radius: 4px !important;
+  border: 2px solid #cccccc !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.2s ease;
 }
 
-/* Responsive wireframe */
+.wireframe-mode .feature-card:hover {
+  border-color: #999999 !important;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Annotation style for wireframe */
+.wireframe-mode .annotation {
+  font-size: 11px;
+  color: #888888;
+  font-style: italic;
+  margin-top: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Content sections header in wireframe */
+.wireframe-mode .content-sections-header {
+  color: #333333 !important;
+  border-bottom: 2px solid #dddddd;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+/* Drag handles more visible in wireframe */
+.wireframe-mode [data-drag-handle] {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.wireframe-mode [data-drag-handle]:hover {
+  opacity: 1;
+  cursor: move;
+}
+
+/* Responsive wireframe adjustments */
 @media (max-width: 768px) {
   .wireframe-mode .section-container {
-    padding: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
   }
 
   .wireframe-mode h1 {
-    font-size: 24px !important;
+    font-size: 28px !important;
   }
 
   .wireframe-mode h2 {
-    font-size: 20px !important;
+    font-size: 22px !important;
   }
+
+  .wireframe-mode .section-type-label {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+}
+
+/* Print styles for wireframe */
+@media print {
+  .wireframe-mode {
+    filter: grayscale(100%);
+  }
+
+  .wireframe-mode .section-type-label {
+    display: block !important;
+  }
+}
+
+/* Animation for mode switching */
+@keyframes fadeInWireframe {
+  from {
+    opacity: 0.7;
+    transform: scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.wireframe-mode {
+  animation: fadeInWireframe 0.3s ease-out;
+}
+
+.styled-mode {
+  animation: fadeInWireframe 0.3s ease-out;
 }
