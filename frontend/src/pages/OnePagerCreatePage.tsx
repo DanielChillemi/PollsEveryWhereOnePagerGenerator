@@ -450,9 +450,22 @@ export function OnePagerCreatePage() {
               {/* Product Selection (shows if brand kit has products) */}
               {selectedBrandKit && selectedBrandKit.products && selectedBrandKit.products.length > 0 && (
                 <Box>
-                  <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
-                    Product (Optional)
-                  </Text>
+                  <HStack justify="space-between" mb={2}>
+                    <Text fontWeight={600} fontSize="16px" color="#2d3748">
+                      Product (Optional)
+                    </Text>
+                    {formData.product_id && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="gray"
+                        onClick={() => handleProductSelect('')}
+                        fontSize="xs"
+                      >
+                        Clear Selection
+                      </Button>
+                    )}
+                  </HStack>
                   <Select
                     value={formData.product_id || ''}
                     onChange={(e) => handleProductSelect(e.target.value)}
@@ -460,6 +473,7 @@ export function OnePagerCreatePage() {
                     fontSize="16px"
                     borderRadius="12px"
                     border="2px solid #e2e8f0"
+                    bg={formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
                     _focus={{
                       borderColor: '#864CBD',
                       boxShadow: '0 0 0 1px #864CBD',
@@ -472,9 +486,26 @@ export function OnePagerCreatePage() {
                       </option>
                     ))}
                   </Select>
-                  <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
-                    💡 Select a product to auto-fill problem, solution, features, and benefits
-                  </Text>
+                  {!formData.product_id ? (
+                    <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
+                      💡 Select a product to auto-fill problem, solution, features, and benefits
+                    </Text>
+                  ) : (
+                    <Box
+                      mt={2}
+                      p={3}
+                      bg="rgba(16, 185, 129, 0.1)"
+                      border="1px solid rgba(16, 185, 129, 0.3)"
+                      borderRadius="8px"
+                    >
+                      <Text fontSize="sm" color="green.700" fontWeight={600}>
+                        ✓ Product selected! Fields have been auto-populated.
+                      </Text>
+                      <Text fontSize="xs" color="green.600" mt={1}>
+                        You can still edit the fields below before generating your one-pager.
+                      </Text>
+                    </Box>
+                  )}
                 </Box>
               )}
 

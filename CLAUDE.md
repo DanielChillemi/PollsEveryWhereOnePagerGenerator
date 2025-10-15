@@ -434,8 +434,9 @@ Located in `backend/templates/pdf/`:
 **Recent Completions:**
 - Version History UI with timeline and restore functionality
 - Direct content updates for drag-and-drop and inline editing
-- Auto-save indicator
-- PDF template selection
+- Auto-save indicator with last saved timestamp
+- PDF template selection (4 templates)
+- Enhanced product selection with visual feedback
 
 ## Known Implementation Details
 
@@ -467,6 +468,43 @@ Located in `backend/templates/pdf/`:
 - Playwright-based generation (requires headless Chromium)
 - Streaming response with download headers
 - Hero content type conversion handled at export time
+
+### Product Selection (Enhanced Creation Form)
+- Brand Kits can include products with pre-defined content (`brandKitService.ts:5-12`)
+- Product dropdown appears when brand kit with products is selected
+- Auto-populates fields when product selected: `problem`, `solution`, `features`, `benefits`
+- Visual feedback: green background tint, success message box, clear selection button
+- Backend validates `product_id` against brand kit products (`routes.py:107-116`)
+- Product ID stored in `generation_metadata.product_id` for tracking
+
+**Product Interface:**
+```typescript
+interface Product {
+  id: string;
+  name: string;
+  default_problem?: string;
+  default_solution?: string;
+  features?: string[];
+  benefits?: string[];
+}
+```
+
+**Auto-fill Logic** (`OnePagerCreatePage.tsx:59-75`):
+```typescript
+const handleProductSelect = (productId: string) => {
+  const product = selectedBrandKit?.products?.find(p => p.id === productId);
+  if (product) {
+    setFormData({
+      ...formData,
+      product_id: productId,
+      problem: product.default_problem || formData.problem,
+      solution: product.default_solution || formData.solution,
+      features: product.features?.length > 0 ? product.features : formData.features,
+      benefits: product.benefits?.length > 0 ? product.benefits : formData.benefits,
+    });
+  }
+};
+```
 
 ## Deployment Notes
 
