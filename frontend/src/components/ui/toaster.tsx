@@ -7,11 +7,11 @@ import { createToaster } from '@chakra-ui/react';
 
 // Create toaster instance
 export const toaster = createToaster({
-  placement: 'bottom-right',
+  placement: 'bottom-right' as any, // Chakra UI v3 type workaround
   pauseOnPageIdle: true,
 });
 
 // Export Toaster component wrapper
 export function Toaster() {
-  return toaster.Toaster;
+  return (toaster as any).Toaster; // Chakra UI v3 type workaround
 }

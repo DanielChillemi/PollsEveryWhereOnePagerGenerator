@@ -142,7 +142,7 @@ export function VersionHistorySidebar({ versions, currentVersion, onRestore, isR
 
               {/* Change Description */}
               {snapshot.change_description && (
-                <Text fontSize="sm" color="gray.700" mb={3} noOfLines={isExpanded ? undefined : 2}>
+                <Text fontSize="sm" color="gray.700" mb={3} lineClamp={isExpanded ? undefined : 2}>
                   {snapshot.change_description}
                 </Text>
               )}
@@ -174,9 +174,9 @@ export function VersionHistorySidebar({ versions, currentVersion, onRestore, isR
                   w="full"
                   mt={3}
                   onClick={() => onRestore(snapshot.version)}
-                  isLoading={isRestoring}
-                  leftIcon={<Text fontSize="sm">⏮️</Text>}
+                  loading={isRestoring}
                 >
+                  <Text fontSize="sm" mr={1}>⏮️</Text>
                   Restore This Version
                 </Button>
               )}
@@ -213,7 +213,7 @@ export function VersionHistorySidebar({ versions, currentVersion, onRestore, isR
           borderRadius="12px"
         >
           <VStack gap={2}>
-            <Spinner size="lg" color="#864CBD" thickness="4px" />
+            <Spinner size="lg" color="#864CBD" borderWidth="4px" />
             <Text color="gray.700" fontWeight={600}>
               Restoring version...
             </Text>

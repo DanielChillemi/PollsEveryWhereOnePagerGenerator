@@ -3,11 +3,10 @@ import { VStack, Input, Textarea, Button, Box, Text, HStack, IconButton } from '
 export interface Product {
   id?: string;
   name: string;
-  description: string;
-  benefits: string[];
-  features: string[];
-  default_problem: string;
-  default_solution: string;
+  default_problem?: string;
+  default_solution?: string;
+  features?: string[];
+  benefits?: string[];
 }
 
 interface ProductInputProps {
@@ -25,18 +24,17 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
       ...value,
       {
         name: '',
-        description: '',
-        benefits: [''],
-        features: [''],
         default_problem: '',
         default_solution: '',
+        benefits: [''],
+        features: [''],
       },
     ]);
   };
 
   const removeProduct = (index: number) => {
     const updated = value.filter((_, i) => i !== index);
-    onChange(updated.length === 0 ? [{ name: '', description: '', benefits: [''], features: [''], default_problem: '', default_solution: '' }] : updated);
+    onChange(updated.length === 0 ? [{ name: '', benefits: [''], features: [''], default_problem: '', default_solution: '' }] : updated);
   };
 
   const updateProduct = (index: number, field: keyof Product, fieldValue: string | string[]) => {
@@ -47,16 +45,18 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
 
   const addListItem = (productIndex: number, field: 'benefits' | 'features') => {
     const updated = [...value];
+    const currentArray = updated[productIndex][field] || [];
     updated[productIndex] = {
       ...updated[productIndex],
-      [field]: [...updated[productIndex][field], ''],
+      [field]: [...currentArray, ''],
     };
     onChange(updated);
   };
 
   const removeListItem = (productIndex: number, field: 'benefits' | 'features', itemIndex: number) => {
     const updated = [...value];
-    const items = updated[productIndex][field].filter((_, i) => i !== itemIndex);
+    const currentArray = updated[productIndex][field] || [];
+    const items = currentArray.filter((_, i) => i !== itemIndex);
     updated[productIndex] = {
       ...updated[productIndex],
       [field]: items.length === 0 ? [''] : items,
@@ -66,7 +66,8 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
 
   const updateListItem = (productIndex: number, field: 'benefits' | 'features', itemIndex: number, itemValue: string) => {
     const updated = [...value];
-    const items = [...updated[productIndex][field]];
+    const currentArray = updated[productIndex][field] || [];
+    const items = [...currentArray];
     items[itemIndex] = itemValue;
     updated[productIndex] = { ...updated[productIndex], [field]: items };
     onChange(updated);
@@ -116,27 +117,6 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
               />
             </Box>
 
-            {/* Product Description */}
-            <Box>
-              <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
-                Description *
-              </Text>
-              <Textarea
-                value={product.description}
-                onChange={(e) => updateProduct(productIndex, 'description', e.target.value)}
-                placeholder="Describe your product..."
-                minH="100px"
-                fontSize="15px"
-                bg="white"
-                borderRadius="8px"
-                border="2px solid #e2e8f0"
-                _focus={{
-                  borderColor: '#007ACC',
-                  boxShadow: '0 0 0 1px #007ACC',
-                }}
-              />
-            </Box>
-
             {/* Benefits */}
             <Box>
               <HStack justify="space-between" mb={2}>
@@ -153,7 +133,7 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                 </Button>
               </HStack>
               <VStack align="stretch" gap={2}>
-                {product.benefits.map((benefit, itemIndex) => (
+                {(product.benefits || []).map((benefit, itemIndex) => (
                   <HStack key={itemIndex}>
                     <Input
                       value={benefit}
@@ -169,15 +149,16 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                         boxShadow: '0 0 0 1px #007ACC',
                       }}
                     />
-                    {product.benefits.length > 1 && (
+                    {(product.benefits || []).length > 1 && (
                       <IconButton
                         aria-label="Remove benefit"
-                        icon={<Text>×</Text>}
                         size="sm"
                         colorScheme="red"
                         variant="ghost"
                         onClick={() => removeListItem(productIndex, 'benefits', itemIndex)}
-                      />
+                      >
+                        <Text>×</Text>
+                      </IconButton>
                     )}
                   </HStack>
                 ))}
@@ -200,7 +181,7 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                 </Button>
               </HStack>
               <VStack align="stretch" gap={2}>
-                {product.features.map((feature, itemIndex) => (
+                {(product.features || []).map((feature, itemIndex) => (
                   <HStack key={itemIndex}>
                     <Input
                       value={feature}
@@ -216,15 +197,16 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                         boxShadow: '0 0 0 1px #007ACC',
                       }}
                     />
-                    {product.features.length > 1 && (
+                    {(product.features || []).length > 1 && (
                       <IconButton
                         aria-label="Remove feature"
-                        icon={<Text>×</Text>}
                         size="sm"
                         colorScheme="red"
                         variant="ghost"
                         onClick={() => removeListItem(productIndex, 'features', itemIndex)}
-                      />
+                      >
+                        <Text>×</Text>
+                      </IconButton>
                     )}
                   </HStack>
                 ))}
@@ -237,7 +219,7 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                 Default Problem Statement
               </Text>
               <Textarea
-                value={product.default_problem}
+                value={product.default_problem || ''}
                 onChange={(e) => updateProduct(productIndex, 'default_problem', e.target.value)}
                 placeholder="What problem does this product solve?"
                 minH="80px"
@@ -258,7 +240,7 @@ export const ProductInput: React.FC<ProductInputProps> = ({ value, onChange }) =
                 Default Solution Statement
               </Text>
               <Textarea
-                value={product.default_solution}
+                value={product.default_solution || ''}
                 onChange={(e) => updateProduct(productIndex, 'default_solution', e.target.value)}
                 placeholder="How does this product solve the problem?"
                 minH="80px"

@@ -298,7 +298,7 @@ export function PDFExportModal({ isOpen, onClose, onepagerId, title }: Props) {
             <Button
               colorScheme="purple"
               onClick={handleExport}
-              isLoading={exportMutation.isPending}
+              loading={exportMutation.isPending}
               size="md"
               color="white"
               bg="purple.600"

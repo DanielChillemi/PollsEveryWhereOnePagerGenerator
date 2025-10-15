@@ -45,7 +45,7 @@ interface UseAutoSaveReturn {
  * ```
  */
 export function useAutoSave({
-  onepagerId,
+  onepagerId: _onepagerId,
   debounceMs = 2000,
   enabled = true,
 }: UseAutoSaveOptions): UseAutoSaveReturn {
@@ -54,7 +54,7 @@ export function useAutoSave({
   const contentUpdateMutation = useUpdateOnePagerContent();
 
   // Track pending changes and debounce timer
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<number | null>(null);
   const pendingSaveRef = useRef(false);
 
   /**

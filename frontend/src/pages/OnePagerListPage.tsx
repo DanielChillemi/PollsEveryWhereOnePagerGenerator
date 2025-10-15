@@ -19,7 +19,6 @@ import {
   Button,
   Badge,
   Spinner,
-  Center,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useOnePagers, useDeleteOnePager } from '../hooks/useOnePager';
@@ -125,7 +124,7 @@ export function OnePagerListPage() {
           {/* Loading State */}
           {isLoading && (
             <Box textAlign="center" py={12}>
-              <Spinner size="xl" color="#864CBD" thickness="4px" />
+              <Spinner size="xl" color="#864CBD" borderWidth="4px" />
               <Text mt={4} color="gray.600">
                 Loading your one-pagers...
               </Text>
@@ -205,7 +204,7 @@ export function OnePagerListPage() {
                       <Heading
                         size="md"
                         color="#2d3748"
-                        noOfLines={2}
+                        lineClamp={2}
                         flex="1"
                         fontSize="20px"
                         fontWeight={600}

@@ -73,7 +73,7 @@ export function SaveStatusIndicator({ status, lastSavedAt }: Props) {
 
   return (
     <HStack gap={2} px={3} py={1.5} bg="white" borderRadius="full" border="1px solid #e2e8f0">
-      {showSpinner && <Spinner size="xs" color={color} thickness="2px" />}
+      {showSpinner && <Spinner size="xs" color={color} borderWidth="2px" />}
       {!showSpinner && icon && (
         <Text fontSize="sm" color={color} fontWeight={600}>
           {icon}

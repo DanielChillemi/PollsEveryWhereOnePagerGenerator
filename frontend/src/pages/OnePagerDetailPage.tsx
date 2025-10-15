@@ -236,7 +236,7 @@ export function OnePagerDetailPage() {
     return (
       <Box minH="100vh" bg="#F9FAFB" display="flex" alignItems="center" justifyContent="center">
         <VStack gap={4}>
-          <Spinner size="xl" color="#864CBD" thickness="4px" />
+          <Spinner size="xl" color="#864CBD" borderWidth="4px" />
           <Text color="gray.600">Loading one-pager...</Text>
         </VStack>
       </Box>
@@ -284,13 +284,13 @@ export function OnePagerDetailPage() {
               <Button
                 onClick={() => navigate('/onepager/list')}
                 variant="ghost"
-                leftIcon={<Text>←</Text>}
               >
+                <Text mr={1}>←</Text>
                 Back
               </Button>
               <VStack align="start" gap={0} flex="1">
                 <HStack gap={2}>
-                  <Heading size="lg" noOfLines={1}>
+                  <Heading size="lg" lineClamp={1}>
                     {onepager.title}
                   </Heading>
                   <Badge colorScheme={getStatusColor(onepager.status)} textTransform="capitalize">
@@ -308,7 +308,7 @@ export function OnePagerDetailPage() {
               <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
 
               {/* View Mode Toggle */}
-              <ButtonGroup size="md" isAttached variant="outline">
+              <ButtonGroup size="md" attached variant="outline">
                 <Button
                   onClick={() => setViewMode('wireframe')}
                   bg={viewMode === 'wireframe' ? 'gray.100' : 'white'}
@@ -340,8 +340,8 @@ export function OnePagerDetailPage() {
               <Button
                 colorScheme="purple"
                 onClick={() => setIsExportOpen(true)}
-                leftIcon={<Text>📄</Text>}
               >
+                <Text mr={1}>📄</Text>
                 Export PDF
               </Button>
             </HStack>
@@ -465,9 +465,8 @@ export function OnePagerDetailPage() {
                     colorScheme="purple"
                     w="full"
                     onClick={handleIterate}
-                    isLoading={iterateMutation.isPending}
-                    isDisabled={!feedback.trim() || feedback.length < 5}
-                    leftIcon={<Text>🔄</Text>}
+                    loading={iterateMutation.isPending}
+                    disabled={!feedback.trim() || feedback.length < 5}
                     color="white"
                     bg="purple.600"
                     _hover={{ bg: 'purple.700' }}
@@ -477,6 +476,7 @@ export function OnePagerDetailPage() {
                       cursor: 'not-allowed'
                     }}
                   >
+                    <Text mr={1}>🔄</Text>
                     {iterateMutation.isPending ? 'Refining...' : 'Iterate with AI'}
                   </Button>
                   {iterateMutation.isPending && (
@@ -506,12 +506,12 @@ export function OnePagerDetailPage() {
                     colorScheme="purple"
                     w="full"
                     onClick={() => setIsExportOpen(true)}
-                    leftIcon={<Text>📥</Text>}
                     size="lg"
                     color="white"
                     bg="purple.600"
                     _hover={{ bg: 'purple.700' }}
                   >
+                    <Text mr={2}>📥</Text>
                     Export PDF
                   </Button>
                   <Text fontSize="xs" color="gray.500" textAlign="center">
@@ -522,7 +522,7 @@ export function OnePagerDetailPage() {
 
               {/* Version History Panel */}
               <VersionHistorySidebar
-                versions={onepager.version_history || []}
+                versions={(onepager.version_history || []) as any}
                 currentVersion={onepager.version_history?.length || 0}
                 onRestore={handleRestoreVersion}
                 isRestoring={restoreVersionMutation.isPending}

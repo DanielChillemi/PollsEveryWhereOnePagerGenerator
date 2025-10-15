@@ -20,7 +20,8 @@ import {
   HStack,
   Input,
   Textarea,
-  Select,
+  NativeSelectRoot,
+  NativeSelectField,
   Button,
   Spinner,
 } from '@chakra-ui/react';
@@ -65,8 +66,8 @@ export function OnePagerCreatePage() {
         product_id: productId,
         problem: product.default_problem || formData.problem,
         solution: product.default_solution || formData.solution,
-        features: product.features?.length > 0 ? product.features : formData.features,
-        benefits: product.benefits?.length > 0 ? product.benefits : formData.benefits,
+        features: (product.features && product.features.length > 0) ? product.features : formData.features,
+        benefits: (product.benefits && product.benefits.length > 0) ? product.benefits : formData.benefits,
       });
     } else {
       // Clear product selection
@@ -421,27 +422,29 @@ export function OnePagerCreatePage() {
                 <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
                   Brand Kit (Optional)
                 </Text>
-                <Select
-                  value={formData.brand_kit_id}
-                  onChange={(e) => {
-                    setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '' });
-                  }}
-                  h="56px"
-                  fontSize="16px"
-                  borderRadius="12px"
-                  border="2px solid #e2e8f0"
-                  _focus={{
-                    borderColor: '#864CBD',
-                    boxShadow: '0 0 0 1px #864CBD',
-                  }}
-                >
-                  <option value="">No Brand Kit (Use default styling)</option>
-                  {brandKits?.map(kit => (
-                    <option key={kit.id} value={kit.id}>
-                      {kit.company_name}
-                    </option>
-                  ))}
-                </Select>
+                <NativeSelectRoot>
+                  <NativeSelectField
+                    value={formData.brand_kit_id}
+                    onChange={(e) => {
+                      setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '' });
+                    }}
+                    h="56px"
+                    fontSize="16px"
+                    borderRadius="12px"
+                    border="2px solid #e2e8f0"
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  >
+                    <option value="">No Brand Kit (Use default styling)</option>
+                    {brandKits?.map(kit => (
+                      <option key={kit.id} value={kit.id}>
+                        {kit.company_name}
+                      </option>
+                    ))}
+                  </NativeSelectField>
+                </NativeSelectRoot>
                 <Text fontSize="sm" color="gray.600" mt={1}>
                   Apply your brand colors and fonts to the generated one-pager
                 </Text>
@@ -466,26 +469,28 @@ export function OnePagerCreatePage() {
                       </Button>
                     )}
                   </HStack>
-                  <Select
-                    value={formData.product_id || ''}
-                    onChange={(e) => handleProductSelect(e.target.value)}
-                    h="56px"
-                    fontSize="16px"
-                    borderRadius="12px"
-                    border="2px solid #e2e8f0"
-                    bg={formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
-                    _focus={{
-                      borderColor: '#864CBD',
-                      boxShadow: '0 0 0 1px #864CBD',
-                    }}
-                  >
-                    <option value="">Select a product to auto-populate fields</option>
-                    {selectedBrandKit.products.map(product => (
-                      <option key={product.id} value={product.id}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </Select>
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={formData.product_id || ''}
+                      onChange={(e) => handleProductSelect(e.target.value)}
+                      h="56px"
+                      fontSize="16px"
+                      borderRadius="12px"
+                      border="2px solid #e2e8f0"
+                      bg={formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+                      _focus={{
+                        borderColor: '#864CBD',
+                        boxShadow: '0 0 0 1px #864CBD',
+                      }}
+                    >
+                      <option value="">Select a product to auto-populate fields</option>
+                      {selectedBrandKit.products.map(product => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </NativeSelectField>
+                  </NativeSelectRoot>
                   {!formData.product_id ? (
                     <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
                       💡 Select a product to auto-fill problem, solution, features, and benefits
@@ -543,7 +548,7 @@ export function OnePagerCreatePage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                isLoading={createMutation.isPending}
+                loading={createMutation.isPending}
                 h="56px"
                 borderRadius="50px"
                 fontSize="18px"
@@ -558,7 +563,7 @@ export function OnePagerCreatePage() {
                   transform: 'translateY(0)',
                 }}
                 transition="all 0.3s ease"
-                isDisabled={createMutation.isPending}
+                disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? (
                   <HStack gap={3}>

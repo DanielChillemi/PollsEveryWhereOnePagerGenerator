@@ -159,7 +159,7 @@ const pollEverywhereConfig = defineConfig({
               color: 'white',
             },
           },
-        },
+        } as any, // Chakra UI v3 type workaround
       },
       // Heading styles
       heading: {
@@ -180,7 +180,7 @@ const pollEverywhereConfig = defineConfig({
             fontWeight: 'semibold',
             color: 'brand.textDark',
           },
-        },
+        } as any, // Chakra UI v3 type workaround
       },
     },
   },

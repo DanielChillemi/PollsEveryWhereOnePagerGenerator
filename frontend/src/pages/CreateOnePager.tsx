@@ -68,8 +68,8 @@ export function CreateOnePager() {
         product_id: productId,
         problem: product.default_problem || formData.problem,
         solution: product.default_solution || formData.solution,
-        features: product.features?.length > 0 ? product.features : formData.features,
-        benefits: product.benefits?.length > 0 ? product.benefits : formData.benefits,
+        features: (product.features && product.features.length > 0) ? product.features : formData.features,
+        benefits: (product.benefits && product.benefits.length > 0) ? product.benefits : formData.benefits,
       });
     } else {
       // Clear product selection
@@ -519,7 +519,7 @@ export function CreateOnePager() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                isLoading={createMutation.isPending}
+                loading={createMutation.isPending}
                 h="56px"
                 borderRadius="50px"
                 fontSize="18px"
@@ -534,7 +534,7 @@ export function CreateOnePager() {
                   transform: 'translateY(0)',
                 }}
                 transition="all 0.3s ease"
-                isDisabled={createMutation.isPending}
+                disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? (
                   <HStack gap={3}>

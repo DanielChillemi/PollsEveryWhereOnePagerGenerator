@@ -31,7 +31,7 @@ export function BrandSystemDemo() {
           <Text fontSize="xl" mb="xl" opacity={0.9}>
             Brand guidelines and component library for Marketing One-Pager Tool
           </Text>
-          <HStack spacing="md" justify="center">
+          <HStack gap="md" justify="center">
             <Button
               bg="white"
               color="brand.primary"

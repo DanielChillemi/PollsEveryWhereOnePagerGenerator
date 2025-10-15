@@ -51,7 +51,6 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
     target_audiences: initialData?.target_audiences || [{ name: '', description: '' }],
     products: initialData?.products || [{
       name: '',
-      description: '',
       benefits: [''],
       features: [''],
       default_problem: '',

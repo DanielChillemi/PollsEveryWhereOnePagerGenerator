@@ -110,11 +110,12 @@ function SortableSection({
               colorScheme="purple"
               variant="solid"
               onClick={() => setIsEditing(true)}
-              icon={<Text fontSize="16px">✏️</Text>}
               bg="purple.500"
               color="white"
               _hover={{ bg: 'purple.600' }}
-            />
+            >
+              <Text fontSize="16px">✏️</Text>
+            </IconButton>
             {onDelete && (
               <IconButton
                 aria-label="Delete section"
@@ -126,11 +127,12 @@ function SortableSection({
                     onDelete(section.id);
                   }
                 }}
-                icon={<Text fontSize="16px">🗑️</Text>}
                 bg="red.500"
                 color="white"
                 _hover={{ bg: 'red.600' }}
-              />
+              >
+                <Text fontSize="16px">🗑️</Text>
+              </IconButton>
             )}
           </>
         )}
@@ -141,8 +143,8 @@ function SortableSection({
               colorScheme="green"
               variant="solid"
               onClick={() => setIsEditing(false)}
-              leftIcon={<Text fontSize="14px">✓</Text>}
             >
+              <Text fontSize="14px" mr={1}>✓</Text>
               Done
             </Button>
           </>
