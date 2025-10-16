@@ -98,12 +98,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isInitialized: true
         })
       } else {
-        // Token is invalid, clear auth
+        // Token is invalid or expired (expected scenario)
+        // Silently clear auth without logging error
         get().clearAuth()
         set({ isInitialized: true })
       }
     } catch (error) {
-      console.error('Failed to initialize auth:', error)
+      // Network error or other unexpected issue
+      // Silently clear auth - user will need to log in again
       get().clearAuth()
       set({ isInitialized: true })
     }

@@ -72,7 +72,7 @@ class Product(BaseModel):
     """
     id: Optional[str] = Field(default=None, description="Product ID (auto-generated)")
     name: str = Field(..., min_length=1, max_length=200, description="Product name")
-    description: str = Field(..., min_length=1, max_length=2000, description="Product description")
+    description: Optional[str] = Field(None, max_length=2000, description="Product description")
     benefits: List[str] = Field(default_factory=list, description="Product benefits")
     features: List[str] = Field(default_factory=list, description="Product features")
     default_problem: Optional[str] = Field(None, max_length=1000, description="Default problem statement")

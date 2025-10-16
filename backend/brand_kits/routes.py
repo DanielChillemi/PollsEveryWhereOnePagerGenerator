@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timezone
 from bson import ObjectId
-from typing import Optional
+from typing import Optional, List
 import uuid
 
 from backend.brand_kits.schemas import (
@@ -36,8 +36,7 @@ router = APIRouter(prefix="/brand-kits", tags=["Brand Kits"])
     response_model=BrandKitResponse,
     status_code=status.HTTP_201_CREATED,
     responses={
-        400: {"model": ErrorResponse, "description": "Invalid request data"},
-        409: {"model": ErrorResponse, "description": "User already has an active brand kit"}
+        400: {"model": ErrorResponse, "description": "Invalid request data"}
     }
 )
 async def create_brand_kit(
@@ -49,7 +48,7 @@ async def create_brand_kit(
     Create a new brand kit for the authenticated user.
 
     Creates a brand profile with colors, typography, assets, and brand voice.
-    Each user can have one active brand kit at a time.
+    Users can have multiple brand kits for different brands/companies.
 
     **Request Body:**
     - company_name: Company/brand name (required)
@@ -65,20 +64,7 @@ async def create_brand_kit(
 
     **Errors:**
     - 400: Invalid input data
-    - 409: User already has an active brand kit
     """
-    # Check if user already has an active brand kit (optional: enforce one per user)
-    existing_kit = await db.brand_kits.find_one({
-        "user_id": ObjectId(current_user.id),
-        "is_active": True
-    })
-
-    if existing_kit:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already has an active brand kit. Please update the existing one or delete it first."
-        )
-
     # Create brand kit document
     now = datetime.now(timezone.utc)
 
@@ -121,38 +107,34 @@ async def create_brand_kit(
 
 @router.get(
     "/me",
-    response_model=BrandKitResponse,
+    response_model=List[BrandKitResponse],
     responses={
-        404: {"model": ErrorResponse, "description": "No active brand kit found"}
+        200: {"description": "List of user's active brand kits (may be empty)"}
     }
 )
-async def get_my_brand_kit(
+async def get_my_brand_kits(
     current_user: UserInDB = Depends(get_current_active_user),
     db: AsyncIOMotorDatabase = Depends(get_db)
 ):
     """
-    Get the current user's active brand kit.
+    Get all of the current user's active brand kits.
 
-    Returns the user's active brand profile if one exists.
+    Returns a list of the user's active brand profiles. May be empty if user has no brand kits.
 
     **Returns:**
-    - Brand kit data with all configurations
+    - Array of brand kit data with all configurations
 
     **Errors:**
-    - 404: User has no active brand kit
+    - None (returns empty array if no brand kits)
     """
-    brand_kit = await db.brand_kits.find_one({
+    cursor = db.brand_kits.find({
         "user_id": ObjectId(current_user.id),
         "is_active": True
-    })
+    }).sort("created_at", -1)  # Most recent first
 
-    if not brand_kit:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active brand kit found. Please create one first."
-        )
+    brand_kits = await cursor.to_list(length=None)
 
-    return BrandKitResponse(**brand_kit_helper(brand_kit))
+    return [BrandKitResponse(**brand_kit_helper(kit)) for kit in brand_kits]
 
 
 @router.get(

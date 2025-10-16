@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "dev-secret-key-change-in-production"
     jwt_refresh_secret_key: str = "dev-refresh-secret-change-in-production"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 480  # 8 hours
     refresh_token_expire_days: int = 7
     
     # CORS Configuration

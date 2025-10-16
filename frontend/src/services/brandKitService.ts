@@ -65,6 +65,7 @@ export const brandKitService = {
       target_audiences: data.target_audiences.filter(
         (aud) => aud.name.trim() !== '' || aud.description.trim() !== ''
       ),
+      products: data.products || [],
     };
 
     console.log('=== BRAND KIT DATA BEING SENT ===');
@@ -86,36 +87,26 @@ export const brandKitService = {
    * Get all Brand Kits for the current user
    */
   async getAll(token: string): Promise<BrandKit[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/v1/brand-kits/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      // Backend returns single brand kit or 404, wrap in array for frontend compatibility
-      // Transform backend format to frontend format
-      if (response.data) {
-        const backendKit = response.data;
-        const kit = {
-          ...backendKit,
-          id: backendKit._id,
-          primary_color: backendKit.color_palette?.primary,
-          secondary_color: backendKit.color_palette?.secondary,
-          accent_color: backendKit.color_palette?.accent,
-          text_color: backendKit.color_palette?.text,
-          background_color: backendKit.color_palette?.background,
-          primary_font: backendKit.typography?.heading_font,
-        };
-        return [kit];
-      }
-      return [];
-    } catch (error: any) {
-      // Handle 404 - no brand kit found
-      if (error.response?.status === 404) {
-        return [];
-      }
-      throw error;
-    }
+    const response = await axios.get(`${API_BASE_URL}/api/v1/brand-kits/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Backend returns array of brand kits
+    // Transform backend format to frontend format
+    const backendKits = response.data || [];
+
+    return backendKits.map((backendKit: any) => ({
+      ...backendKit,
+      id: backendKit._id,
+      primary_color: backendKit.color_palette?.primary,
+      secondary_color: backendKit.color_palette?.secondary,
+      accent_color: backendKit.color_palette?.accent,
+      text_color: backendKit.color_palette?.text,
+      background_color: backendKit.color_palette?.background,
+      primary_font: backendKit.typography?.heading_font,
+    }));
   },
 
   /**
@@ -171,6 +162,9 @@ export const brandKitService = {
       backendData.target_audiences = data.target_audiences.filter(
         (aud) => aud.name.trim() !== '' || aud.description.trim() !== ''
       );
+    }
+    if (data.products !== undefined) {
+      backendData.products = data.products;
     }
 
     const response = await axios.put(`${API_BASE_URL}/api/v1/brand-kits/${id}`, backendData, {
