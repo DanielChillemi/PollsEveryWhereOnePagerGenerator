@@ -227,6 +227,103 @@ export function CreateOnePager() {
                 )}
               </Box>
 
+              {/* Brand Kit Selection - MOVED TO TOP */}
+              <Box>
+                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
+                  Brand Kit (Optional)
+                </Text>
+                <NativeSelectRoot>
+                  <NativeSelectField
+                    value={formData.brand_kit_id}
+                    onChange={(e) => {
+                      setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '' });
+                    }}
+                    h="56px"
+                    fontSize="16px"
+                    borderRadius="12px"
+                    border="2px solid #e2e8f0"
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  >
+                    <option value="">No Brand Kit (Use default styling)</option>
+                    {brandKits?.map(kit => (
+                      <option key={kit.id} value={kit.id}>
+                        {kit.company_name}
+                      </option>
+                    ))}
+                  </NativeSelectField>
+                </NativeSelectRoot>
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  💡 Select your brand kit first to enable product auto-fill and apply brand voice
+                </Text>
+              </Box>
+
+              {/* Product Selection (shows if brand kit has products) - MOVED TO TOP */}
+              {selectedBrandKit && selectedBrandKit.products && selectedBrandKit.products.length > 0 && (
+                <Box>
+                  <HStack justify="space-between" mb={2}>
+                    <Text fontWeight={600} fontSize="16px" color="#2d3748">
+                      Product (Optional)
+                    </Text>
+                    {formData.product_id && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="gray"
+                        onClick={() => handleProductSelect('')}
+                        fontSize="xs"
+                      >
+                        Clear Selection
+                      </Button>
+                    )}
+                  </HStack>
+                  <NativeSelectRoot>
+                    <NativeSelectField
+                      value={formData.product_id || ''}
+                      onChange={(e) => handleProductSelect(e.target.value)}
+                      h="56px"
+                      fontSize="16px"
+                      borderRadius="12px"
+                      border="2px solid #e2e8f0"
+                      bg={formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+                      _focus={{
+                        borderColor: '#864CBD',
+                        boxShadow: '0 0 0 1px #864CBD',
+                      }}
+                    >
+                      <option value="">Select a product to auto-populate fields</option>
+                      {selectedBrandKit.products.map(product => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </NativeSelectField>
+                  </NativeSelectRoot>
+                  {!formData.product_id ? (
+                    <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
+                      💡 Select a product to auto-fill problem, solution, features, and benefits below
+                    </Text>
+                  ) : (
+                    <Box
+                      mt={2}
+                      p={3}
+                      bg="rgba(16, 185, 129, 0.1)"
+                      border="1px solid rgba(16, 185, 129, 0.3)"
+                      borderRadius="8px"
+                    >
+                      <Text fontSize="sm" color="green.700" fontWeight={600}>
+                        ✓ Product selected! Fields below have been auto-populated.
+                      </Text>
+                      <Text fontSize="xs" color="green.600" mt={1}>
+                        You can still edit any field before generating your one-pager.
+                      </Text>
+                    </Box>
+                  )}
+                </Box>
+              )}
+
               {/* Problem Statement */}
               <Box>
                 <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
@@ -418,72 +515,6 @@ export function CreateOnePager() {
                   <Text color="red.500" fontSize="sm" mt={1}>{errors.cta}</Text>
                 )}
               </Box>
-
-              {/* Brand Kit Selection */}
-              <Box>
-                <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
-                  Brand Kit (Optional)
-                </Text>
-                <NativeSelectRoot>
-                  <NativeSelectField
-                    value={formData.brand_kit_id}
-                    onChange={(e) => {
-                      setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '' });
-                    }}
-                    h="56px"
-                    fontSize="16px"
-                    borderRadius="12px"
-                    border="2px solid #e2e8f0"
-                    _focus={{
-                      borderColor: '#864CBD',
-                      boxShadow: '0 0 0 1px #864CBD',
-                    }}
-                  >
-                    <option value="">No Brand Kit (Use default styling)</option>
-                    {brandKits?.map(kit => (
-                      <option key={kit.id} value={kit.id}>
-                        {kit.company_name}
-                      </option>
-                    ))}
-                  </NativeSelectField>
-                </NativeSelectRoot>
-                <Text fontSize="sm" color="gray.600" mt={1}>
-                  Apply your brand colors and fonts to the generated one-pager
-                </Text>
-              </Box>
-
-              {/* Product Selection (shows if brand kit has products) */}
-              {selectedBrandKit && selectedBrandKit.products && selectedBrandKit.products.length > 0 && (
-                <Box>
-                  <Text fontWeight={600} fontSize="16px" color="#2d3748" mb={2}>
-                    Product (Optional)
-                  </Text>
-                  <NativeSelectRoot>
-                    <NativeSelectField
-                      value={formData.product_id || ''}
-                      onChange={(e) => handleProductSelect(e.target.value)}
-                      h="56px"
-                      fontSize="16px"
-                      borderRadius="12px"
-                      border="2px solid #e2e8f0"
-                      _focus={{
-                        borderColor: '#864CBD',
-                        boxShadow: '0 0 0 1px #864CBD',
-                      }}
-                    >
-                      <option value="">Select a product to auto-populate fields</option>
-                      {selectedBrandKit.products.map(product => (
-                        <option key={product.id} value={product.id}>
-                          {product.name}
-                        </option>
-                      ))}
-                    </NativeSelectField>
-                  </NativeSelectRoot>
-                  <Text fontSize="sm" color="green.600" fontWeight={500} mt={1}>
-                    💡 Select a product to auto-fill problem, solution, features, and benefits
-                  </Text>
-                </Box>
-              )}
 
               {/* Target Audience */}
               <Box>

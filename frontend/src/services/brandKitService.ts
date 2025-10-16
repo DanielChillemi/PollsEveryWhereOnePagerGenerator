@@ -13,6 +13,7 @@ export interface Product {
 
 export interface BrandKitData {
   company_name: string;
+  brand_voice?: string;
   primary_color: string;
   secondary_color: string;
   accent_color: string;
@@ -47,7 +48,7 @@ export const brandKitService = {
     // Transform frontend data format to match backend schema
     const backendData = {
       company_name: data.company_name,
-      brand_voice: "Professional and engaging", // Default value
+      brand_voice: data.brand_voice || "Professional and engaging", // Use provided value or default
       color_palette: {
         primary: data.primary_color,
         secondary: data.secondary_color,
@@ -100,6 +101,7 @@ export const brandKitService = {
     return backendKits.map((backendKit: any) => ({
       ...backendKit,
       id: backendKit._id,
+      brand_voice: backendKit.brand_voice,
       primary_color: backendKit.color_palette?.primary,
       secondary_color: backendKit.color_palette?.secondary,
       accent_color: backendKit.color_palette?.accent,
@@ -123,6 +125,7 @@ export const brandKitService = {
     return {
       ...backendKit,
       id: backendKit._id,
+      brand_voice: backendKit.brand_voice,
       primary_color: backendKit.color_palette?.primary,
       secondary_color: backendKit.color_palette?.secondary,
       accent_color: backendKit.color_palette?.accent,
@@ -140,6 +143,7 @@ export const brandKitService = {
     const backendData: any = {};
 
     if (data.company_name) backendData.company_name = data.company_name;
+    if (data.brand_voice !== undefined) backendData.brand_voice = data.brand_voice;
     if (data.primary_font) {
       backendData.typography = {
         heading_font: data.primary_font,

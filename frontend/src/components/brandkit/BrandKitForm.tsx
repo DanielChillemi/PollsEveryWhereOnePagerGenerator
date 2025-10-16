@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { VStack, Input, Button, Box, Text } from '@chakra-ui/react';
+import { VStack, Input, Button, Box, Text, Textarea } from '@chakra-ui/react';
 import { FormSection } from './FormSection';
 import { ColorPicker } from './ColorPicker';
 import { FontSelector } from './FontSelector';
@@ -11,6 +11,7 @@ import type { Product } from './ProductInput';
 
 interface BrandKitFormData {
   company_name: string;
+  brand_voice: string;
   primary_color: string;
   secondary_color: string;
   accent_color: string;
@@ -41,6 +42,7 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<BrandKitFormData>({
     company_name: initialData?.company_name || '',
+    brand_voice: initialData?.brand_voice || '',
     primary_color: initialData?.primary_color || '#007ACC',
     secondary_color: initialData?.secondary_color || '#864CBD',
     accent_color: initialData?.accent_color || '#1568B8',
@@ -66,6 +68,11 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
     // Company name validation
     if (!formData.company_name.trim()) {
       newErrors.company_name = 'Company name is required';
+    }
+
+    // Brand voice validation (max 1000 characters)
+    if (formData.brand_voice && formData.brand_voice.length > 1000) {
+      newErrors.brand_voice = 'Brand voice must be 1000 characters or less';
     }
 
     // Color validation (hex format)
@@ -150,6 +157,50 @@ export const BrandKitForm: React.FC<BrandKitFormProps> = ({
             value={formData.logo_url}
             onChange={(logo) => setFormData({ ...formData, logo_url: logo })}
           />
+        </FormSection>
+
+        {/* Divider */}
+        <Box h="2px" bg="#e2e8f0" borderRadius="full" />
+
+        {/* Brand Voice & Tone */}
+        <FormSection
+          title="Brand Voice & Tone"
+          description="Describe your brand's personality and tone of voice. This guides how AI generates content."
+        >
+          <VStack align="stretch" gap={3}>
+            <Text fontWeight={600} fontSize="16px" color="#2d3748">
+              Brand Voice (Optional)
+            </Text>
+            <Textarea
+              value={formData.brand_voice}
+              onChange={(e) => setFormData({ ...formData, brand_voice: e.target.value })}
+              placeholder="e.g., 'Friendly and approachable with a touch of playfulness' or 'Professional, authoritative, and trustworthy'"
+              minH="120px"
+              fontSize="16px"
+              borderRadius="12px"
+              border="2px solid #e2e8f0"
+              resize="vertical"
+              _focus={{
+                borderColor: '#007ACC',
+                boxShadow: '0 0 0 1px #007ACC',
+              }}
+            />
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Text fontSize="14px" color="#718096">
+                {formData.brand_voice.length}/1000 characters
+              </Text>
+              {formData.brand_voice.length > 950 && formData.brand_voice.length <= 1000 && (
+                <Text fontSize="14px" color="#f59e0b" fontWeight={600}>
+                  Approaching character limit
+                </Text>
+              )}
+            </Box>
+            {errors.brand_voice && (
+              <Text color="#dc3545" fontSize="14px" fontWeight={600}>
+                {errors.brand_voice}
+              </Text>
+            )}
+          </VStack>
         </FormSection>
 
         {/* Divider */}
