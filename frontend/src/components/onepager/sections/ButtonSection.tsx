@@ -22,6 +22,9 @@ export function ButtonSection({ text, url, isEditing, onUpdate }: Props) {
           value={text}
           onChange={(e) => onUpdate(e.target.value)}
           placeholder="Button text"
+          size="sm"
+          fontSize="13px"
+          px={3}
           border="2px solid"
           borderColor="#864CBD"
         />
@@ -37,20 +40,20 @@ export function ButtonSection({ text, url, isEditing, onUpdate }: Props) {
 
   return (
     <Button
-      h="56px"
-      px={8}
-      borderRadius="50px"
-      fontSize="18px"
+      h="32px"
+      px={4}
+      borderRadius="16px"
+      fontSize="13px"
       fontWeight={600}
       background="linear-gradient(135deg, #864CBD 0%, #1568B8 100%)"
       color="white"
       cursor={url ? 'pointer' : 'default'}
       onClick={handleClick}
       _hover={{
-        transform: url ? 'translateY(-2px)' : 'none',
-        boxShadow: url ? '0 6px 20px rgba(134, 76, 189, 0.4)' : 'none',
+        transform: url ? 'translateY(-1px)' : 'none',
+        boxShadow: url ? '0 3px 10px rgba(134, 76, 189, 0.3)' : 'none',
       }}
-      transition="all 0.3s ease"
+      transition="all 0.2s ease"
     >
       {text}
     </Button>

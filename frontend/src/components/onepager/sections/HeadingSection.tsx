@@ -19,10 +19,11 @@ export function HeadingSection({ content, isEditing, onUpdate }: Props) {
       <Input
         value={content}
         onChange={(e) => onUpdate(e.target.value)}
-        fontSize="32px"
+        fontSize="16px"
         fontWeight="bold"
         h="auto"
-        py={2}
+        py={1.5}
+        px={3}
         border="2px solid"
         borderColor="#864CBD"
         _focus={{
@@ -35,10 +36,10 @@ export function HeadingSection({ content, isEditing, onUpdate }: Props) {
 
   return (
     <Heading
-      fontSize={{ base: '28px', md: '36px' }}
+      fontSize={{ base: '15px', md: '16px' }}
       fontWeight={700}
       color="#2d3748"
-      lineHeight="1.2"
+      lineHeight="1.3"
     >
       {content}
     </Heading>

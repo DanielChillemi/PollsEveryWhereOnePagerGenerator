@@ -153,6 +153,40 @@ interface RenderMode {
 
 ### Component Design Standards
 
+#### Form Input Standards (CRITICAL)
+**ALWAYS apply proper padding to input fields to prevent text from being too close to edges:**
+
+```typescript
+// ✅ CORRECT - Always include px padding
+<Input
+  value={value}
+  onChange={handleChange}
+  size="lg"
+  px={4}  // REQUIRED: 16px horizontal padding
+/>
+
+// ❌ WRONG - Missing padding causes text to stick to left edge
+<Input
+  value={value}
+  onChange={handleChange}
+  size="lg"
+  // Missing px={4} - text will be cramped!
+/>
+```
+
+**Input Field Padding Requirements:**
+- **All Text Inputs**: MUST have `px={4}` (16px horizontal padding) minimum
+- **Large Inputs**: Use `px={5}` or `px={6}` for better readability
+- **Textareas**: Apply both `px={4}` and `py={3}` for comfortable text entry
+- **Select Fields**: Include `px={4}` for dropdown text spacing
+- **Search Bars**: Use `px={5}` with icon spacing considerations
+
+**Before Creating ANY Input Field:**
+1. ✅ Check if `px` padding is specified
+2. ✅ Verify text doesn't touch left edge
+3. ✅ Test with actual content/placeholder text
+4. ✅ Review all inputs in the form for consistency
+
 #### Accessibility (A11y) Requirements
 - **Keyboard Navigation**: Full keyboard accessibility for all interactive elements
 - **ARIA Labels**: Comprehensive ARIA attributes for screen readers
@@ -254,5 +288,13 @@ interface DragDropConfig {
 - **Brand Consistency**: Automated brand application with manual override capabilities
 - **Accessibility**: Full keyboard navigation and screen reader compatibility
 - **Performance**: Canvas interactions feel responsive (<100ms feedback)
+
+### Input Field Quality Checklist
+Before completing ANY task involving form inputs, verify:
+- ✅ All `<Input>` components have `px={4}` or greater
+- ✅ All `<Textarea>` components have `px={4}` and `py={3}`
+- ✅ Text doesn't appear cramped or touching edges
+- ✅ Placeholder text has proper spacing
+- ✅ Consistent padding across all fields in the form
 
 Focus on creating intuitive, accessible, and brand-aware interfaces that empower marketing professionals to create compelling one-pagers through AI-assisted workflows. Every design decision should prioritize user success and reduce cognitive load while maintaining the flexibility needed for creative marketing work.

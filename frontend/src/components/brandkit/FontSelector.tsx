@@ -22,13 +22,6 @@ const FONT_OPTIONS = [
 export const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
   return (
     <VStack align="stretch" gap={3}>
-      <Text fontWeight={600} fontSize="16px" color="#333">
-        Primary Font
-      </Text>
-      <Text fontSize="14px" color="#666">
-        Choose the main font for your marketing materials
-      </Text>
-
       <NativeSelectRoot>
         <NativeSelectField
           value={value}
@@ -38,6 +31,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) =
           border="2px solid #e2e8f0"
           fontSize="16px"
           fontWeight={600}
+          px={4}
           _focus={{
             borderColor: '#007ACC',
             boxShadow: '0 0 0 1px #007ACC',
