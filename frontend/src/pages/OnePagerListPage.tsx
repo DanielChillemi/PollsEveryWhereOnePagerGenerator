@@ -399,7 +399,7 @@ export function OnePagerListPage() {
                     }}
                     transition="all 0.2s ease"
                     cursor="pointer"
-                    onClick={() => navigate(`/onepager/${onepager.id}`)}
+                    onClick={() => navigate(`/onepager/create?id=${onepager.id}`)}
                   >
                     {/* Menu Button - Top Right */}
                     <Box
@@ -530,7 +530,7 @@ export function OnePagerListPage() {
                           size="xs"
                           flex="1"
                           h="32px"
-                          onClick={() => navigate(`/onepager/${onepager.id}`)}
+                          onClick={() => navigate(`/onepager/create?id=${onepager.id}`)}
                           variant="ghost"
                           color="gray.700"
                           fontWeight="500"

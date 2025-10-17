@@ -222,7 +222,7 @@ export const RecentProjects = ({ projects = [], isLoading = false }: RecentProje
   const deleteOnePager = useDeleteOnePager()
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/onepager/${projectId}`)
+    navigate(`/onepager/create?id=${projectId}`)
   }
 
   const handleDelete = (projectId: string) => {

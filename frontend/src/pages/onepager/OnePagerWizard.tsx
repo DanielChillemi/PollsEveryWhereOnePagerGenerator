@@ -15,13 +15,13 @@
 
 import { useState, useEffect } from 'react';
 import { Box, Container, VStack, HStack, Text, Button } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AddContentStep } from './steps/AddContentStep';
 import { RefineStep } from './steps/RefineStep';
 import { PDFExportStep } from './steps/PDFExportStep';
 import { StepProgress } from '../../components/onepager/StepProgress';
 import { Sidebar } from '../../components/layouts/Sidebar';
-import { useCreateOnePager } from '../../hooks/useOnePager';
+import { useCreateOnePager, useOnePager } from '../../hooks/useOnePager';
 import type { OnePagerCreateData } from '../../types/onepager';
 
 type WizardStep = 'add-content' | 'refine' | 'export';
@@ -34,10 +34,14 @@ const STORAGE_KEY = 'onepager_wizard_draft';
 
 export function OnePagerWizard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const existingOnePagerId = searchParams.get('id');
+  
   const createMutation = useCreateOnePager();
+  const { data: existingOnePager } = useOnePager(existingOnePagerId || '');
 
-  const [currentStep, setCurrentStep] = useState<WizardStep>('add-content');
-  const [generatedOnePagerId, setGeneratedOnePagerId] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<WizardStep>(existingOnePagerId ? 'refine' : 'add-content');
+  const [generatedOnePagerId, setGeneratedOnePagerId] = useState<string | null>(existingOnePagerId);
   
   const [formData, setFormData] = useState<OnePagerCreateData>({
     title: '',
@@ -54,25 +58,49 @@ export function OnePagerWizard() {
     product_id: '',
   });
 
-  // Auto-save to localStorage
+  // Populate form with existing one-pager data when editing
   useEffect(() => {
-    const draft: WizardData = { ...formData, currentStep };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-  }, [formData, currentStep]);
+    if (existingOnePager && existingOnePagerId) {
+      setFormData({
+        title: existingOnePager.title || '',
+        problem: existingOnePager.content?.problem || '',
+        solution: existingOnePager.content?.solution || '',
+        features: existingOnePager.content?.features || [],
+        benefits: existingOnePager.content?.benefits || [],
+        integrations: existingOnePager.content?.integrations || [],
+        social_proof: existingOnePager.content?.social_proof || '',
+        cta: existingOnePager.content?.cta || { text: '', url: '' },
+        brand_kit_id: existingOnePager.brand_kit_id || '',
+        target_audience: '', // Not stored, use empty default
+        input_prompt: '', // Not stored, use empty default
+        product_id: '', // Not stored, use empty default
+      });
+    }
+  }, [existingOnePager, existingOnePagerId]);
 
-  // Restore from localStorage on mount
+  // Auto-save to localStorage (only for new one-pagers, not editing)
   useEffect(() => {
-    const savedDraft = localStorage.getItem(STORAGE_KEY);
-    if (savedDraft) {
-      try {
-        const draft: WizardData = JSON.parse(savedDraft);
-        setFormData(draft);
-        setCurrentStep(draft.currentStep || 'add-content');
-      } catch (error) {
-        console.error('Failed to restore draft:', error);
+    if (!existingOnePagerId) {
+      const draft: WizardData = { ...formData, currentStep };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    }
+  }, [formData, currentStep, existingOnePagerId]);
+
+  // Restore from localStorage on mount (only if not editing)
+  useEffect(() => {
+    if (!existingOnePagerId) {
+      const savedDraft = localStorage.getItem(STORAGE_KEY);
+      if (savedDraft) {
+        try {
+          const draft: WizardData = JSON.parse(savedDraft);
+          setFormData(draft);
+          setCurrentStep(draft.currentStep || 'add-content');
+        } catch (error) {
+          console.error('Failed to restore draft:', error);
+        }
       }
     }
-  }, []);
+  }, [existingOnePagerId]);
 
   // Clear draft when navigating away or completing
   const clearDraft = () => {
@@ -177,7 +205,11 @@ export function OnePagerWizard() {
       <Sidebar />
 
       {/* Main Content Area - CENTER */}
-      <Box ml="280px" mr="320px" flex={1} minH="100vh">
+      <Box 
+        flex={1} 
+        minH="100vh"
+        mr={{ base: 0, xl: "320px" }}
+      >
         <Container maxW="900px" px={{ base: 4, md: 8 }} py={8}>
           {/* Step Content */}
           <Box
@@ -215,8 +247,8 @@ export function OnePagerWizard() {
                   boxShadow: 'lg',
                 }}
               >
-                {currentStep === 'add-content' && '✨ Generate with AI →'}
-                {currentStep === 'refine' && 'Continue to Export →'}
+                {currentStep === 'add-content' && (existingOnePagerId ? 'Next → Refine' : '✨ Generate with AI →')}
+                {currentStep === 'refine' && 'Next → Export'}
                 {currentStep === 'export' && 'Complete'}
               </Button>
             </HStack>
@@ -234,6 +266,7 @@ export function OnePagerWizard() {
         right={0}
         h="100vh"
         overflowY="auto"
+        display={{ base: 'none', xl: 'block' }}
       >
         <VStack align="stretch" gap={0} py={6}>
           {/* Header */}

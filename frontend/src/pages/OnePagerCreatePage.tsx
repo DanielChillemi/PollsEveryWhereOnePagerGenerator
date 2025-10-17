@@ -139,8 +139,8 @@ export function OnePagerCreatePage() {
       if (!submitData.visuals || submitData.visuals.length === 0) delete submitData.visuals;
 
       const result = await createMutation.mutateAsync(submitData);
-      // Navigate to detail page to view AI-generated content
-      navigate(`/onepager/${result.id}`);
+      // Navigate to wizard at refine step to view AI-generated content
+      navigate(`/onepager/create?id=${result.id}`);
     } catch (error: any) {
       setErrors({
         general: error.response?.data?.detail || 'Failed to create OnePager. Please try again.',

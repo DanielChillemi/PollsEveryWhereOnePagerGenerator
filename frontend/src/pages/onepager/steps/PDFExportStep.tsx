@@ -109,7 +109,7 @@ export function PDFExportStep({ onePagerId, onComplete }: PDFExportStepProps) {
         <Box pt={4} borderTop="1px solid" borderColor="gray.100">
           <VStack gap={2}>
             <Button
-              onClick={() => window.open(`/onepager/${onePagerId}`, '_blank')}
+              onClick={() => window.open(`/onepager/create?id=${onePagerId}`, '_blank')}
               variant="outline"
               colorScheme="purple"
               size="md"

@@ -63,7 +63,7 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
       {/* Brand Kit Selection */}
       <Box>
         <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Brand Kit (Optional)
+          Brand Kit
         </Text>
         <NativeSelectRoot>
           <NativeSelectField
@@ -104,7 +104,7 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
         <Box>
           <HStack justify="space-between" mb={1.5}>
             <Text fontWeight={600} fontSize="13px" color="gray.700" letterSpacing="0.3px">
-              Product (Optional)
+              Product
             </Text>
             {formData.product_id && (
               <Button
@@ -154,171 +154,10 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
         </Box>
       )}
 
-      {/* Title */}
-      <Box>
-        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          One-Pager Title <Text as="span" color="red.500">*</Text>
-        </Text>
-        <Input
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Product Launch 2025"
-          px={3}
-          h="40px"
-          fontSize="14px"
-          borderRadius="8px"
-          border="1px solid"
-          borderColor="gray.300"
-          bg={formData.product_id && formData.title ? 'rgba(16, 185, 129, 0.05)' : 'white'}
-          transition="all 0.2s"
-          _hover={{ borderColor: 'gray.400' }}
-          _focus={{
-            borderColor: '#864CBD',
-            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
-            outline: 'none',
-          }}
-        />
-        <Text fontSize="11px" color="gray.500" mt={1}>
-          {formData.product_id ? 'Auto-populated (editable)' : 'Descriptive title for your one-pager'}
-        </Text>
-      </Box>
-
-      {/* Problem Statement */}
-      <Box>
-        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Problem Statement <Text as="span" color="red.500">*</Text>
-        </Text>
-        <Textarea
-          value={formData.problem}
-          onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-          placeholder="What problem does this product solve?"
-          minH="80px"
-          fontSize="14px"
-          px={3}
-          py={2.5}
-          borderRadius="8px"
-          border="1px solid"
-          borderColor="gray.300"
-          transition="all 0.2s"
-          _hover={{ borderColor: 'gray.400' }}
-          _focus={{
-            borderColor: '#864CBD',
-            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
-            outline: 'none',
-          }}
-        />
-        <HStack justify="space-between" mt={1}>
-          <Text fontSize="11px" color="gray.500">
-            Core problem your product addresses
-          </Text>
-          <Text fontSize="11px" color="gray.400">
-            {formData.problem.length}
-          </Text>
-        </HStack>
-      </Box>
-
-      {/* Solution */}
-      <Box>
-        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Solution <Text as="span" color="red.500">*</Text>
-        </Text>
-        <Textarea
-          value={formData.solution}
-          onChange={(e) => setFormData({ ...formData, solution: e.target.value })}
-          placeholder="How does your product solve this?"
-          minH="80px"
-          fontSize="14px"
-          px={3}
-          py={2.5}
-          borderRadius="8px"
-          border="1px solid"
-          borderColor="gray.300"
-          transition="all 0.2s"
-          _hover={{ borderColor: 'gray.400' }}
-          _focus={{
-            borderColor: '#864CBD',
-            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
-            outline: 'none',
-          }}
-        />
-        <HStack justify="space-between" mt={1}>
-          <Text fontSize="11px" color="gray.500">
-            How your product solves the problem
-          </Text>
-          <Text fontSize="11px" color="gray.400">
-            {formData.solution.length}
-          </Text>
-        </HStack>
-      </Box>
-
-      {/* Features */}
-      <Box>
-        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Features (Optional)
-        </Text>
-        <Textarea
-          value={formData.features.join(', ')}
-          onChange={(e) =>
-            setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(Boolean) })
-          }
-          placeholder="Key features (separate with commas)"
-          minH="70px"
-          fontSize="14px"
-          px={3}
-          py={2.5}
-          borderRadius="8px"
-          border="1px solid"
-          borderColor="gray.300"
-          bg={formData.features.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
-          transition="all 0.2s"
-          _hover={{ borderColor: 'gray.400' }}
-          _focus={{
-            borderColor: '#864CBD',
-            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
-            outline: 'none',
-          }}
-        />
-        <Text fontSize="11px" color="gray.500" mt={1}>
-          Separate with commas
-        </Text>
-      </Box>
-
-      {/* Benefits */}
-      <Box>
-        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Benefits (Optional)
-        </Text>
-        <Textarea
-          value={formData.benefits.join(', ')}
-          onChange={(e) =>
-            setFormData({ ...formData, benefits: e.target.value.split(',').map(b => b.trim()).filter(Boolean) })
-          }
-          placeholder="Customer benefits (separate with commas)"
-          minH="70px"
-          fontSize="14px"
-          px={3}
-          py={2.5}
-          borderRadius="8px"
-          border="1px solid"
-          borderColor="gray.300"
-          bg={formData.benefits.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
-          transition="all 0.2s"
-          _hover={{ borderColor: 'gray.400' }}
-          _focus={{
-            borderColor: '#864CBD',
-            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
-            outline: 'none',
-          }}
-        />
-        <Text fontSize="11px" color="gray.500" mt={1}>
-          Separate with commas
-        </Text>
-      </Box>
-
       {/* Target Audience */}
       <Box>
         <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Target Audience (Optional)
+          Target Audience
         </Text>
         <NativeSelectRoot>
           <NativeSelectField
@@ -353,10 +192,171 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
         </Text>
       </Box>
 
+      {/* Title */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          One-Pager Title <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Input
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="e.g., Product Launch 2025"
+          px={4}
+          h="40px"
+          fontSize="14px"
+          borderRadius="8px"
+          border="2px solid"
+          borderColor={!formData.title ? 'red.300' : 'gray.300'}
+          bg={formData.product_id && formData.title ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{ borderColor: !formData.title ? 'red.400' : 'gray.400' }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {formData.product_id ? 'Auto-populated (editable)' : 'Descriptive title for your one-pager'}
+        </Text>
+      </Box>
+
+      {/* Problem Statement */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Problem Statement <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Textarea
+          value={formData.problem}
+          onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+          placeholder="What problem does this product solve?"
+          minH="80px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="8px"
+          border="2px solid"
+          borderColor={!formData.problem ? 'red.300' : 'gray.300'}
+          transition="all 0.2s"
+          _hover={{ borderColor: !formData.problem ? 'red.400' : 'gray.400' }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <HStack justify="space-between" mt={1}>
+          <Text fontSize="11px" color="gray.500">
+            Core problem your product addresses
+          </Text>
+          <Text fontSize="11px" color="gray.400">
+            {formData.problem.length}
+          </Text>
+        </HStack>
+      </Box>
+
+      {/* Solution */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Solution <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Textarea
+          value={formData.solution}
+          onChange={(e) => setFormData({ ...formData, solution: e.target.value })}
+          placeholder="How does your product solve this?"
+          minH="80px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="8px"
+          border="2px solid"
+          borderColor={!formData.solution ? 'red.300' : 'gray.300'}
+          transition="all 0.2s"
+          _hover={{ borderColor: !formData.solution ? 'red.400' : 'gray.400' }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <HStack justify="space-between" mt={1}>
+          <Text fontSize="11px" color="gray.500">
+            How your product solves the problem
+          </Text>
+          <Text fontSize="11px" color="gray.400">
+            {formData.solution.length}
+          </Text>
+        </HStack>
+      </Box>
+
+      {/* Features */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Features
+        </Text>
+        <Textarea
+          value={formData.features.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(Boolean) })
+          }
+          placeholder="Key features (separate with commas)"
+          minH="70px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          bg={formData.features.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{ borderColor: 'gray.400' }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate with commas
+        </Text>
+      </Box>
+
+      {/* Benefits */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Benefits
+        </Text>
+        <Textarea
+          value={formData.benefits.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, benefits: e.target.value.split(',').map(b => b.trim()).filter(Boolean) })
+          }
+          placeholder="Customer benefits (separate with commas)"
+          minH="70px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          bg={formData.benefits.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{ borderColor: 'gray.400' }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate with commas
+        </Text>
+      </Box>
+
       {/* Call-to-Action */}
       <Box>
         <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Call-to-Action (Optional)
+          Call-to-Action
         </Text>
         <HStack gap={3}>
           <Box flex={1}>
@@ -408,7 +408,7 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
       {/* Integrations */}
       <Box>
         <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Integrations (Optional)
+          Integrations
         </Text>
         <Textarea
           value={formData.integrations?.join(', ') || ''}
@@ -439,7 +439,7 @@ export function AddContentStep({ formData, setFormData }: AddContentStepProps) {
       {/* Social Proof */}
       <Box>
         <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
-          Social Proof (Optional)
+          Social Proof
         </Text>
         <Textarea
           value={formData.social_proof}
