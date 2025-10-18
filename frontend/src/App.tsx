@@ -14,8 +14,7 @@ import { BrandKitCreatePage } from './pages/BrandKitCreatePage'
 import { BrandKitEditPage } from './pages/BrandKitEditPage'
 import { BrandKitListPage } from './pages/BrandKitListPage'
 import { OnePagerListPage } from './pages/OnePagerListPage'
-import { CreateOnePager } from './pages/CreateOnePager'
-import { OnePagerDetailPage } from './pages/OnePagerDetailPage'
+import { OnePagerWizard } from './pages/onepager/OnePagerWizard'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
 import { useAuthStore } from './stores/authStore'
@@ -108,15 +107,7 @@ function App() {
           path="/onepager/create"
           element={
             <ProtectedRoute>
-              <CreateOnePager />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/onepager/:id"
-          element={
-            <ProtectedRoute>
-              <OnePagerDetailPage />
+              <OnePagerWizard />
             </ProtectedRoute>
           }
         />

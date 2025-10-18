@@ -640,6 +640,9 @@ async def iterate_onepager(
             brand_context=brand_context
         )
 
+        logger.info(f"🤖 AI refinement response structure: {list(refined_data.keys())}")
+        logger.info(f"🤖 AI refined_data: {refined_data}")
+
         # Update content from AI response
         # AI returns {"content": {"headline": ..., "sections": [...]}} structure
         if "content" in refined_data:

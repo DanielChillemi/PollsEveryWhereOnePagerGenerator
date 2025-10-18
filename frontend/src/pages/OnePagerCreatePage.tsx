@@ -61,16 +61,26 @@ export function OnePagerCreatePage() {
     const product = selectedBrandKit?.products?.find(p => p.id === productId);
 
     if (product) {
+      // Prioritize product data over existing form data
+      // Only keep existing data if product doesn't have that field
       setFormData({
         ...formData,
         product_id: productId,
-        problem: product.default_problem || formData.problem,
-        solution: product.default_solution || formData.solution,
-        features: (product.features && product.features.length > 0) ? product.features : formData.features,
-        benefits: (product.benefits && product.benefits.length > 0) ? product.benefits : formData.benefits,
+        problem: product.default_problem && product.default_problem.trim() 
+          ? product.default_problem 
+          : formData.problem,
+        solution: product.default_solution && product.default_solution.trim() 
+          ? product.default_solution 
+          : formData.solution,
+        features: (product.features && product.features.length > 0) 
+          ? product.features 
+          : formData.features,
+        benefits: (product.benefits && product.benefits.length > 0) 
+          ? product.benefits 
+          : formData.benefits,
       });
     } else {
-      // Clear product selection
+      // Clear product selection only, keep other data
       setFormData({ ...formData, product_id: '' });
     }
   };
@@ -129,8 +139,8 @@ export function OnePagerCreatePage() {
       if (!submitData.visuals || submitData.visuals.length === 0) delete submitData.visuals;
 
       const result = await createMutation.mutateAsync(submitData);
-      // Navigate to detail page to view AI-generated content
-      navigate(`/onepager/${result.id}`);
+      // Navigate to wizard at refine step to view AI-generated content
+      navigate(`/onepager/create?id=${result.id}`);
     } catch (error: any) {
       setErrors({
         general: error.response?.data?.detail || 'Failed to create OnePager. Please try again.',
@@ -213,6 +223,7 @@ export function OnePagerCreatePage() {
                   placeholder="e.g., Product Launch 2025, Sales Enablement Guide"
                   h="56px"
                   fontSize="16px"
+                  px={4}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{
@@ -335,6 +346,8 @@ export function OnePagerCreatePage() {
                   placeholder="What problem does this product solve? (e.g., Finding authentic, affordable Vietnamese food that's both quick and healthy can be challenging in our busy neighborhood)"
                   minH="100px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{
@@ -360,6 +373,8 @@ export function OnePagerCreatePage() {
                   placeholder="How does this product solve the problem? (e.g., Vietspot brings authentic Vietnamese flavors to your neighborhood with traditional pho and banh mi made fresh daily)"
                   minH="100px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{
@@ -385,15 +400,20 @@ export function OnePagerCreatePage() {
                   placeholder="Enter features separated by commas (e.g., Traditional pho options, House-made banh mi, Fresh herbs daily)"
                   minH="80px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
+                  bg={formData.features.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
                   _focus={{
                     borderColor: '#864CBD',
                     boxShadow: '0 0 0 1px #864CBD',
                   }}
                 />
                 <Text fontSize="sm" color="gray.600" mt={1}>
-                  Separate multiple features with commas
+                  {formData.features.length > 0 && formData.product_id 
+                    ? `✓ Auto-populated from product (${formData.features.length} features)` 
+                    : 'Separate multiple features with commas'}
                 </Text>
               </Box>
 
@@ -410,15 +430,20 @@ export function OnePagerCreatePage() {
                   placeholder="Enter benefits separated by commas (e.g., Quick service under 10 min, Affordable pricing, Authentic family recipes)"
                   minH="80px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
+                  bg={formData.benefits.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
                   _focus={{
                     borderColor: '#864CBD',
                     boxShadow: '0 0 0 1px #864CBD',
                   }}
                 />
                 <Text fontSize="sm" color="gray.600" mt={1}>
-                  Separate multiple benefits with commas
+                  {formData.benefits.length > 0 && formData.product_id 
+                    ? `✓ Auto-populated from product (${formData.benefits.length} benefits)` 
+                    : 'Separate multiple benefits with commas'}
                 </Text>
               </Box>
 
@@ -435,6 +460,8 @@ export function OnePagerCreatePage() {
                   placeholder="Enter integrations separated by commas (e.g., Slack, Google Drive, Salesforce)"
                   minH="80px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{
@@ -460,6 +487,8 @@ export function OnePagerCreatePage() {
                   placeholder="Enter customer testimonial or social proof (e.g., '4.9 stars on Google' or 'Voted Best Pho in the neighborhood by City Magazine')"
                   minH="100px"
                   fontSize="16px"
+                  px={4}
+                  py={3}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{
@@ -486,6 +515,7 @@ export function OnePagerCreatePage() {
                     placeholder="Button text (e.g., Order Now, Visit Us, Get Started)"
                     h="56px"
                     fontSize="16px"
+                    px={4}
                     borderRadius="12px"
                     border="2px solid #e2e8f0"
                     _focus={{
@@ -501,6 +531,7 @@ export function OnePagerCreatePage() {
                     placeholder="URL (e.g., https://vietspot.com/order)"
                     h="56px"
                     fontSize="16px"
+                    px={4}
                     borderRadius="12px"
                     border="2px solid #e2e8f0"
                     _focus={{
@@ -530,6 +561,7 @@ export function OnePagerCreatePage() {
                   placeholder="e.g., IT decision makers in mid-size companies, Marketing professionals"
                   h="56px"
                   fontSize="16px"
+                  px={4}
                   borderRadius="12px"
                   border="2px solid #e2e8f0"
                   _focus={{

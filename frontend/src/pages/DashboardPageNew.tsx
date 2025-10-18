@@ -7,20 +7,32 @@ import { Box, Container, VStack } from '@chakra-ui/react'
 import { Sidebar } from '../components/layouts/Sidebar'
 import { DashboardHero } from '../components/dashboard/DashboardHero'
 import { RecentProjects } from '../components/dashboard/RecentProjects'
-import { useOnePagers } from '../hooks/useOnePager'
 
 export function DashboardPage() {
-  // Fetch recent one-pagers (limit to 3 most recent)
-  const { data: onePagers, isLoading } = useOnePagers(0, 3)
-
-  // Transform API data to match RecentProjects component interface
-  const projects = onePagers?.map((onepager) => ({
-    id: onepager.id,
-    title: onepager.title,
-    updated_at: onepager.updated_at,
-    status: onepager.status,
-    thumbnail: undefined // Thumbnails can be added later if available
-  })) || []
+  // Mock data for projects (you can replace with actual API data)
+  const mockProjects = [
+    {
+      id: '1',
+      title: 'Product Launch One-Pager',
+      updated_at: '2025-10-14T10:30:00Z',
+      status: 'draft' as const,
+      thumbnail: undefined
+    },
+    {
+      id: '2',
+      title: 'Q4 Marketing Campaign',
+      updated_at: '2025-10-12T15:45:00Z',
+      status: 'published' as const,
+      thumbnail: undefined
+    },
+    {
+      id: '3',
+      title: 'Event Promotion',
+      updated_at: '2025-10-10T09:15:00Z',
+      status: 'draft' as const,
+      thumbnail: undefined
+    }
+  ]
 
   return (
     <Box minH="100vh" bg="gray.50">
@@ -34,8 +46,8 @@ export function DashboardPage() {
             {/* Hero Section */}
             <DashboardHero />
             
-            {/* Recent Projects - Now showing real data from /onepager/list */}
-            <RecentProjects projects={projects} isLoading={isLoading} />
+            {/* Recent Projects */}
+            <RecentProjects projects={mockProjects} isLoading={false} />
           </VStack>
         </Container>
       </Box>

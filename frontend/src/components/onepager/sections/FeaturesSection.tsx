@@ -49,26 +49,26 @@ export function FeaturesSection({ data, isEditing, onUpdate }: Props) {
   }
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={2}>
       {features.map((feature, index) => (
         <Box
           key={index}
-          p={6}
+          p={3}
           bg="white"
-          borderRadius="12px"
+          borderRadius="6px"
           border="1px solid #e2e8f0"
           _hover={{
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-            transform: 'translateY(-2px)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            transform: 'translateY(-1px)',
           }}
-          transition="all 0.3s ease"
+          transition="all 0.2s ease"
         >
-          <VStack align="start" gap={3}>
-            <Heading size="md" color="#2d3748">
+          <VStack align="start" gap={1.5}>
+            <Heading fontSize="14px" fontWeight={600} color="#2d3748">
               {feature.title}
             </Heading>
             {feature.description && (
-              <Text fontSize="sm" color="#718096" lineHeight="1.6">
+              <Text fontSize="12px" color="#718096" lineHeight="1.4">
                 {feature.description}
               </Text>
             )}

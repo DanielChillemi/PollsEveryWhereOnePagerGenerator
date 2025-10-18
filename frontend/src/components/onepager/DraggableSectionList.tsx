@@ -60,11 +60,11 @@ function SortableSection({
       ref={setNodeRef}
       style={style}
       bg="white"
-      p={6}
-      borderRadius="12px"
-      border="2px solid"
+      p={3}
+      borderRadius="8px"
+      border="1px solid"
       borderColor={isDragging ? '#864CBD' : '#e2e8f0'}
-      boxShadow={isDragging ? '0 8px 24px rgba(134, 76, 189, 0.3)' : 'sm'}
+      boxShadow={isDragging ? '0 4px 12px rgba(134, 76, 189, 0.2)' : 'sm'}
       position="relative"
       _hover={{
         borderColor: '#864CBD',
@@ -74,18 +74,18 @@ function SortableSection({
       }}
       transition="all 0.2s ease"
     >
-      {/* Drag Handle and Controls */}
+      {/* Compact Drag Handle and Controls */}
       <HStack
         className="section-controls"
         position="absolute"
-        top={2}
-        right={2}
-        gap={1}
-        opacity={{ base: 1, md: 0 }}  // Always visible on mobile, hover on desktop
+        top={1}
+        right={1}
+        gap={0.5}
+        opacity={{ base: 1, md: 0 }}
         transition="opacity 0.2s"
         bg="white"
-        p={1}
-        borderRadius="8px"
+        p={0.5}
+        borderRadius="6px"
         boxShadow="sm"
       >
         {!isEditing && (
@@ -95,18 +95,18 @@ function SortableSection({
               {...listeners}
               cursor="grab"
               _active={{ cursor: 'grabbing' }}
-              p={2}
-              borderRadius="8px"
-              bg="gray.200"
-              _hover={{ bg: 'gray.300' }}
+              p={1}
+              borderRadius="4px"
+              bg="gray.100"
+              _hover={{ bg: 'gray.200' }}
               border="1px solid"
-              borderColor="gray.400"
+              borderColor="gray.300"
             >
-              <Text fontSize="16px" color="gray.700">☰</Text>
+              <Text fontSize="12px" color="gray.600">☰</Text>
             </Box>
             <IconButton
               aria-label="Edit section"
-              size="sm"
+              size="xs"
               colorScheme="purple"
               variant="solid"
               onClick={() => setIsEditing(true)}
@@ -114,16 +114,16 @@ function SortableSection({
               color="white"
               _hover={{ bg: 'purple.600' }}
             >
-              <Text fontSize="16px">✏️</Text>
+              <Text fontSize="12px">✏️</Text>
             </IconButton>
             {onDelete && (
               <IconButton
                 aria-label="Delete section"
-                size="sm"
+                size="xs"
                 colorScheme="red"
                 variant="solid"
                 onClick={() => {
-                  if (window.confirm('Delete this section? This action cannot be undone.')) {
+                  if (window.confirm('Delete this section?')) {
                     onDelete(section.id);
                   }
                 }}
@@ -131,7 +131,7 @@ function SortableSection({
                 color="white"
                 _hover={{ bg: 'red.600' }}
               >
-                <Text fontSize="16px">🗑️</Text>
+                <Text fontSize="12px">🗑️</Text>
               </IconButton>
             )}
           </>
@@ -139,28 +139,28 @@ function SortableSection({
         {isEditing && (
           <>
             <Button
-              size="sm"
+              size="xs"
               colorScheme="green"
               variant="solid"
               onClick={() => setIsEditing(false)}
+              fontSize="xs"
             >
-              <Text fontSize="14px" mr={1}>✓</Text>
-              Done
+              ✓ Done
             </Button>
           </>
         )}
       </HStack>
 
-      {/* Section Badge */}
+      {/* Compact Section Badge */}
       <Box
         position="absolute"
-        top={2}
-        left={2}
-        px={3}
-        py={1}
+        top={1}
+        left={1}
+        px={2}
+        py={0.5}
         bg={isEditing ? 'rgba(52, 211, 153, 0.15)' : 'rgba(134, 76, 189, 0.1)'}
         borderRadius="full"
-        fontSize="xs"
+        fontSize="10px"
         fontWeight={600}
         color={isEditing ? '#059669' : '#864CBD'}
         textTransform="uppercase"
@@ -169,7 +169,7 @@ function SortableSection({
       </Box>
 
       {/* Section Content */}
-      <Box mt={8}>
+      <Box mt={5}>
         <SectionRenderer
           section={section}
           isEditing={isEditing}
@@ -211,20 +211,20 @@ export function DraggableSectionList({ sections, onReorder, onDelete, onEdit }: 
   if (!sections || sections.length === 0) {
     return (
       <Box
-        p={12}
+        p={6}
         textAlign="center"
         border="2px dashed #e2e8f0"
-        borderRadius="16px"
+        borderRadius="8px"
         bg="gray.50"
       >
-        <Text fontSize="48px" mb={2}>
+        <Text fontSize="32px" mb={1}>
           📝
         </Text>
-        <Text fontSize="lg" color="gray.600" fontWeight={600}>
+        <Text fontSize="sm" color="gray.600" fontWeight={600}>
           No sections yet
         </Text>
-        <Text fontSize="sm" color="gray.500" mt={2}>
-          AI will generate content sections when you create a one-pager
+        <Text fontSize="xs" color="gray.500" mt={1}>
+          AI will generate content sections
         </Text>
       </Box>
     );
@@ -236,7 +236,7 @@ export function DraggableSectionList({ sections, onReorder, onDelete, onEdit }: 
         items={sections.map((s) => s.id)}
         strategy={verticalListSortingStrategy}
       >
-        <VStack gap={4} align="stretch">
+        <VStack gap={2} align="stretch">
           {sections.map((section) => (
             <SortableSection
               key={section.id}

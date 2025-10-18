@@ -38,27 +38,31 @@ export function ListSection({ items, isEditing, onUpdate }: Props) {
 
   if (isEditing && onUpdate) {
     return (
-      <VStack align="stretch" gap={2}>
+      <VStack align="stretch" gap={1.5}>
         {editableItems.map((item, index) => (
-          <HStack key={index} gap={2}>
-            <Text fontSize="20px">•</Text>
+          <HStack key={index} gap={1.5}>
+            <Text fontSize="14px">•</Text>
             <Input
               value={item}
               onChange={(e) => handleItemChange(index, e.target.value)}
               flex="1"
+              size="sm"
+              fontSize="13px"
+              px={3}
               border="2px solid"
               borderColor="#864CBD"
             />
             <Button
-              size="sm"
+              size="xs"
               colorScheme="red"
               onClick={() => handleRemoveItem(index)}
+              fontSize="xs"
             >
               Remove
             </Button>
           </HStack>
         ))}
-        <Button size="sm" onClick={handleAddItem} colorScheme="purple" variant="outline">
+        <Button size="xs" onClick={handleAddItem} colorScheme="purple" variant="outline" fontSize="xs">
           + Add Item
         </Button>
       </VStack>
@@ -66,18 +70,18 @@ export function ListSection({ items, isEditing, onUpdate }: Props) {
   }
 
   return (
-    <VStack align="stretch" gap={3}>
+    <VStack align="stretch" gap={1.5}>
       {items.map((item, index) => (
-        <HStack key={index} align="start" gap={3}>
+        <HStack key={index} align="start" gap={2}>
           <Box
-            w="8px"
-            h="8px"
+            w="5px"
+            h="5px"
             borderRadius="full"
             bg="#864CBD"
-            mt="8px"
+            mt="6px"
             flexShrink={0}
           />
-          <Text fontSize={{ base: '16px', md: '18px' }} color="#4a5568" lineHeight="1.6">
+          <Text fontSize={{ base: '13px', md: '14px' }} color="#4a5568" lineHeight="1.5">
             {item}
           </Text>
         </HStack>

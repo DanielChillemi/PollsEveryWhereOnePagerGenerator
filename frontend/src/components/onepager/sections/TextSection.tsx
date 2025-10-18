@@ -19,8 +19,10 @@ export function TextSection({ content, isEditing, onUpdate }: Props) {
       <Textarea
         value={content}
         onChange={(e) => onUpdate(e.target.value)}
-        fontSize="16px"
-        minH="100px"
+        fontSize="13px"
+        minH="60px"
+        px={3}
+        py={2}
         border="2px solid"
         borderColor="#864CBD"
         _focus={{
@@ -33,9 +35,9 @@ export function TextSection({ content, isEditing, onUpdate }: Props) {
 
   return (
     <Text
-      fontSize={{ base: '16px', md: '18px' }}
+      fontSize={{ base: '13px', md: '14px' }}
       color="#4a5568"
-      lineHeight="1.7"
+      lineHeight="1.5"
       whiteSpace="pre-wrap"
     >
       {content}
