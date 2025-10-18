@@ -21,7 +21,9 @@ import { RefineStep } from './steps/RefineStep';
 import { PDFExportStep } from './steps/PDFExportStep';
 import { StepProgress } from '../../components/onepager/StepProgress';
 import { Sidebar } from '../../components/layouts/Sidebar';
-import { useCreateOnePager, useOnePager } from '../../hooks/useOnePager';
+import { VersionHistorySidebar } from '../../components/onepager/VersionHistorySidebar';
+import { useCreateOnePager, useOnePager, useRestoreOnePagerVersion } from '../../hooks/useOnePager';
+import { toaster } from '../../components/ui/toaster';
 import type { OnePagerCreateData } from '../../types/onepager';
 
 type WizardStep = 'add-content' | 'refine' | 'export';
@@ -39,6 +41,7 @@ export function OnePagerWizard() {
   
   const createMutation = useCreateOnePager();
   const { data: existingOnePager } = useOnePager(existingOnePagerId || '');
+  const restoreVersionMutation = useRestoreOnePagerVersion();
 
   const [currentStep, setCurrentStep] = useState<WizardStep>(existingOnePagerId ? 'refine' : 'add-content');
   const [generatedOnePagerId, setGeneratedOnePagerId] = useState<string | null>(existingOnePagerId);
@@ -155,6 +158,33 @@ export function OnePagerWizard() {
     const confirmCancel = confirm('Are you sure you want to cancel? Your progress will be saved as a draft.');
     if (confirmCancel) {
       navigate('/onepager/list');
+    }
+  };
+
+  const handleRestoreVersion = async (version: number) => {
+    const onePagerId = generatedOnePagerId || existingOnePagerId;
+    if (!onePagerId) return;
+
+    try {
+      await restoreVersionMutation.mutateAsync({
+        id: onePagerId,
+        version,
+      });
+
+      toaster.create({
+        title: 'Version Restored!',
+        description: `Successfully restored to version ${version}`,
+        type: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Restore failed:', error);
+      toaster.create({
+        title: 'Restore Failed',
+        description: 'Could not restore to this version. Please try again.',
+        type: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -295,6 +325,18 @@ export function OnePagerWizard() {
               }
             }}
           />
+
+          {/* Version History - Show only in Refine step */}
+          {currentStep === 'refine' && existingOnePager && (
+            <Box px={6} mt={6}>
+              <VersionHistorySidebar
+                versions={(existingOnePager.version_history || []) as any}
+                currentVersion={existingOnePager.version_history?.length || 0}
+                onRestore={handleRestoreVersion}
+                isRestoring={restoreVersionMutation.isPending}
+              />
+            </Box>
+          )}
 
           {/* Cancel Button */}
           <Box px={6} mt="auto" pt={6}>

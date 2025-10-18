@@ -35,9 +35,9 @@ export function OnePagerDetailPage() {
       </Container>
 
       {onepager && (
-        <PDFExportModal 
-          isOpen={isExportOpen} 
-          onClose={() => setIsExportOpen(false)} 
+        <PDFExportModal
+          isOpen={isExportOpen}
+          onClose={() => setIsExportOpen(false)}
           onepagerId={id}
           title={onepager.title}
         />
