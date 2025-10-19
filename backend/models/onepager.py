@@ -7,7 +7,7 @@ Based on validated POC schema from canva-poc/json_schema.py
 """
 
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, Literal
 from enum import Enum
 from datetime import datetime
 
@@ -168,10 +168,10 @@ class OnePagerLayout(BaseModel):
 def onepager_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
     """
     Transform MongoDB onepager document to API response format.
-    
+
     Args:
         onepager_doc: Raw MongoDB document
-        
+
     Returns:
         Dictionary ready for OnePagerResponse model
     """
@@ -186,6 +186,8 @@ def onepager_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
         "style_overrides": onepager_doc.get("style_overrides", {}),
         "generation_metadata": onepager_doc.get("generation_metadata", {}),
         "version_history": onepager_doc.get("version_history", []),
+        "layout_params": onepager_doc.get("layout_params"),
+        "design_rationale": onepager_doc.get("design_rationale"),
         "created_at": onepager_doc["created_at"],
         "updated_at": onepager_doc["updated_at"],
         "last_accessed": onepager_doc.get("last_accessed", onepager_doc["updated_at"])
@@ -195,10 +197,10 @@ def onepager_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
 def onepager_summary_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
     """
     Transform MongoDB onepager document to summary format for list views.
-    
+
     Args:
         onepager_doc: Raw MongoDB document
-        
+
     Returns:
         Dictionary ready for OnePagerSummary model
     """
@@ -210,3 +212,294 @@ def onepager_summary_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
         "updated_at": onepager_doc["updated_at"],
         "has_brand_kit": bool(onepager_doc.get("brand_kit_id"))
     }
+
+
+# ==========================================
+# Layout Parameters Models
+# ==========================================
+# New data models for AI-driven layout customization
+# Enables iterative design refinement beyond content
+
+
+class ColorScheme(BaseModel):
+    """
+    Color scheme configuration for one-pager design.
+
+    All colors must be in hex format (#RRGGBB).
+    Used for dynamic PDF template styling.
+    """
+    primary: str = Field(
+        default="#1568B8",
+        description="Primary brand color (hex format)"
+    )
+    secondary: str = Field(
+        default="#864CBD",
+        description="Secondary brand color (hex format)"
+    )
+    accent: str = Field(
+        default="#FF6B6B",
+        description="Accent color for highlights (hex format)"
+    )
+    text_primary: str = Field(
+        default="#1A202C",
+        description="Primary text color (hex format)"
+    )
+    background: str = Field(
+        default="#FFFFFF",
+        description="Background color (hex format)"
+    )
+
+    @validator('primary', 'secondary', 'accent', 'text_primary', 'background')
+    def validate_hex_color(cls, v):
+        """Validate color format is hex (#RRGGBB)."""
+        if not (v.startswith('#') and len(v) == 7):
+            raise ValueError("Color must be in hex format: #RRGGBB")
+        try:
+            int(v[1:], 16)  # Validate hex characters
+        except ValueError:
+            raise ValueError("Invalid hex color code")
+        return v
+
+
+class Typography(BaseModel):
+    """
+    Typography parameters for scaling and font configuration.
+
+    Scale values allow AI to adjust text sizes based on content characteristics.
+    """
+    heading_font: str = Field(
+        default="Inter",
+        description="Font family for headings"
+    )
+    body_font: str = Field(
+        default="Inter",
+        description="Font family for body text"
+    )
+    h1_scale: float = Field(
+        default=1.0,
+        ge=0.8,
+        le=1.5,
+        description="H1 size multiplier (0.8-1.5)"
+    )
+    h2_scale: float = Field(
+        default=1.0,
+        ge=0.8,
+        le=1.5,
+        description="H2 size multiplier (0.8-1.5)"
+    )
+    body_scale: float = Field(
+        default=1.0,
+        ge=0.8,
+        le=1.3,
+        description="Body text size multiplier (0.8-1.3)"
+    )
+    line_height_scale: float = Field(
+        default=1.0,
+        ge=0.8,
+        le=1.4,
+        description="Line height multiplier (0.8-1.4)"
+    )
+
+
+class Spacing(BaseModel):
+    """
+    Spacing configuration for section gaps and padding.
+
+    Controls vertical spacing between sections and overall padding density.
+    """
+    section_gap: Literal["tight", "normal", "loose"] = Field(
+        default="normal",
+        description="Vertical spacing between sections"
+    )
+    padding_scale: float = Field(
+        default=1.0,
+        ge=0.5,
+        le=2.0,
+        description="Overall padding multiplier (0.5-2.0)"
+    )
+
+
+class SectionLayout(BaseModel):
+    """
+    Layout configuration for an individual section.
+
+    Defines grid structure and alignment for section content.
+    """
+    columns: Literal[1, 2, 3] = Field(
+        default=1,
+        description="Number of columns (1-3)"
+    )
+    alignment: Literal["left", "center", "right"] = Field(
+        default="left",
+        description="Content alignment"
+    )
+    image_position: Optional[Literal["top", "left", "right", "none"]] = Field(
+        default="top",
+        description="Image placement relative to content"
+    )
+
+
+class LayoutParams(BaseModel):
+    """
+    Complete layout parameter configuration for one-pager.
+
+    Enables AI-driven design customization beyond content.
+    All parameters have sensible defaults and validation ranges.
+    """
+    color_scheme: ColorScheme = Field(
+        default_factory=ColorScheme,
+        description="Color palette configuration"
+    )
+    typography: Typography = Field(
+        default_factory=Typography,
+        description="Typography scaling configuration"
+    )
+    spacing: Spacing = Field(
+        default_factory=Spacing,
+        description="Spacing and padding configuration"
+    )
+    section_layouts: Dict[str, SectionLayout] = Field(
+        default_factory=dict,
+        description="Per-section layout configuration (key: section name)"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "color_scheme": {
+                    "primary": "#1568B8",
+                    "secondary": "#864CBD",
+                    "accent": "#FF6B6B",
+                    "text_primary": "#1A202C",
+                    "background": "#FFFFFF"
+                },
+                "typography": {
+                    "heading_font": "Inter",
+                    "body_font": "Inter",
+                    "h1_scale": 1.2,
+                    "h2_scale": 1.0,
+                    "body_scale": 1.0,
+                    "line_height_scale": 1.1
+                },
+                "spacing": {
+                    "section_gap": "normal",
+                    "padding_scale": 1.0
+                },
+                "section_layouts": {
+                    "features": {
+                        "columns": 2,
+                        "alignment": "left"
+                    },
+                    "benefits": {
+                        "columns": 1,
+                        "alignment": "center"
+                    }
+                }
+            }
+        }
+
+
+def get_default_layout_params() -> LayoutParams:
+    """
+    Get default layout parameters with sensible styling.
+
+    Returns:
+        LayoutParams instance with all default values
+
+    Usage:
+        Used for onepagers without custom layout configuration.
+        Provides baseline styling that works for most content.
+    """
+    return LayoutParams(
+        color_scheme=ColorScheme(),
+        typography=Typography(),
+        spacing=Spacing(),
+        section_layouts={
+            "features": SectionLayout(columns=2, alignment="left"),
+            "benefits": SectionLayout(columns=1, alignment="center"),
+            "integrations": SectionLayout(columns=3, alignment="left")
+        }
+    )
+
+
+def validate_layout_params(data: Dict[str, Any]) -> Optional[LayoutParams]:
+    """
+    Validate layout parameters data and return LayoutParams instance if valid.
+
+    Args:
+        data: Dictionary containing layout parameter data
+
+    Returns:
+        LayoutParams instance if validation succeeds, None if validation fails
+
+    Usage:
+        Used by API endpoints to validate user-submitted layout parameters.
+        Returns None on validation errors instead of raising exceptions.
+
+    Example:
+        >>> params_dict = {"color_scheme": {"primary": "#FF0000"}}
+        >>> validated = validate_layout_params(params_dict)
+        >>> if validated:
+        ...     # Use validated params
+        ...     pass
+    """
+    try:
+        return LayoutParams(**data)
+    except Exception:
+        return None
+
+
+def merge_layout_params(
+    base: Optional[LayoutParams] = None,
+    updates: Optional[Dict[str, Any]] = None
+) -> LayoutParams:
+    """
+    Merge user layout parameter updates with base parameters.
+
+    Args:
+        base: Base LayoutParams (defaults to get_default_layout_params() if None)
+        updates: Dictionary of user updates to apply
+
+    Returns:
+        New LayoutParams instance with merged values
+
+    Usage:
+        Used when user modifies specific layout parameters while keeping others default.
+        Enables incremental customization without requiring full parameter specification.
+
+    Example:
+        >>> base = get_default_layout_params()
+        >>> updates = {"spacing": {"section_gap": "loose"}}
+        >>> merged = merge_layout_params(base, updates)
+        >>> # Result: All defaults except section_gap is now "loose"
+    """
+    # Get base params (use defaults if not provided)
+    if base is None:
+        base = get_default_layout_params()
+
+    # If no updates, return base as-is
+    if not updates:
+        return base
+
+    # Convert base to dict for merging
+    base_dict = base.dict()
+
+    # Deep merge updates into base
+    for key, value in updates.items():
+        if key in base_dict:
+            # If both are dicts, merge recursively
+            if isinstance(value, dict) and isinstance(base_dict[key], dict):
+                base_dict[key] = {**base_dict[key], **value}
+            else:
+                # Otherwise, replace value
+                base_dict[key] = value
+        else:
+            # New key, add directly
+            base_dict[key] = value
+
+    # Validate and return merged params
+    try:
+        return LayoutParams(**base_dict)
+    except Exception:
+        # If merged params are invalid, return base unchanged
+        return base

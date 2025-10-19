@@ -13,6 +13,7 @@ import type {
   OnePagerIterateData,
   OnePagerUpdateData,
   PDFFormat,
+  LayoutParams,
 } from '../types/onepager';
 
 /**
@@ -177,5 +178,41 @@ export const useExportPDF = () => {
   return useMutation({
     mutationFn: ({ id, format, template }: { id: string; format: PDFFormat; template: string }) =>
       onepagerService.exportPDF(id, format, template, accessToken!),
+  });
+};
+
+/**
+ * Request AI layout suggestions for a OnePager
+ * Does NOT modify the OnePager - only returns suggestions
+ * Human-in-the-loop pattern: user must explicitly apply suggestions
+ */
+export const useSuggestLayoutParams = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  return useMutation({
+    mutationFn: ({ id, designGoal }: { id: string; designGoal?: string }) =>
+      onepagerService.suggestLayout(id, designGoal, accessToken!),
+    // Don't invalidate cache - this is a read-only suggestion operation
+  });
+};
+
+/**
+ * Apply layout parameters to a OnePager
+ * Directly saves user-edited layout parameters WITHOUT AI generation
+ * Used when applying manual parameter adjustments from the UI
+ */
+export const useApplyLayoutParams = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, layoutParams }: { id: string; layoutParams: LayoutParams }) =>
+      onepagerService.updateLayoutParams(id, layoutParams, accessToken!),
+    onSuccess: (_, variables) => {
+      // Invalidate specific OnePager to refetch updated layout params
+      queryClient.invalidateQueries({ queryKey: ['onepager', variables.id] });
+      // Invalidate list (updated_at timestamp changed)
+      queryClient.invalidateQueries({ queryKey: ['onepagers'] });
+    },
   });
 };

@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime, timezone
 from bson import ObjectId
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -630,34 +630,76 @@ async def iterate_onepager(
                     "color_palette": brand_kit.get("color_palette")
                 }
 
-        # Call AI service for refinement
-        refined_data = await ai_service.refine_layout(
-            current_layout={
-                "content": onepager["content"],
-                "layout": onepager.get("layout", [])
-            },
-            user_feedback=iteration_data.feedback,
-            brand_context=brand_context
-        )
+        # Determine which AI method to call based on iteration_type
+        iteration_type = iteration_data.iteration_type
 
-        logger.info(f"🤖 AI refinement response structure: {list(refined_data.keys())}")
-        logger.info(f"🤖 AI refined_data: {refined_data}")
+        if iteration_type in ["layout", "both"]:
+            # Use new refine_onepager_with_design for layout iteration
+            from backend.models.onepager import LayoutParams, validate_layout_params
 
-        # Update content from AI response
-        # AI returns {"content": {"headline": ..., "sections": [...]}} structure
-        if "content" in refined_data:
-            content_data = refined_data["content"]
-            if "headline" in content_data:
-                update_doc["content.headline"] = content_data["headline"]
-            if "subheadline" in content_data:
-                update_doc["content.subheadline"] = content_data.get("subheadline")
-            if "sections" in content_data:
-                logger.info(f"🔍 AI returned {len(content_data['sections'])} sections (was {len(onepager['content']['sections'])} sections)")
-                update_doc["content.sections"] = content_data["sections"]
-        # Fallback: check top level (for backwards compatibility)
-        elif "sections" in refined_data:
-            logger.info(f"🔍 AI returned {len(refined_data['sections'])} sections (was {len(onepager['content']['sections'])} sections)")
-            update_doc["content.sections"] = refined_data["sections"]
+            # Get current layout params or None
+            current_layout_params = None
+            if onepager.get("layout_params"):
+                current_layout_params = validate_layout_params(onepager["layout_params"])
+
+            # Call AI service for content + design refinement
+            refined_data = await ai_service.refine_onepager_with_design(
+                current_content=onepager["content"],
+                current_layout_params=current_layout_params,
+                user_feedback=iteration_data.feedback,
+                brand_context=brand_context
+            )
+
+            logger.info(f"🎨 AI design refinement response: {list(refined_data.keys())}")
+
+            # Update content
+            if "content" in refined_data:
+                content_data = refined_data["content"]
+                if "headline" in content_data:
+                    update_doc["content.headline"] = content_data["headline"]
+                if "subheadline" in content_data:
+                    update_doc["content.subheadline"] = content_data.get("subheadline")
+                if "sections" in content_data:
+                    logger.info(f"🔍 AI returned {len(content_data['sections'])} sections")
+                    update_doc["content.sections"] = content_data["sections"]
+
+            # Update layout parameters
+            if "layout_params" in refined_data:
+                update_doc["layout_params"] = refined_data["layout_params"]
+                logger.info(f"🎨 Layout params updated")
+
+            # Update design rationale
+            if "design_rationale" in refined_data:
+                update_doc["design_rationale"] = refined_data["design_rationale"]
+                logger.info(f"💡 Design rationale: {refined_data['design_rationale'][:100]}...")
+
+        else:
+            # Use original refine_layout for content-only iteration
+            refined_data = await ai_service.refine_layout(
+                current_layout={
+                    "content": onepager["content"],
+                    "layout": onepager.get("layout", [])
+                },
+                user_feedback=iteration_data.feedback,
+                brand_context=brand_context
+            )
+
+            logger.info(f"🤖 AI refinement response structure: {list(refined_data.keys())}")
+
+            # Update content from AI response
+            if "content" in refined_data:
+                content_data = refined_data["content"]
+                if "headline" in content_data:
+                    update_doc["content.headline"] = content_data["headline"]
+                if "subheadline" in content_data:
+                    update_doc["content.subheadline"] = content_data.get("subheadline")
+                if "sections" in content_data:
+                    logger.info(f"🔍 AI returned {len(content_data['sections'])} sections")
+                    update_doc["content.sections"] = content_data["sections"]
+            # Fallback: check top level
+            elif "sections" in refined_data:
+                logger.info(f"🔍 AI returned {len(refined_data['sections'])} sections")
+                update_doc["content.sections"] = refined_data["sections"]
 
         # Update generation metadata
         update_doc["generation_metadata.prompts"] = onepager["generation_metadata"]["prompts"] + [iteration_data.feedback]
@@ -676,11 +718,12 @@ async def iterate_onepager(
     # Fetch updated document
     updated_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
 
-    # Create version snapshot with UPDATED content
+    # Create version snapshot with UPDATED content and layout_params
     version_snapshot = {
         "version": len(onepager.get("version_history", [])) + 1,
         "content": updated_onepager["content"],  # Use updated content
         "layout": updated_onepager.get("layout", []),
+        "layout_params": updated_onepager.get("layout_params"),  # Include layout parameters
         "created_at": now,
         "change_description": iteration_data.feedback[:200] if iteration_data.feedback else "Manual update"
     }
@@ -695,6 +738,157 @@ async def iterate_onepager(
     final_onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
 
     return OnePagerResponse(**onepager_helper(final_onepager))
+
+
+@router.post(
+    "/{onepager_id}/suggest-layout",
+    response_model=Dict[str, Any],
+    responses={
+        404: {"model": ErrorResponse, "description": "One-pager not found"},
+        403: {"model": ErrorResponse, "description": "Not authorized to access this one-pager"}
+    }
+)
+async def suggest_layout_params(
+    onepager_id: str,
+    design_goal: Optional[str] = None,
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Get AI suggestions for layout parameters WITHOUT modifying the one-pager.
+
+    Analyzes current content and suggests optimal layout parameters
+    (spacing, typography, colors, section layouts). Does NOT apply changes
+    automatically - user must explicitly apply suggested parameters.
+
+    **Path Parameters:**
+    - onepager_id: MongoDB ObjectId of the one-pager
+
+    **Query Parameters:**
+    - design_goal: Optional design goal (e.g., "modern", "compact", "bold")
+
+    **Returns:**
+    - suggested_layout_params: Suggested LayoutParams object
+    - design_rationale: AI's explanation for suggestions
+
+    **Errors:**
+    - 404: One-pager not found
+    - 403: User doesn't own this one-pager
+    """
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Find one-pager
+    onepager = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this one-pager"
+        )
+
+    # Fetch brand kit for context
+    brand_context = None
+    if onepager.get("brand_kit_id"):
+        brand_kit = await db.brand_kits.find_one({"_id": onepager["brand_kit_id"]})
+        if brand_kit:
+            brand_context = {
+                "company_name": brand_kit.get("company_name"),
+                "brand_voice": brand_kit.get("brand_voice"),
+                "color_palette": brand_kit.get("color_palette")
+            }
+
+    # Get current layout params
+    from backend.models.onepager import validate_layout_params
+
+    current_layout_params = None
+    if onepager.get("layout_params"):
+        current_layout_params = validate_layout_params(onepager["layout_params"])
+
+    # Call AI service for layout suggestions
+    suggestion_result = await ai_service.suggest_layout(
+        current_content=onepager["content"],
+        current_layout_params=current_layout_params,
+        brand_context=brand_context,
+        design_goal=design_goal
+    )
+
+    logger.info(f"💡 AI layout suggestion generated for onepager {onepager_id}")
+
+    return suggestion_result
+
+
+@router.patch(
+    "/{onepager_id}/layout-params",
+    response_model=OnePagerResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "One-pager not found"},
+        403: {"model": ErrorResponse, "description": "Not authorized"},
+        400: {"model": ErrorResponse, "description": "Invalid layout parameters"}
+    }
+)
+async def update_layout_params(
+    onepager_id: str,
+    layout_params: Dict[str, Any],
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Directly update layout parameters WITHOUT AI generation.
+
+    This endpoint allows manual/user-driven layout parameter updates.
+    Use this when applying user-edited parameters from the UI.
+    """
+    from backend.models.onepager import validate_layout_params
+
+    # Validate ObjectId
+    try:
+        onepager_oid = ObjectId(onepager_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid onepager ID format")
+
+    # Fetch onepager
+    onepager = await db.onepagers.find_one({"_id": onepager_oid})
+    if not onepager:
+        raise HTTPException(status_code=404, detail="One-pager not found")
+
+    # Verify ownership
+    if str(onepager["user_id"]) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to update this one-pager")
+
+    # Validate layout params
+    validated_params = validate_layout_params(layout_params)
+    if not validated_params:
+        raise HTTPException(status_code=400, detail="Invalid layout parameters")
+
+    # Update onepager
+    now = datetime.now(timezone.utc).isoformat()
+    update_doc = {
+        "$set": {
+            "layout_params": validated_params.dict(),
+            "updated_at": now
+        }
+    }
+
+    await db.onepagers.update_one({"_id": onepager_oid}, update_doc)
+
+    # Fetch updated onepager
+    updated_onepager = await db.onepagers.find_one({"_id": onepager_oid})
+
+    logger.info(f"✅ Layout params updated directly for onepager {onepager_id}")
+
+    return onepager_helper(updated_onepager)
 
 
 @router.post(
@@ -1046,10 +1240,14 @@ async def export_onepager_pdf(
         onepager = OnePagerLayout(**onepager_layout_data)
         brand_kit = BrandKitInDB(**brand_kit_doc)
 
-        # Generate HTML with Brand Kit styling and selected template
+        # Extract layout_params from database (if exists)
+        layout_params = onepager_doc.get("layout_params", {})
+
+        # Generate HTML with Brand Kit styling, layout params, and selected template
         logger.info(f"Generating HTML from onepager layout with template: {template}")
+        logger.info(f"Layout params: {layout_params}")
         html_generator = PDFHTMLGenerator()
-        html = html_generator.generate_html(onepager, brand_kit, template_name=template)
+        html = html_generator.generate_html(onepager, brand_kit, template_name=template, layout_params=layout_params)
 
         # Generate PDF
         logger.info(f"Generating PDF with format: {format}")

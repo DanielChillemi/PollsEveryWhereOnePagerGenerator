@@ -13,7 +13,7 @@
     {% endif %}
 
     <style>
-        /* CSS Variables from Brand Kit */
+        /* CSS Variables from Brand Kit and Layout Params */
         :root {
             --color-primary: {{ brand.color_palette.primary }};
             --color-secondary: {{ brand.color_palette.secondary }};
@@ -22,6 +22,22 @@
             --color-background: {{ brand.color_palette.background }};
             --font-heading: '{{ brand.typography.heading_font }}', sans-serif;
             --font-body: '{{ brand.typography.body_font }}', sans-serif;
+
+            /* Layout Parameters for Typography and Spacing */
+            --h1-scale: {{ layout_params.typography.h1_scale }};
+            --h2-scale: {{ layout_params.typography.h2_scale }};
+            --body-scale: {{ layout_params.typography.body_scale }};
+            --line-height-scale: {{ layout_params.typography.line_height }};
+            --padding-scale: {{ layout_params.spacing.padding_scale }};
+
+            /* Section Gap - Vertical spacing between content sections */
+            {% if layout_params.spacing.section_gap == 'tight' %}
+            --section-gap: 0.25in;
+            {% elif layout_params.spacing.section_gap == 'loose' %}
+            --section-gap: 0.5in;
+            {% else %}
+            --section-gap: 0.35in;
+            {% endif %}
         }
 
         /* Print-specific: Force single page */
@@ -54,8 +70,8 @@
             font-family: var(--font-body);
             color: var(--color-text);
             background-color: #ffffff;
-            line-height: 1.4;
-            font-size: 11pt;
+            line-height: calc(1.4 * var(--line-height-scale));
+            font-size: calc(11pt * var(--body-scale));
             height: 11in;
             width: 8.5in;
             overflow: hidden;
@@ -113,32 +129,32 @@
 
         .hero-section h1 {
             font-family: var(--font-heading);
-            font-size: 32pt;
+            font-size: calc(32pt * var(--h1-scale));
             font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 0.15in;
+            line-height: calc(1.1 * var(--line-height-scale));
+            margin-bottom: calc(0.15in * var(--padding-scale));
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: relative;
             z-index: 1;
         }
 
         .hero-section .subheadline {
-            font-size: 13pt;
+            font-size: calc(13pt * var(--h2-scale));
             font-weight: 500;
             opacity: 0.95;
             max-width: 6.5in;
             margin: 0 auto;
-            line-height: 1.3;
+            line-height: calc(1.3 * var(--line-height-scale));
             position: relative;
             z-index: 1;
         }
 
         .hero-section .description {
-            font-size: 11pt;
+            font-size: calc(11pt * var(--body-scale));
             opacity: 0.9;
             max-width: 6in;
-            margin: 0.15in auto 0;
-            line-height: 1.4;
+            margin: calc(0.15in * var(--padding-scale)) auto 0;
+            line-height: calc(1.4 * var(--line-height-scale));
             position: relative;
             z-index: 1;
         }
@@ -196,15 +212,16 @@
 
         .stat-number {
             font-family: var(--font-heading);
-            font-size: 28pt;
+            font-size: calc(28pt * var(--h1-scale));
             font-weight: 900;
-            color: var(--color-primary);
+            /* Ensure stat number has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
             line-height: 1;
-            margin: 0.03in 0;
+            margin: calc(0.03in * var(--padding-scale)) 0;
         }
 
         .stat-label {
-            font-size: 9pt;
+            font-size: calc(9pt * var(--body-scale));
             color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -216,8 +233,9 @@
             flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.35in;
-            padding: 0.4in 0.6in;
+            /* Apply section gap with padding scale modifier */
+            gap: calc(var(--section-gap) * var(--padding-scale));
+            padding: calc(0.4in * var(--padding-scale)) 0.6in;
             background: #f9fafb;
             position: relative;
             overflow: hidden;
@@ -256,7 +274,8 @@
         .content-column {
             display: flex;
             flex-direction: column;
-            gap: 0.25in;
+            /* Apply section gap for vertical spacing within columns */
+            gap: calc(var(--section-gap) * var(--padding-scale));
             position: relative;
             z-index: 1;
         }
@@ -285,25 +304,26 @@
 
         .section-card h3 {
             font-family: var(--font-heading);
-            font-size: 14pt;
+            font-size: calc(14pt * var(--h2-scale));
             font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: 0.12in;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.12in * var(--padding-scale));
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .section-card h3 .icon {
-            font-size: 18pt;
+            font-size: calc(18pt * var(--h2-scale));
             filter: grayscale(0);
         }
 
         .section-card p {
-            font-size: 10pt;
-            line-height: 1.5;
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
             color: #374151;
-            margin-bottom: 0.08in;
+            margin-bottom: calc(0.08in * var(--padding-scale));
         }
 
         .section-card ul {
@@ -313,10 +333,10 @@
         }
 
         .section-card ul li {
-            font-size: 10pt;
-            line-height: 1.5;
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
             color: #374151;
-            margin-bottom: 0.06in;
+            margin-bottom: calc(0.06in * var(--padding-scale));
             padding-left: 0.18in;
             position: relative;
         }
@@ -327,7 +347,7 @@
             left: 0;
             color: var(--color-accent);
             font-weight: 700;
-            font-size: 11pt;
+            font-size: calc(11pt * var(--body-scale));
         }
 
         /* Full Width Section */
@@ -342,10 +362,11 @@
 
         .full-width-section h3 {
             font-family: var(--font-heading);
-            font-size: 13pt;
+            font-size: calc(13pt * var(--h2-scale));
             font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: 0.1in;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.1in * var(--padding-scale));
         }
 
         /* CTA Footer with Enhanced Gradient */
@@ -397,7 +418,7 @@
 
         .cta-footer h3 {
             font-family: var(--font-heading);
-            font-size: 18pt;
+            font-size: calc(18pt * var(--h2-scale));
             font-weight: 700;
             margin: 0;
             position: relative;
@@ -407,9 +428,10 @@
         .cta-button {
             display: inline-block;
             background: white;
-            color: var(--color-accent);
-            padding: 0.12in 0.35in;
-            font-size: 13pt;
+            /* Ensure button text has contrast - darken accent color for readability */
+            color: color-mix(in srgb, var(--color-accent) 85%, black 15%);
+            padding: calc(0.12in * var(--padding-scale)) calc(0.35in * var(--padding-scale));
+            font-size: calc(13pt * var(--h2-scale));
             font-weight: 700;
             text-decoration: none;
             border-radius: 6px;
@@ -435,15 +457,16 @@
 
         .text-section h4 {
             font-family: var(--font-heading);
-            font-size: 12pt;
+            font-size: calc(12pt * var(--h2-scale));
             font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: 0.08in;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.08in * var(--padding-scale));
         }
 
         .text-section p {
-            font-size: 10pt;
-            line-height: 1.5;
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
             color: #374151;
         }
 
@@ -467,15 +490,24 @@
         }
 
         .highlight-box p {
-            font-size: 10.5pt;
+            font-size: calc(10.5pt * var(--body-scale));
             font-weight: 500;
-            color: var(--color-text);
-            line-height: 1.5;
+            /* Ensure highlight text has contrast on light background - darken text color */
+            color: color-mix(in srgb, var(--color-text) 85%, black 15%);
+            line-height: calc(1.5 * var(--line-height-scale));
             margin: 0;
         }
     </style>
 </head>
 <body>
+    <!-- DEBUG: Layout Parameters
+    H1 Scale: {{ layout_params.typography.h1_scale }}
+    H2 Scale: {{ layout_params.typography.h2_scale }}
+    Body Scale: {{ layout_params.typography.body_scale }}
+    Line Height Scale: {{ layout_params.typography.line_height }}
+    Padding Scale: {{ layout_params.spacing.padding_scale }}
+    Section Gap: {{ layout_params.spacing.section_gap }}
+    -->
     <div class="page-container">
         {# Hero Section - Must be first #}
         {% set hero_rendered = false %}

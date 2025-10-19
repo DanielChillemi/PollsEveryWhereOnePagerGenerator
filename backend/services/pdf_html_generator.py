@@ -180,15 +180,17 @@ class PDFHTMLGenerator:
         self,
         onepager: OnePagerLayout,
         brand_kit: BrandKitInDB,
-        template_name: str = "minimalist"
+        template_name: str = "minimalist",
+        layout_params: dict = None
     ) -> str:
         """
-        Generate complete HTML with Brand Kit styling.
+        Generate complete HTML with Brand Kit styling and layout parameters.
 
         Args:
             onepager: OnePager layout data structure
             brand_kit: Brand Kit with colors, fonts, logo
             template_name: Template style to use (minimalist, bold, business, product)
+            layout_params: Layout parameters for typography and spacing (optional)
 
         Returns:
             Complete HTML string ready for PDF conversion
@@ -212,7 +214,7 @@ class PDFHTMLGenerator:
 
             # Load selected template
             template = self.env.get_template(template_file)
-            
+
             # Convert Pydantic models to dicts for Jinja2
             onepager_dict = self._prepare_onepager_data(onepager)
             brand_dict = self._prepare_brand_data(brand_kit)
@@ -220,11 +222,37 @@ class PDFHTMLGenerator:
             # Extract key statistics for visual highlights
             key_stats = extract_key_stats(onepager)
 
+            # Provide default layout_params if not provided
+            if layout_params is None:
+                layout_params = {}
+
+            # Ensure layout_params has default values for all parameters
+            default_layout_params = {
+                "typography": {
+                    "h1_scale": 1.0,
+                    "h2_scale": 1.0,
+                    "body_scale": 1.0,
+                    "line_height": 1.0
+                },
+                "spacing": {
+                    "section_gap": "default",
+                    "padding_scale": 1.0
+                }
+            }
+
+            # Merge provided layout_params with defaults
+            merged_params = {**default_layout_params}
+            if "typography" in layout_params:
+                merged_params["typography"].update(layout_params["typography"])
+            if "spacing" in layout_params:
+                merged_params["spacing"].update(layout_params["spacing"])
+
             # Render template
             html = template.render(
                 onepager=onepager_dict,
                 brand=brand_dict,
                 key_stats=key_stats,
+                layout_params=merged_params,
                 now=datetime.now()
             )
             

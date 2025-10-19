@@ -25,15 +25,18 @@ import {
   Spinner,
   Badge,
   ButtonGroup,
+  Tabs,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerContent } from '../../hooks/useOnePager';
+import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerContent, useSuggestLayoutParams, useApplyLayoutParams } from '../../hooks/useOnePager';
 import { useBrandKits } from '../../hooks/useBrandKit';
 import { DraggableSectionList } from './DraggableSectionList';
 import { SaveStatusIndicator } from '../common/SaveStatusIndicator';
+import { DesignControlPanel } from './DesignControlPanel';
 import { toaster } from '../ui/toaster';
 import type { SaveStatus } from '../../hooks/useAutoSave';
+import type { LayoutParams, LayoutSuggestionResponse } from '../../types/onepager';
 import '../../styles/wireframe-mode.css';
 
 type ViewMode = 'wireframe' | 'styled';
@@ -59,12 +62,15 @@ export function OnePagerEditor({
   const [viewMode, setViewMode] = useState<ViewMode>('styled');
   const [lastSavedAt, setLastSavedAt] = useState<Date>(new Date());
   const [feedback, setFeedback] = useState('');
+  const [suggestedLayout, setSuggestedLayout] = useState<LayoutSuggestionResponse | null>(null);
 
   const { data: onepager, isLoading, error, refetch } = useOnePager(onePagerId);
   const { data: brandKits } = useBrandKits();
   const iterateMutation = useIterateOnePager();
   const updateMutation = useUpdateOnePager();
   const contentUpdateMutation = useUpdateOnePagerContent();
+  const suggestLayoutMutation = useSuggestLayoutParams();
+  const applyLayoutMutation = useApplyLayoutParams();
 
   // Calculate save status
   const saveStatus: SaveStatus = contentUpdateMutation.isPending
@@ -263,6 +269,58 @@ export function OnePagerEditor({
     }
   };
 
+  const handleRequestLayoutSuggestion = async () => {
+    try {
+      const suggestion = await suggestLayoutMutation.mutateAsync({
+        id: onePagerId,
+      });
+
+      setSuggestedLayout(suggestion);
+
+      toaster.create({
+        title: 'AI Suggestion Ready!',
+        description: 'Review the suggested layout parameters below.',
+        type: 'success',
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to get layout suggestion:', error);
+      toaster.create({
+        title: 'Suggestion Failed',
+        description: error?.response?.data?.detail || 'Could not generate layout suggestions. Please try again.',
+        type: 'error',
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleApplyLayoutChanges = async (layoutParams: LayoutParams) => {
+    try {
+      await applyLayoutMutation.mutateAsync({
+        id: onePagerId,
+        layoutParams,
+      });
+
+      // Clear suggestion after applying
+      setSuggestedLayout(null);
+
+      toaster.create({
+        title: 'Layout Updated!',
+        description: 'Design parameters have been applied.',
+        type: 'success',
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to apply layout changes:', error);
+      toaster.create({
+        title: 'Apply Failed',
+        description: error?.response?.data?.detail || 'Could not apply layout changes. Please try again.',
+        type: 'error',
+        duration: 5000,
+      });
+    }
+  };
+
   return (
     <Box w="100%" minH={mode === 'wizard' ? 'calc(100vh - 200px)' : 'auto'}>
       {/* Compact Top Bar */}
@@ -330,69 +388,98 @@ export function OnePagerEditor({
         </HStack>
       </HStack>
 
-      {/* Compact AI Refinement Panel */}
+      {/* Tabbed Refinement & Design Panel */}
       <Box
         bg="white"
-        p={3}
         borderRadius="8px"
         boxShadow="sm"
         border="1px solid #e2e8f0"
         mb={3}
       >
-        <HStack justify="space-between" align="center" mb={2}>
-          <Text fontSize="sm" fontWeight={600} color="#2d3748">
-            ✨ Refine with AI
-          </Text>
-          <Text fontSize="xs" color="gray.500">
-            {feedback.length}/1000
-          </Text>
-        </HStack>
-        
-        <VStack gap={2} align="stretch">
-          <Textarea
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            placeholder="e.g., Make headline more compelling, add pricing section..."
-            minH="60px"
-            maxH="80px"
-            fontSize="xs"
-            borderColor="#e2e8f0"
-            resize="vertical"
-            px={3}
-            py={2}
-            _focus={{
-              borderColor: '#864CBD',
-              boxShadow: '0 0 0 1px #864CBD',
-            }}
-          />
-          
-          <HStack justify="flex-end">
-            <Button
-              colorScheme="purple"
-              size="xs"
-              onClick={handleIterate}
-              loading={iterateMutation.isPending}
-              disabled={!feedback.trim() || feedback.length < 5}
-              color="white"
-              bg="purple.600"
-              _hover={{ bg: 'purple.700' }}
-              _disabled={{
-                bg: 'gray.300',
-                color: 'gray.500',
-                cursor: 'not-allowed'
-              }}
-              fontSize="xs"
-            >
-              {iterateMutation.isPending ? 'Refining...' : '🔄 Refine'}
-            </Button>
-          </HStack>
-          
-          {iterateMutation.isPending && (
-            <Text fontSize="xs" color="gray.600" textAlign="center">
-              AI is processing... (5-10 seconds)
-            </Text>
-          )}
-        </VStack>
+        <Tabs.Root defaultValue="content" variant="enclosed">
+          <Tabs.List borderBottom="1px solid" borderColor="gray.200">
+            <Tabs.Trigger value="content" px={4} py={2} fontSize="sm">
+              ✨ Content Refinement
+            </Tabs.Trigger>
+            <Tabs.Trigger value="design" px={4} py={2} fontSize="sm">
+              🎨 Design Controls
+            </Tabs.Trigger>
+          </Tabs.List>
+
+          <Box p={3}>
+            {/* Content Refinement Tab */}
+            <Tabs.Content value="content">
+              <VStack gap={2} align="stretch">
+                <HStack justify="space-between" align="center">
+                  <Text fontSize="sm" fontWeight={600} color="#2d3748">
+                    Refine with AI
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    {feedback.length}/1000
+                  </Text>
+                </HStack>
+
+                <Textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="e.g., Make headline more compelling, add pricing section..."
+                  minH="60px"
+                  maxH="80px"
+                  fontSize="xs"
+                  borderColor="#e2e8f0"
+                  resize="vertical"
+                  px={3}
+                  py={2}
+                  _focus={{
+                    borderColor: '#864CBD',
+                    boxShadow: '0 0 0 1px #864CBD',
+                  }}
+                />
+
+                <HStack justify="flex-end">
+                  <Button
+                    colorScheme="purple"
+                    size="xs"
+                    onClick={handleIterate}
+                    loading={iterateMutation.isPending}
+                    disabled={!feedback.trim() || feedback.length < 5}
+                    color="white"
+                    bg="purple.600"
+                    _hover={{ bg: 'purple.700' }}
+                    _disabled={{
+                      bg: 'gray.300',
+                      color: 'gray.500',
+                      cursor: 'not-allowed',
+                    }}
+                    fontSize="xs"
+                  >
+                    {iterateMutation.isPending ? 'Refining...' : '🔄 Refine'}
+                  </Button>
+                </HStack>
+
+                {iterateMutation.isPending && (
+                  <Text fontSize="xs" color="gray.600" textAlign="center">
+                    AI is processing... (5-10 seconds)
+                  </Text>
+                )}
+              </VStack>
+            </Tabs.Content>
+
+            {/* Design Controls Tab */}
+            <Tabs.Content value="design">
+              <DesignControlPanel
+                currentLayoutParams={onepager.layout_params}
+                designRationale={onepager.design_rationale}
+                onRequestSuggestion={handleRequestLayoutSuggestion}
+                isSuggestionLoading={suggestLayoutMutation.isPending}
+                suggestedLayoutParams={suggestedLayout?.suggested_layout_params}
+                suggestedRationale={suggestedLayout?.design_rationale}
+                onApplyChanges={handleApplyLayoutChanges}
+                isApplying={applyLayoutMutation.isPending}
+              />
+            </Tabs.Content>
+          </Box>
+        </Tabs.Root>
       </Box>
 
       {/* Compact Canvas Content */}

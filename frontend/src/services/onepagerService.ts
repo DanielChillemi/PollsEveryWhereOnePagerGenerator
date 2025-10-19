@@ -13,6 +13,7 @@ import type {
   OnePagerIterateData,
   OnePagerUpdateData,
   PDFFormat,
+  LayoutSuggestionResponse,
 } from '../types/onepager';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -193,6 +194,56 @@ export const onepagerService = {
     const response = await axios.post(
       `${API_BASE_URL}/api/v1/onepagers/${id}/restore/${version}`,
       null,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return {
+      ...response.data,
+      id: response.data._id || response.data.id,
+    };
+  },
+
+  /**
+   * Request AI layout suggestions for a OnePager
+   * Does NOT modify the OnePager - only returns suggestions
+   * Human-in-the-loop pattern: user must explicitly apply
+   */
+  async suggestLayout(
+    id: string,
+    designGoal?: string,
+    token?: string
+  ): Promise<LayoutSuggestionResponse> {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/v1/onepagers/${id}/suggest-layout`,
+      designGoal ? { design_goal: designGoal } : {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  /**
+   * Directly update layout parameters WITHOUT AI generation
+   * Used when applying user-edited parameters from the UI
+   */
+  async updateLayoutParams(
+    id: string,
+    layoutParams: any,
+    token: string
+  ): Promise<OnePager> {
+    const response = await axios.patch(
+      `${API_BASE_URL}/api/v1/onepagers/${id}/layout-params`,
+      layoutParams,
       {
         headers: {
           Authorization: `Bearer ${token}`,

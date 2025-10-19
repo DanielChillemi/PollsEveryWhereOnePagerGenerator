@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
+from backend.models.onepager import LayoutParams
 
 
 class OnePagerStatus(str, Enum):
@@ -247,6 +248,8 @@ class OnePagerResponse(BaseModel):
     style_overrides: Dict[str, Any] = Field(default_factory=dict, description="Style overrides")
     generation_metadata: GenerationMetadata = Field(description="AI generation metadata")
     version_history: List[VersionSnapshot] = Field(default_factory=list, description="Version history")
+    layout_params: Optional[LayoutParams] = Field(None, description="Layout parameters for design customization")
+    design_rationale: Optional[str] = Field(None, description="AI's explanation for layout design choices")
     created_at: datetime = Field(description="Creation timestamp")
     updated_at: datetime = Field(description="Last update timestamp")
     last_accessed: datetime = Field(description="Last access timestamp")

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ onepager.title }}</title>
+
+    {# Google Fonts Integration #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {% if layout_params.typography %}
+    <link href="https://fonts.googleapis.com/css2?family={{ layout_params.typography.heading_font | replace(' ', '+') }}:wght@600;700;800;900&family={{ layout_params.typography.body_font | replace(' ', '+') }}:wght@400;500;600&display=swap" rel="stylesheet">
+    {% endif %}
+
+    <style>
+        /*
+        ===================================
+        LayoutParams-Driven CSS Variables
+        ===================================
+        All design parameters are injected from backend LayoutParams model
+        */
+        :root {
+            /* Color Scheme from layout_params.color_scheme */
+            --color-primary: {{ layout_params.color_scheme.primary }};
+            --color-secondary: {{ layout_params.color_scheme.secondary }};
+            --color-accent: {{ layout_params.color_scheme.accent }};
+            --color-text-primary: {{ layout_params.color_scheme.text_primary }};
+            --color-background: {{ layout_params.color_scheme.background }};
+
+            /* Typography from layout_params.typography */
+            --font-heading: '{{ layout_params.typography.heading_font }}', sans-serif;
+            --font-body: '{{ layout_params.typography.body_font }}', sans-serif;
+
+            /* Typography scales (applied to base font sizes) */
+            --scale-h1: {{ layout_params.typography.h1_scale }};
+            --scale-h2: {{ layout_params.typography.h2_scale }};
+            --scale-body: {{ layout_params.typography.body_scale }};
+            --scale-line-height: {{ layout_params.typography.line_height_scale }};
+
+            /* Spacing from layout_params.spacing */
+            {% if layout_params.spacing.section_gap == 'tight' %}
+            --gap-section: 2rem;
+            {% elif layout_params.spacing.section_gap == 'loose' %}
+            --gap-section: 6rem;
+            {% else %}
+            --gap-section: 4rem;
+            {% endif %}
+
+            --scale-padding: {{ layout_params.spacing.padding_scale }};
+
+            /* Calculated values */
+            --font-size-h1: calc(32pt * var(--scale-h1));
+            --font-size-h2: calc(20pt * var(--scale-h2));
+            --font-size-body: calc(11pt * var(--scale-body));
+            --line-height-body: calc(1.4 * var(--scale-line-height));
+            --padding-base: calc(0.6in * var(--scale-padding));
+        }
+
+        /* Print-specific: Force single page */
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 11in;
+                width: 8.5in;
+            }
+            .page-container {
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text-primary);
+            background-color: var(--color-background);
+            line-height: var(--line-height-body);
+            font-size: var(--font-size-body);
+            height: 11in;
+            width: 8.5in;
+            overflow: hidden;
+        }
+
+        /* Page Container - Everything fits in one page */
+        .page-container {
+            height: 11in;
+            width: 8.5in;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Hero Section - Parameterized */
+        .hero-section {
+            background: linear-gradient(
+                135deg,
+                var(--color-primary) 0%,
+                color-mix(in srgb, var(--color-primary) 75%, var(--color-secondary) 25%) 50%,
+                var(--color-secondary) 100%
+            );
+            color: white;
+            padding: var(--padding-base);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-section h1 {
+            font-family: var(--font-heading);
+            font-size: var(--font-size-h1);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: calc(0.15in * var(--scale-padding));
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section .subheadline {
+            font-size: calc(var(--font-size-body) * 1.2);
+            font-weight: 500;
+            opacity: 0.95;
+            max-width: 6.5in;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section .description {
+            font-size: var(--font-size-body);
+            opacity: 0.9;
+            max-width: 6in;
+            margin: calc(0.15in * var(--scale-padding)) auto 0;
+            line-height: var(--line-height-body);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Content Area with Sections */
+        .content-area {
+            flex: 1;
+            padding: var(--padding-base);
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-section);
+            overflow-y: auto;
+        }
+
+        /* Section Styling */
+        .section {
+            margin-bottom: 0;
+        }
+
+        .section-heading {
+            font-family: var(--font-heading);
+            font-size: var(--font-size-h2);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: calc(0.15in * var(--scale-padding));
+            border-bottom: 2px solid var(--color-accent);
+            padding-bottom: calc(0.08in * var(--scale-padding));
+        }
+
+        /* Dynamic Grid Layouts based on section_layouts */
+
+        /* Features Section - columns from layout_params */
+        {% set features_layout = layout_params.section_layouts.get('features', {'columns': 2, 'alignment': 'left'}) %}
+        .section-features .section-content {
+            display: grid;
+            grid-template-columns: repeat({{ features_layout.columns }}, 1fr);
+            gap: calc(0.2in * var(--scale-padding));
+            text-align: {{ features_layout.alignment }};
+        }
+
+        /* Benefits Section - columns from layout_params */
+        {% set benefits_layout = layout_params.section_layouts.get('benefits', {'columns': 1, 'alignment': 'center'}) %}
+        .section-benefits .section-content {
+            display: grid;
+            grid-template-columns: repeat({{ benefits_layout.columns }}, 1fr);
+            gap: calc(0.2in * var(--scale-padding));
+            text-align: {{ benefits_layout.alignment }};
+        }
+
+        /* Integrations Section - columns from layout_params */
+        {% set integrations_layout = layout_params.section_layouts.get('integrations', {'columns': 3, 'alignment': 'left'}) %}
+        .section-integrations .section-content {
+            display: grid;
+            grid-template-columns: repeat({{ integrations_layout.columns }}, 1fr);
+            gap: calc(0.15in * var(--scale-padding));
+            text-align: {{ integrations_layout.alignment }};
+        }
+
+        /* Default section content (for other sections) */
+        .section-content {
+            display: flex;
+            flex-direction: column;
+            gap: calc(0.1in * var(--scale-padding));
+        }
+
+        /* List Items */
+        .section-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .section-content li {
+            position: relative;
+            padding-left: calc(0.25in * var(--scale-padding));
+            margin-bottom: calc(0.08in * var(--scale-padding));
+            line-height: var(--line-height-body);
+        }
+
+        .section-content li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--color-accent);
+            font-weight: bold;
+            font-size: calc(var(--font-size-body) * 1.2);
+        }
+
+        /* Text Blocks */
+        .text-block {
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-body);
+            color: var(--color-text-primary);
+        }
+
+        /* Buttons/CTAs */
+        .cta-button {
+            display: inline-block;
+            background: var(--color-primary);
+            color: white;
+            padding: calc(0.12in * var(--scale-padding)) calc(0.3in * var(--scale-padding));
+            border-radius: calc(8px * var(--scale-padding));
+            font-family: var(--font-heading);
+            font-size: calc(var(--font-size-body) * 1.1);
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: var(--color-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Footer - Compact */
+        .footer {
+            background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: calc(0.2in * var(--scale-padding)) var(--padding-base);
+            text-align: center;
+            font-size: calc(var(--font-size-body) * 0.9);
+        }
+
+        /* Card styling for feature/benefit items */
+        .feature-card,
+        .benefit-card {
+            background: color-mix(in srgb, var(--color-background) 95%, var(--color-primary) 5%);
+            border: 1px solid color-mix(in srgb, transparent 85%, var(--color-primary) 15%);
+            border-radius: calc(8px * var(--scale-padding));
+            padding: calc(0.15in * var(--scale-padding));
+            transition: all 0.3s ease;
+        }
+
+        .feature-card h3,
+        .benefit-card h3 {
+            font-family: var(--font-heading);
+            font-size: calc(var(--font-size-body) * 1.2);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: calc(0.08in * var(--scale-padding));
+        }
+
+        .feature-card:hover,
+        .benefit-card:hover {
+            border-color: var(--color-accent);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Responsive grid behavior */
+        @media (max-width: 7in) {
+            .section-features .section-content,
+            .section-benefits .section-content,
+            .section-integrations .section-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1>{{ hero_content.headline }}</h1>
+            {% if hero_content.subheadline %}
+            <p class="subheadline">{{ hero_content.subheadline }}</p>
+            {% endif %}
+            {% if hero_content.description %}
+            <p class="description">{{ hero_content.description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Content Area with Sections -->
+        <div class="content-area">
+            {% for element in elements %}
+                {% if element.type == 'heading' %}
+                    <div class="section section-{{ element.id }}">
+                        <h2 class="section-heading">{{ element.content }}</h2>
+                    </div>
+
+                {% elif element.type == 'text' %}
+                    <div class="section section-{{ element.id }}">
+                        <div class="text-block">{{ element.content }}</div>
+                    </div>
+
+                {% elif element.type == 'list' %}
+                    {# Determine section type from title for layout application #}
+                    {% set section_class = '' %}
+                    {% if 'feature' in (element.title or '').lower() %}
+                        {% set section_class = 'section-features' %}
+                    {% elif 'benefit' in (element.title or '').lower() %}
+                        {% set section_class = 'section-benefits' %}
+                    {% elif 'integration' in (element.title or '').lower() %}
+                        {% set section_class = 'section-integrations' %}
+                    {% endif %}
+
+                    <div class="section {{ section_class }}">
+                        {% if element.title %}
+                        <h2 class="section-heading">{{ element.title }}</h2>
+                        {% endif %}
+                        <div class="section-content">
+                            <ul>
+                            {% for item in element.content %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                {% elif element.type == 'button' %}
+                    <div class="section section-cta">
+                        {% if element.content.url %}
+                        <a href="{{ element.content.url }}" class="cta-button">{{ element.content.text }}</a>
+                        {% else %}
+                        <button class="cta-button">{{ element.content }}</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>{{ brand.company_name or 'Your Company' }} | Generated with AI-Powered One-Pager Generator</p>
+        </div>
+    </div>
+</body>
+</html>
