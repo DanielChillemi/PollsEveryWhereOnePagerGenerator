@@ -196,19 +196,29 @@ export const DesignControlPanel = memo(({
 
                 {/* Show suggested rationale */}
                 {suggestedRationale && (
-                  <VStack align="stretch" gap={2}>
+                  <VStack align="stretch" gap={3}>
                     <DesignRationaleDisplay
                       rationale={suggestedRationale}
                       isSuggestion={true}
                     />
                     <Button
-                      size="sm"
+                      size="md"
                       colorScheme="purple"
                       variant="solid"
                       onClick={handleApplySuggestion}
                       disabled={disabled}
+                      fontWeight="600"
+                      py={3}
+                      boxShadow="md"
+                      color="white"
+                      bg="purple.600"
+                      _hover={{
+                        bg: 'purple.700',
+                        boxShadow: 'lg',
+                        transform: 'translateY(-1px)',
+                      }}
                     >
-                      Apply Suggested Layout
+                      ✨ Apply Suggested Layout
                     </Button>
                   </VStack>
                 )}
