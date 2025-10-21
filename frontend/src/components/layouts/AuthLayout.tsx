@@ -26,19 +26,31 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
       py={{ base: 'lg', md: 'xl' }}
     >
       <Container maxW="md" width="100%">
-        <VStack gap="xl" align="stretch">
+        <VStack gap={6} align="stretch">
+          {/* Logo */}
+          <Box display="flex" justifyContent="center" mb={2}>
+            <img
+              src="/onepaige-white.svg"
+              alt="One Paige Logo"
+              style={{
+                height: 'clamp(50px, 6vw, 70px)',
+                width: 'auto',
+              }}
+            />
+          </Box>
+
           {/* Header */}
-          <VStack gap="sm" textAlign="center">
+          <VStack gap={2} textAlign="center">
             <Heading
               as="h1"
-              size="2xl"
+              size="xl"
               color="white"
               fontWeight="bold"
             >
               {title}
             </Heading>
             {subtitle && (
-              <Text fontSize="lg" color="whiteAlpha.900">
+              <Text fontSize="md" color="whiteAlpha.900">
                 {subtitle}
               </Text>
             )}
@@ -49,7 +61,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
             bg="white"
             borderRadius="xl"
             boxShadow="lg"
-            p={{ base: 'lg', md: 'xl' }}
+            p={{ base: 6, md: 8 }}
           >
             {children}
           </Box>

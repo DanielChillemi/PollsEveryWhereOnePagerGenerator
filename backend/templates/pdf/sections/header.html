@@ -1,0 +1,14 @@
+{# Header Section Template #}
+<header class="header {% if element.styling and element.styling.text_align == 'center' %}centered{% endif %}">
+    {% if element.content.logo_url %}
+    <img src="{{ element.content.logo_url }}" alt="Logo" class="logo">
+    {% elif brand.logo_url %}
+    <img src="{{ brand.logo_url }}" alt="{{ brand.company_name }} Logo" class="logo">
+    {% endif %}
+    
+    <h1>{{ element.content.title }}</h1>
+    
+    {% if element.content.subtitle %}
+    <p class="subtitle">{{ element.content.subtitle }}</p>
+    {% endif %}
+</header>

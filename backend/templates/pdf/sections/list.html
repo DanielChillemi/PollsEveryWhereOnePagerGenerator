@@ -1,0 +1,16 @@
+{# List Section Template #}
+<section class="section">
+    {% if element.title %}
+    <h3 style="margin-bottom: 20px; color: var(--color-primary);">{{ element.title }}</h3>
+    {% endif %}
+
+    {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+    <ul style="list-style-type: disc; padding-left: 40px; line-height: 2;">
+        {% for item in element.content %}
+        <li style="margin-bottom: 8px; font-size: 18px;">{{ item }}</li>
+        {% endfor %}
+    </ul>
+    {% elif element.content is string %}
+    <p>{{ element.content }}</p>
+    {% endif %}
+</section>

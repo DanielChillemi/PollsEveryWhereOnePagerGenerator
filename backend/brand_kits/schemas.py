@@ -14,7 +14,8 @@ from backend.models.brand_kit import (
     ColorPalette,
     Typography,
     TargetAudience,
-    BrandAsset
+    BrandAsset,
+    Product
 )
 
 # Re-export models for convenience
@@ -25,5 +26,6 @@ __all__ = [
     "ColorPalette",
     "Typography",
     "TargetAudience",
-    "BrandAsset"
+    "BrandAsset",
+    "Product"
 ]

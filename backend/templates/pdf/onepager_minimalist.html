@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ onepager.title }}</title>
+
+    {# Google Fonts Integration #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {% if brand.typography %}
+    <link href="https://fonts.googleapis.com/css2?family={{ brand.typography.heading_font | replace(' ', '+') }}:wght@600;700;800;900&family={{ brand.typography.body_font | replace(' ', '+') }}:wght@400;500;600&display=swap" rel="stylesheet">
+    {% endif %}
+
+    <style>
+        /* CSS Variables from Brand Kit and Layout Params */
+        :root {
+            --color-primary: {{ brand.color_palette.primary }};
+            --color-secondary: {{ brand.color_palette.secondary }};
+            --color-accent: {{ brand.color_palette.accent }};
+            --color-text: {{ brand.color_palette.text }};
+            --color-background: {{ brand.color_palette.background }};
+            --font-heading: '{{ brand.typography.heading_font }}', sans-serif;
+            --font-body: '{{ brand.typography.body_font }}', sans-serif;
+
+            /* Layout Parameters for Typography and Spacing */
+            --h1-scale: {{ layout_params.typography.h1_scale }};
+            --h2-scale: {{ layout_params.typography.h2_scale }};
+            --body-scale: {{ layout_params.typography.body_scale }};
+            --line-height-scale: {{ layout_params.typography.line_height }};
+            --padding-scale: {{ layout_params.spacing.padding_scale }};
+
+            /* Section Gap - Vertical spacing between content sections */
+            {% if layout_params.spacing.section_gap == 'tight' %}
+            --section-gap: 0.25in;
+            {% elif layout_params.spacing.section_gap == 'loose' %}
+            --section-gap: 0.5in;
+            {% else %}
+            --section-gap: 0.35in;
+            {% endif %}
+        }
+
+        /* Print-specific: Force single page */
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 11in;
+                width: 8.5in;
+            }
+            .page-container {
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: #ffffff;
+            line-height: calc(1.4 * var(--line-height-scale));
+            font-size: calc(11pt * var(--body-scale));
+            height: 11in;
+            width: 8.5in;
+            overflow: hidden;
+        }
+
+        /* Page Container - Everything fits in one page */
+        .page-container {
+            height: 11in;
+            width: 8.5in;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Hero Section - Compact at top with Multi-Color Gradient */
+        .hero-section {
+            background: linear-gradient(
+                135deg,
+                var(--color-primary) 0%,
+                color-mix(in srgb, var(--color-primary) 75%, var(--color-secondary) 25%) 35%,
+                color-mix(in srgb, var(--color-primary) 70%, var(--color-accent) 30%) 65%,
+                color-mix(in srgb, var(--color-primary) 85%, black) 100%
+            );
+            color: white;
+            padding: 0.8in 0.6in 0.6in 0.6in;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Circles - Multiple overlapping */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 50%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-section h1 {
+            font-family: var(--font-heading);
+            font-size: calc(32pt * var(--h1-scale));
+            font-weight: 900;
+            line-height: calc(1.1 * var(--line-height-scale));
+            margin-bottom: calc(0.15in * var(--padding-scale));
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section .subheadline {
+            font-size: calc(13pt * var(--h2-scale));
+            font-weight: 500;
+            opacity: 0.95;
+            max-width: 6.5in;
+            margin: 0 auto;
+            line-height: calc(1.3 * var(--line-height-scale));
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section .description {
+            font-size: calc(11pt * var(--body-scale));
+            opacity: 0.9;
+            max-width: 6in;
+            margin: calc(0.15in * var(--padding-scale)) auto 0;
+            line-height: calc(1.4 * var(--line-height-scale));
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Brand Logo in Hero */
+        .brand-logo {
+            position: absolute;
+            top: 0.3in;
+            right: 0.5in;
+            max-height: 50px;
+            max-width: 200px;
+            object-fit: contain;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .brand-name {
+            position: absolute;
+            top: 0.3in;
+            right: 0.5in;
+            font-family: var(--font-heading);
+            font-size: 16pt;
+            font-weight: 800;
+            color: white;
+            opacity: 0.95;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Stats Bar - Key Metrics Highlight */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.2in;
+            padding: 0.3in 0.6in;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 0.12in;
+        }
+
+        .stat-icon {
+            font-size: 20pt;
+            margin-bottom: 0.05in;
+        }
+
+        .stat-number {
+            font-family: var(--font-heading);
+            font-size: calc(28pt * var(--h1-scale));
+            font-weight: 900;
+            /* Ensure stat number has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            line-height: 1;
+            margin: calc(0.03in * var(--padding-scale)) 0;
+        }
+
+        .stat-label {
+            font-size: calc(9pt * var(--body-scale));
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Main Content Area - 2 Column Layout */
+        .content-area {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* Apply section gap with padding scale modifier */
+            gap: calc(var(--section-gap) * var(--padding-scale));
+            padding: calc(0.4in * var(--padding-scale)) 0.6in;
+            background: #f9fafb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Content Area Decorations - Organic Shapes */
+        .content-area::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            right: 8%;
+            width: 180px;
+            height: 180px;
+            background: var(--color-accent);
+            opacity: 0.04;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            transform: rotate(45deg);
+            z-index: 0;
+        }
+
+        .content-area::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            left: 5%;
+            width: 120px;
+            height: 120px;
+            background: var(--color-secondary);
+            opacity: 0.03;
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            transform: rotate(-30deg);
+            z-index: 0;
+        }
+
+        /* Column Styling */
+        .content-column {
+            display: flex;
+            flex-direction: column;
+            /* Apply section gap for vertical spacing within columns */
+            gap: calc(var(--section-gap) * var(--padding-scale));
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Section Cards with Gradient Borders */
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            padding: 0.25in 0.28in;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid;
+            border-image: linear-gradient(
+                to bottom,
+                var(--color-accent),
+                color-mix(in srgb, var(--color-accent) 60%, var(--color-secondary) 40%)
+            ) 1;
+        }
+
+        .section-card.primary-border {
+            border-image: linear-gradient(
+                to bottom,
+                var(--color-primary),
+                color-mix(in srgb, var(--color-primary) 70%, var(--color-accent) 30%)
+            ) 1;
+        }
+
+        .section-card h3 {
+            font-family: var(--font-heading);
+            font-size: calc(14pt * var(--h2-scale));
+            font-weight: 700;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.12in * var(--padding-scale));
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-card h3 .icon {
+            font-size: calc(18pt * var(--h2-scale));
+            filter: grayscale(0);
+        }
+
+        .section-card p {
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
+            color: #374151;
+            margin-bottom: calc(0.08in * var(--padding-scale));
+        }
+
+        .section-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .section-card ul li {
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
+            color: #374151;
+            margin-bottom: calc(0.06in * var(--padding-scale));
+            padding-left: 0.18in;
+            position: relative;
+        }
+
+        .section-card ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: calc(11pt * var(--body-scale));
+        }
+
+        /* Full Width Section */
+        .full-width-section {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 8px;
+            padding: 0.25in 0.3in;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border-top: 3px solid var(--color-primary);
+        }
+
+        .full-width-section h3 {
+            font-family: var(--font-heading);
+            font-size: calc(13pt * var(--h2-scale));
+            font-weight: 700;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.1in * var(--padding-scale));
+        }
+
+        /* CTA Footer with Enhanced Gradient */
+        .cta-footer {
+            background: linear-gradient(
+                135deg,
+                var(--color-accent) 0%,
+                color-mix(in srgb, var(--color-accent) 65%, var(--color-secondary) 35%) 30%,
+                color-mix(in srgb, var(--color-accent) 75%, var(--color-primary) 25%) 60%,
+                color-mix(in srgb, var(--color-accent) 85%, black) 100%
+            );
+            color: white;
+            padding: 0.35in 0.6in;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3in;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* CTA Footer Decorations - Triangles and Circles */
+        .cta-footer::before {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: 12%;
+            width: 0;
+            height: 0;
+            border-left: 35px solid transparent;
+            border-right: 35px solid transparent;
+            border-bottom: 50px solid rgba(255, 255, 255, 0.08);
+            z-index: 0;
+        }
+
+        .cta-footer::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .cta-footer h3 {
+            font-family: var(--font-heading);
+            font-size: calc(18pt * var(--h2-scale));
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            /* Ensure button text has contrast - darken accent color for readability */
+            color: color-mix(in srgb, var(--color-accent) 85%, black 15%);
+            padding: calc(0.12in * var(--padding-scale)) calc(0.35in * var(--padding-scale));
+            font-size: calc(13pt * var(--h2-scale));
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s;
+            font-family: var(--font-heading);
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Text Only Sections */
+        .text-section {
+            background: white;
+            border-radius: 8px;
+            padding: 0.22in 0.28in;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .text-section h4 {
+            font-family: var(--font-heading);
+            font-size: calc(12pt * var(--h2-scale));
+            font-weight: 700;
+            /* Ensure heading has contrast on white background - darken primary color */
+            color: color-mix(in srgb, var(--color-primary) 85%, black 15%);
+            margin-bottom: calc(0.08in * var(--padding-scale));
+        }
+
+        .text-section p {
+            font-size: calc(10pt * var(--body-scale));
+            line-height: calc(1.5 * var(--line-height-scale));
+            color: #374151;
+        }
+
+        /* Highlight Box with Enhanced Gradient */
+        .highlight-box {
+            background: linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--color-secondary) 12%, white 88%) 0%,
+                color-mix(in srgb, var(--color-accent) 8%, white 92%) 50%,
+                color-mix(in srgb, var(--color-secondary) 5%, white 95%) 100%
+            );
+            border-left: 3px solid;
+            border-image: linear-gradient(
+                to bottom,
+                var(--color-secondary),
+                var(--color-accent)
+            ) 1;
+            border-radius: 6px;
+            padding: 0.18in 0.22in;
+            margin: 0.12in 0;
+        }
+
+        .highlight-box p {
+            font-size: calc(10.5pt * var(--body-scale));
+            font-weight: 500;
+            /* Ensure highlight text has contrast on light background - darken text color */
+            color: color-mix(in srgb, var(--color-text) 85%, black 15%);
+            line-height: calc(1.5 * var(--line-height-scale));
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- DEBUG: Layout Parameters
+    H1 Scale: {{ layout_params.typography.h1_scale }}
+    H2 Scale: {{ layout_params.typography.h2_scale }}
+    Body Scale: {{ layout_params.typography.body_scale }}
+    Line Height Scale: {{ layout_params.typography.line_height }}
+    Padding Scale: {{ layout_params.spacing.padding_scale }}
+    Section Gap: {{ layout_params.spacing.section_gap }}
+    -->
+    <div class="page-container">
+        {# Hero Section - Must be first #}
+        {% set hero_rendered = false %}
+        {% for element in onepager.elements | sort(attribute='order') %}
+            {% if element.type == 'hero' and not hero_rendered %}
+                <div class="hero-section">
+                    {# Brand Logo or Company Name #}
+                    {% if brand.logo %}
+                    <img src="{{ brand.logo }}" alt="{{ brand.company_name if brand.company_name else onepager.title }}" class="brand-logo">
+                    {% elif brand.company_name %}
+                    <div class="brand-name">{{ brand.company_name }}</div>
+                    {% endif %}
+
+                    {% if element.content.headline %}
+                    <h1>{{ element.content.headline }}</h1>
+                    {% endif %}
+                    {% if element.content.subheadline %}
+                    <p class="subheadline">{{ element.content.subheadline }}</p>
+                    {% endif %}
+                    {% if element.content.description %}
+                    <p class="description">{{ element.content.description }}</p>
+                    {% endif %}
+                </div>
+                {% set hero_rendered = true %}
+            {% endif %}
+        {% endfor %}
+
+        {# Stats Bar - Key Metrics #}
+        {% if key_stats and key_stats|length > 0 %}
+        <div class="stats-bar">
+            {% for stat in key_stats %}
+            <div class="stat-card">
+                <div class="stat-icon">{{ stat.icon }}</div>
+                <div class="stat-number">{{ stat.number }}</div>
+                <div class="stat-label">{{ stat.label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Main Content - Two Column Layout #}
+        <div class="content-area">
+            {# Collect non-hero, non-button elements #}
+            {% set text_sections = [] %}
+            {% set list_sections = [] %}
+
+            {% for element in onepager.elements | sort(attribute='order') %}
+                {% if element.type == 'text' or element.type == 'text_block' %}
+                    {% do text_sections.append(element) %}
+                {% elif element.type == 'list' %}
+                    {% do list_sections.append(element) %}
+                {% endif %}
+            {% endfor %}
+
+            {# Left Column - Lists (Features/Benefits) #}
+            <div class="content-column">
+                {% for element in list_sections[:2] %}
+                    <div class="section-card {% if loop.first %}primary-border{% endif %}">
+                        {% if element.title %}
+                        <h3><span class="icon">{% if 'feature' in element.title.lower() %}⚡{% elif 'benefit' in element.title.lower() %}🎯{% else %}📋{% endif %}</span>{{ element.title }}</h3>
+                        {% endif %}
+
+                        {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+                        <ul>
+                            {% for item in element.content[:8] %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# Right Column - Text sections and remaining lists #}
+            <div class="content-column">
+                {% for element in text_sections[:2] %}
+                    <div class="text-section">
+                        {% if element.title %}
+                        <h4>{{ element.title }}</h4>
+                        {% endif %}
+                        {% if element.content is string %}
+                        <p>{{ element.content[:300] }}{% if element.content|length > 300 %}...{% endif %}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                {% if list_sections|length > 2 %}
+                    {% for element in list_sections[2:3] %}
+                        <div class="section-card">
+                            {% if element.title %}
+                            <h3>{{ element.title }}</h3>
+                            {% endif %}
+                            {% if element.content is iterable and element.content is not string and element.content is not mapping %}
+                            <ul>
+                                {% for item in element.content[:6] %}
+                                <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {# Special lunch deals highlight #}
+                {% for element in text_sections[2:] %}
+                    {% if 'lunch' in element.content.lower() or 'deal' in element.content.lower() or 'special' in element.content.lower() %}
+                    <div class="highlight-box">
+                        <p><strong>💰 {{ element.title if element.title else 'Special Offer' }}</strong><br>{{ element.content[:180] }}</p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {# CTA Footer - Must be last #}
+        {% set button_elements = onepager.elements | selectattr('type', 'equalto', 'button') | list %}
+        {% if button_elements %}
+            {% set button = button_elements[0] %}
+            <div class="cta-footer">
+                {% if button.content is mapping and button.content.text and button.content.url %}
+                    <h3>Ready to Get Started?</h3>
+                    <a href="{{ button.content.url }}" class="cta-button">{{ button.content.text }}</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,701 @@
+/**
+ * Add Content Step (Step 1)
+ * 
+ * Main questionnaire form for creating one-pagers
+ * Includes all Phase 1 improvements:
+ * - Proper input padding (px={4})
+ * - Product auto-population
+ * - Visual feedback for auto-filled fields
+ */
+
+import { Box, VStack, HStack, Text, Input, Textarea, Button, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react';
+import { useBrandKits } from '../../../hooks/useBrandKit';
+import type { OnePagerCreateData } from '../../../types/onepager';
+
+interface AddContentStepProps {
+  formData: OnePagerCreateData;
+  setFormData: (data: OnePagerCreateData) => void;
+  isLoading?: boolean;
+}
+
+export function AddContentStep({ formData, setFormData, isLoading }: AddContentStepProps) {
+  const { data: brandKits } = useBrandKits();
+
+  // Get selected brand kit for product dropdown
+  const selectedBrandKit = brandKits?.find(kit => kit.id === formData.brand_kit_id);
+
+  // Handle product selection and auto-populate fields
+  const handleProductSelect = (productId: string) => {
+    const product = selectedBrandKit?.products?.find(p => p.id === productId);
+
+    if (product) {
+      // Prioritize product data over existing form data, including title
+      setFormData({
+        ...formData,
+        product_id: productId,
+        title: product.name || formData.title, // Auto-populate title from product name
+        problem: product.default_problem && product.default_problem.trim() 
+          ? product.default_problem 
+          : formData.problem,
+        solution: product.default_solution && product.default_solution.trim() 
+          ? product.default_solution 
+          : formData.solution,
+        features: (product.features && product.features.length > 0) 
+          ? product.features 
+          : formData.features,
+        benefits: (product.benefits && product.benefits.length > 0) 
+          ? product.benefits 
+          : formData.benefits,
+      });
+    } else {
+      // Clear product selection only
+      setFormData({ ...formData, product_id: '' });
+    }
+  };
+
+  return (
+    <VStack align="stretch" gap={4}>
+      {/* Step Header - Compact */}
+      <Box mb={2}>
+        <Text fontSize="22px" fontWeight="700" color="#1568B8" mb={1}>
+          Add Content
+        </Text>
+        <Text fontSize="13px" color="gray.500" lineHeight="1.5">
+          Define your product's problem, solution, and key details for AI-powered one-pager generation
+        </Text>
+      </Box>
+
+      {/* Brand Kit Selection - FIRST */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Brand Kit (Optional)
+        </Text>
+        <NativeSelectRoot>
+          <NativeSelectField
+            value={formData.brand_kit_id}
+            onChange={(e) => {
+              setFormData({ ...formData, brand_kit_id: e.target.value, product_id: '', title: '' });
+            }}
+            px={3}
+            fontSize="14px"
+            h="40px"
+            borderRadius="8px"
+            border="1px solid"
+            borderColor="gray.300"
+            bg="white"
+            transition="all 0.2s"
+            _hover={{
+              borderColor: 'gray.400',
+            }}
+            _focus={{
+              borderColor: '#864CBD',
+              boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+              outline: 'none',
+            }}
+          >
+            <option value="">No Brand Kit (Use default styling)</option>
+            {brandKits?.map(kit => (
+              <option key={kit.id} value={kit.id}>
+                {kit.company_name}
+              </option>
+            ))}
+          </NativeSelectField>
+        </NativeSelectRoot>
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Apply your brand colors and fonts to the generated one-pager
+        </Text>
+      </Box>
+
+      {/* Product Selection - SECOND */}
+      {selectedBrandKit && selectedBrandKit.products && selectedBrandKit.products.length > 0 && (
+        <Box>
+          <HStack justify="space-between" mb={1.5}>
+            <Text fontWeight={600} fontSize="13px" color="gray.700" letterSpacing="0.3px">
+              Product (Optional)
+            </Text>
+            {formData.product_id && (
+              <Button
+                size="xs"
+                variant="ghost"
+                colorScheme="gray"
+                onClick={() => handleProductSelect('')}
+                fontSize="11px"
+                h="24px"
+              >
+                Clear Selection
+              </Button>
+            )}
+          </HStack>
+          <NativeSelectRoot>
+            <NativeSelectField
+              value={formData.product_id || ''}
+              onChange={(e) => handleProductSelect(e.target.value)}
+              px={3}
+              fontSize="14px"
+              h="40px"
+              borderRadius="8px"
+              border="1px solid"
+              borderColor="gray.300"
+              bg={formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+              transition="all 0.2s"
+              _hover={{
+                borderColor: 'gray.400',
+              }}
+              _focus={{
+                borderColor: '#864CBD',
+                boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+                outline: 'none',
+              }}
+            >
+              <option value="">Select a product to auto-populate fields</option>
+              {selectedBrandKit.products.map(product => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </NativeSelectField>
+          </NativeSelectRoot>
+          {!formData.product_id && (
+            <Text fontSize="11px" color="green.600" fontWeight={500} mt={1}>
+              💡 Select a product to auto-fill title, problem, solution, features, and benefits
+            </Text>
+          )}
+        </Box>
+      )}
+
+      {/* Title - THIRD */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          One-Pager Title <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Input
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="e.g., Product Launch 2025, Sales Enablement Guide"
+          px={3}
+          h="40px"
+          fontSize="14px"
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          bg={formData.product_id && formData.title ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {formData.product_id 
+            ? 'Auto-populated from product name (you can edit)' 
+            : 'Give your one-pager a descriptive title'}
+        </Text>
+      </Box>
+
+      {/* Problem Statement */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Problem Statement <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Textarea
+          value={formData.problem}
+          onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+          placeholder="What problem does this product solve? (e.g., Finding authentic, affordable Vietnamese food that's both quick and healthy can be challenging in our busy neighborhood)"
+          minH="80px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <HStack justify="space-between" mt={1}>
+          <Text fontSize="11px" color="gray.500">
+            Describe the core problem your product addresses
+          </Text>
+          <Text fontSize="11px" color="gray.400">
+            {formData.problem.length} characters
+          </Text>
+        </HStack>
+      </Box>
+
+      {/* Solution */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Solution <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Textarea
+          value={formData.solution}
+          onChange={(e) => setFormData({ ...formData, solution: e.target.value })}
+          placeholder="How does your product solve this problem? (e.g., Our Vietnamese pho restaurant brings authentic flavors from Ho Chi Minh City, using traditional recipes and fresh ingredients)"
+          minH="80px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <HStack justify="space-between" mt={1}>
+          <Text fontSize="11px" color="gray.500">
+            Explain how your product provides the solution
+          </Text>
+          <Text fontSize="11px" color="gray.400">
+            {formData.solution.length} characters
+          </Text>
+        </HStack>
+      </Box>
+
+      {/* Features */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Features (Optional)
+        </Text>
+        <Textarea
+          value={formData.features.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(Boolean) })
+          }
+          placeholder="List key features (e.g., Traditional pho recipes, Fresh daily ingredients, Quick service)"
+          minH="70px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          bg={formData.features.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate multiple features with commas
+        </Text>
+      </Box>
+
+      {/* Benefits */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Benefits (Optional)
+        </Text>
+        <Textarea
+          value={formData.benefits.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, benefits: e.target.value.split(',').map(b => b.trim()).filter(Boolean) })
+          }
+          placeholder="What benefits do customers gain? (e.g., Healthy meal option, Save time, Authentic taste)"
+          minH="70px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          bg={formData.benefits.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate multiple benefits with commas
+        </Text>
+      </Box>
+
+      {/* Target Audience */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Target Audience (Optional)
+        </Text>
+        <NativeSelectRoot>
+          <NativeSelectField
+            value={formData.target_audience || ''}
+            onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
+            px={3}
+            fontSize="14px"
+            h="40px"
+            borderRadius="8px"
+            border="1px solid"
+            borderColor="gray.300"
+            opacity={!selectedBrandKit ? 0.5 : 1}
+            pointerEvents={!selectedBrandKit ? 'none' : 'auto'}
+            transition="all 0.2s"
+            _hover={{
+              borderColor: 'gray.400',
+            }}
+            _focus={{
+              borderColor: '#864CBD',
+              boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+              outline: 'none',
+            }}
+          >
+            <option value="">Select a target audience</option>
+            {selectedBrandKit?.target_audiences?.map((audience, index) => (
+              <option key={index} value={audience.name}>
+                {audience.name}
+              </option>
+            ))}
+          </NativeSelectField>
+        </NativeSelectRoot>
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {selectedBrandKit 
+            ? 'Helps AI tailor content and tone for your specific audience' 
+            : 'Select a Brand Kit first to see target audiences'}
+        </Text>
+      </Box>
+
+      {/* Call-to-Action */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Call-to-Action (Optional)
+        </Text>
+        <HStack gap={3}>
+          <Box flex={1}>
+            <Input
+              value={formData.cta?.text || ''}
+              onChange={(e) => setFormData({ ...formData, cta: { ...formData.cta, text: e.target.value } })}
+              placeholder="Button text (e.g., Get Started)"
+              px={3}
+              h="40px"
+              fontSize="14px"
+              borderRadius="8px"
+              border="1px solid"
+              borderColor="gray.300"
+              transition="all 0.2s"
+              _hover={{
+                borderColor: 'gray.400',
+              }}
+              _focus={{
+                borderColor: '#864CBD',
+                boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+                outline: 'none',
+              }}
+            />
+          </Box>
+          <Box flex={1}>
+            <Input
+              value={formData.cta?.url || ''}
+              onChange={(e) => setFormData({ ...formData, cta: { ...formData.cta, url: e.target.value } })}
+              placeholder="URL (e.g., https://...)"
+              px={3}
+              h="40px"
+              fontSize="14px"
+              borderRadius="8px"
+              border="1px solid"
+              borderColor="gray.300"
+              transition="all 0.2s"
+              _hover={{
+                borderColor: 'gray.400',
+              }}
+              _focus={{
+                borderColor: '#864CBD',
+                boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+                outline: 'none',
+              }}
+            />
+          </Box>
+        </HStack>
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Add a button to drive action from your one-pager
+        </Text>
+      </Box>
+
+      {/* Integrations */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Integrations (Optional)
+        </Text>
+        <Textarea
+          value={formData.integrations.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, integrations: e.target.value.split(',').map(i => i.trim()).filter(Boolean) })
+          }
+          placeholder="Compatible platforms or integrations (e.g., Slack, Salesforce, HubSpot)"
+          minH="60px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate multiple integrations with commas
+        </Text>
+      </Box>
+
+      {/* Social Proof */}
+      <Box>
+        <Text fontWeight={600} fontSize="13px" color="gray.700" mb={1.5} letterSpacing="0.3px">
+          Social Proof (Optional)
+        </Text>
+        <Textarea
+          value={formData.social_proof}
+          onChange={(e) => setFormData({ ...formData, social_proof: e.target.value })}
+          placeholder="Customer testimonials, case studies, or success metrics (e.g., Trusted by 1000+ companies, 4.9/5 rating)"
+          minH="70px"
+          fontSize="14px"
+          px={3}
+          py={2.5}
+          borderRadius="8px"
+          border="1px solid"
+          borderColor="gray.300"
+          transition="all 0.2s"
+          _hover={{
+            borderColor: 'gray.400',
+          }}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 3px rgba(134, 76, 189, 0.1)',
+            outline: 'none',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Add credibility through testimonials or metrics
+        </Text>
+      </Box>
+    </VStack>
+  );
+}
+          minH="100px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="12px"
+          border="2px solid"
+          borderColor="gray.200"
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 1px #864CBD',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {formData.problem.length} / 2000 characters
+        </Text>
+      </Box>
+
+      {/* Solution Statement */}
+      <Box>
+        <Text fontWeight={600} fontSize="14px" color="gray.700" mb={2}>
+          Solution Statement <Text as="span" color="red.500">*</Text>
+        </Text>
+        <Textarea
+          value={formData.solution}
+          onChange={(e) => setFormData({ ...formData, solution: e.target.value })}
+          placeholder="How does this product solve the problem? (e.g., Vietspot brings authentic Vietnamese flavors to your neighborhood with traditional pho and banh mi made fresh daily)"
+          minH="100px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="12px"
+          border="2px solid"
+          borderColor="gray.200"
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 1px #864CBD',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {formData.solution.length} / 2000 characters
+        </Text>
+      </Box>
+
+      {/* Features */}
+      <Box>
+        <Text fontWeight={600} fontSize="14px" color="gray.700" mb={2}>
+          Features (Optional)
+        </Text>
+        <Textarea
+          value={formData.features.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(f => f) })
+          }
+          placeholder="Enter features separated by commas (e.g., Traditional pho options, House-made banh mi, Fresh herbs daily)"
+          minH="80px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="12px"
+          border="2px solid"
+          borderColor="gray.200"
+          bg={formData.features.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 1px #864CBD',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate multiple features with commas
+        </Text>
+      </Box>
+
+      {/* Benefits */}
+      <Box>
+        <Text fontWeight={600} fontSize="14px" color="gray.700" mb={2}>
+          Benefits (Optional)
+        </Text>
+        <Textarea
+          value={formData.benefits.join(', ')}
+          onChange={(e) =>
+            setFormData({ ...formData, benefits: e.target.value.split(',').map(b => b.trim()).filter(b => b) })
+          }
+          placeholder="Enter benefits separated by commas (e.g., Quick service under 10 min, Affordable pricing, Authentic family recipes)"
+          minH="80px"
+          fontSize="14px"
+          px={4}
+          py={3}
+          borderRadius="12px"
+          border="2px solid"
+          borderColor="gray.200"
+          bg={formData.benefits.length > 0 && formData.product_id ? 'rgba(16, 185, 129, 0.05)' : 'white'}
+          _focus={{
+            borderColor: '#864CBD',
+            boxShadow: '0 0 0 1px #864CBD',
+          }}
+        />
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          Separate multiple benefits with commas
+        </Text>
+      </Box>
+
+      {/* Target Audience */}
+      <Box>
+        <Text fontWeight={600} fontSize="14px" color="gray.700" mb={2}>
+          Target Audience (Optional)
+        </Text>
+        <NativeSelectRoot>
+          <NativeSelectField
+            value={formData.target_audience || ''}
+            onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
+            px={4}
+            fontSize="16px"
+            h="44px"
+            borderRadius="12px"
+            border="2px solid"
+            borderColor="gray.200"
+            opacity={!selectedBrandKit ? 0.5 : 1}
+            pointerEvents={!selectedBrandKit ? 'none' : 'auto'}
+            _focus={{
+              borderColor: '#864CBD',
+              boxShadow: '0 0 0 1px #864CBD',
+            }}
+          >
+            <option value="">Select a target audience</option>
+            {selectedBrandKit?.target_audiences?.map((audience, index) => (
+              <option key={index} value={audience.name}>
+                {audience.name}
+              </option>
+            ))}
+          </NativeSelectField>
+        </NativeSelectRoot>
+        <Text fontSize="11px" color="gray.500" mt={1}>
+          {selectedBrandKit 
+            ? 'Helps AI tailor content and tone for your specific audience' 
+            : 'Select a Brand Kit first to see target audiences'}
+        </Text>
+      </Box>
+
+      {/* Call-to-Action */}
+      <Box>
+        <Text fontWeight={600} fontSize="14px" color="gray.700" mb={2}>
+          Call-to-Action <Text as="span" color="red.500">*</Text>
+        </Text>
+        <VStack gap={3} align="stretch">
+          <Input
+            value={formData.cta.text}
+            onChange={(e) =>
+              setFormData({ ...formData, cta: { ...formData.cta, text: e.target.value } })
+            }
+            placeholder="Button text (e.g., Order Now, Visit Us, Get Started)"
+            size="lg"
+            px={4}
+            fontSize="16px"
+            borderRadius="12px"
+            border="2px solid"
+            borderColor="gray.200"
+            _focus={{
+              borderColor: '#864CBD',
+              boxShadow: '0 0 0 1px #864CBD',
+            }}
+          />
+          <Input
+            value={formData.cta.url}
+            onChange={(e) =>
+              setFormData({ ...formData, cta: { ...formData.cta, url: e.target.value } })
+            }
+            placeholder="URL (e.g., https://vietspot.com/order)"
+            size="lg"
+            px={4}
+            fontSize="16px"
+            borderRadius="12px"
+            border="2px solid"
+            borderColor="gray.200"
+            _focus={{
+              borderColor: '#864CBD',
+              boxShadow: '0 0 0 1px #864CBD',
+            }}
+          />
+        </VStack>
+      </Box>
+
+      {/* Info Box */}
+      {!isLoading && (
+        <Box
+          bg="rgba(134, 76, 189, 0.05)"
+          border="1px solid rgba(134, 76, 189, 0.2)"
+          borderRadius="12px"
+          p={4}
+        >
+          <Text fontSize="13px" color="gray.700" lineHeight="1.6">
+            <strong>💡 Pro Tip:</strong> Be specific with your problem and solution statements.
+            The AI will create a professional one-pager layout in 3-7 seconds based on your inputs.
+            You'll be able to refine it in the next step.
+          </Text>
+        </Box>
+      )}
+    </VStack>
+  );
+}

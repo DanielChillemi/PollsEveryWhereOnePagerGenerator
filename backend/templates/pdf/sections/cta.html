@@ -1,0 +1,24 @@
+{# CTA Section Template #}
+<section class="cta section">
+    {% if element.content.primary_text %}
+    <h2>{{ element.content.primary_text }}</h2>
+    {% endif %}
+    
+    {% if element.content.supporting_text %}
+    <p>{{ element.content.supporting_text }}</p>
+    {% endif %}
+    
+    <div class="cta-buttons">
+        {% if element.content.primary_url %}
+        <a href="{{ element.content.primary_url }}" class="cta-button">
+            {{ element.content.primary_text or 'Get Started' }}
+        </a>
+        {% endif %}
+        
+        {% if element.content.secondary_text and element.content.secondary_url %}
+        <a href="{{ element.content.secondary_url }}" class="cta-button secondary">
+            {{ element.content.secondary_text }}
+        </a>
+        {% endif %}
+    </div>
+</section>

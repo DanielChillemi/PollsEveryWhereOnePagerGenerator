@@ -1,0 +1,12 @@
+{# Text Block Section Template #}
+<section class="text-block section {% if element.styling and element.styling.background_color %}highlight{% endif %}">
+    {% if element.content.heading_level == 2 %}
+    <h2>{{ element.content.text }}</h2>
+    {% elif element.content.heading_level == 3 %}
+    <h3>{{ element.content.text }}</h3>
+    {% elif element.content.heading_level == 4 %}
+    <h4>{{ element.content.text }}</h4>
+    {% else %}
+    <p>{{ element.content.text }}</p>
+    {% endif %}
+</section>

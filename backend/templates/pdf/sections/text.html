@@ -1,0 +1,14 @@
+{# Text Section Template #}
+<section class="text-block section">
+    {% if element.title %}
+    <h3>{{ element.title }}</h3>
+    {% endif %}
+
+    {% if element.content is string %}
+    <p>{{ element.content }}</p>
+    {% elif element.content is mapping %}
+        {% if element.content.text %}
+        <p>{{ element.content.text }}</p>
+        {% endif %}
+    {% endif %}
+</section>
