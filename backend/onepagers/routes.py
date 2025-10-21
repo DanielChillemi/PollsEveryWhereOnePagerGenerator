@@ -1068,6 +1068,215 @@ async def delete_onepager(
 
 
 @router.get(
+    "/{onepager_id}/preview/html",
+    tags=["One-Pagers", "Preview"],
+    summary="Preview one-pager HTML (for PDF preview)",
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "HTML preview with Brand Kit styling (same as PDF export)"
+        },
+        404: {"model": ErrorResponse, "description": "One-pager or Brand Kit not found"},
+        403: {"model": ErrorResponse, "description": "User doesn't own this one-pager"}
+    }
+)
+async def preview_onepager_html(
+    onepager_id: str,
+    template: str = Query(
+        "minimalist",
+        enum=["minimalist", "bold", "business", "product"],
+        description="Template style to preview"
+    ),
+    current_user: UserInDB = Depends(get_current_active_user),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Generate HTML preview of one-pager with PDF styling.
+
+    Returns the exact HTML that would be used for PDF generation,
+    allowing frontend to preview the final PDF appearance in an iframe.
+
+    **Query Parameters:**
+    - template: Template style (minimalist, bold, business, product) - default: minimalist
+
+    **Returns:**
+    - HTML string with Brand Kit styling applied
+
+    **Use Case:**
+    - Display in iframe for WYSIWYG PDF preview
+    - Show actual PDF appearance in Styled mode
+    """
+    from fastapi.responses import HTMLResponse
+    import logging
+    from backend.services.pdf_html_generator import PDFHTMLGenerator
+    from backend.models.onepager import OnePagerLayout
+    from backend.models.brand_kit import BrandKitInDB
+
+    logger = logging.getLogger(__name__)
+
+    # Validate ObjectId format
+    if not ObjectId.is_valid(onepager_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid one-pager ID format"
+        )
+
+    # Fetch one-pager
+    logger.info(f"Fetching onepager {onepager_id} for HTML preview")
+    onepager_doc = await db.onepagers.find_one({"_id": ObjectId(onepager_id)})
+
+    if not onepager_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One-pager not found"
+        )
+
+    # Verify ownership
+    if str(onepager_doc["user_id"]) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to preview this one-pager"
+        )
+
+    # Fetch Brand Kit if associated
+    brand_kit_doc = None
+    if onepager_doc.get("brand_kit_id"):
+        brand_kit_doc = await db.brand_kits.find_one({
+            "_id": onepager_doc["brand_kit_id"]
+        })
+
+        if not brand_kit_doc:
+            logger.warning(f"Brand Kit {onepager_doc['brand_kit_id']} not found, using defaults")
+
+    # Use default brand kit if not found
+    if not brand_kit_doc:
+        brand_kit_doc = {
+            "_id": ObjectId(),
+            "user_id": onepager_doc["user_id"],
+            "company_name": onepager_doc.get("title", "Company"),
+            "brand_voice": "Professional and engaging",
+            "color_palette": {
+                "primary": "#0ea5e9",
+                "secondary": "#64748b",
+                "accent": "#10b981",
+                "text": "#1f2937",
+                "background": "#ffffff"
+            },
+            "typography": {
+                "heading_font": "Montserrat",
+                "body_font": "Inter",
+                "heading_size": "32px",
+                "body_size": "16px"
+            },
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
+        }
+
+    try:
+        # Convert documents to Pydantic models (same logic as PDF export)
+        onepager_layout_data = {
+            "title": onepager_doc.get("title", "Untitled"),
+            "elements": [],
+            "version": 1,
+            "dimensions": {"width": 1080, "height": 1920, "unit": "px"}
+        }
+
+        # Map content sections to elements
+        has_hero_section = False
+        if "content" in onepager_doc and "sections" in onepager_doc["content"]:
+            for idx, section in enumerate(onepager_doc["content"]["sections"]):
+                section_type = section.get("type", "text_block")
+                section_content = section.get("content", {})
+
+                # Handle hero type: convert string content to proper dict format
+                if section_type == "hero" and isinstance(section_content, str):
+                    section_content = {
+                        "headline": onepager_doc["content"].get("headline", section.get("title", "")),
+                        "subheadline": onepager_doc["content"].get("subheadline", ""),
+                        "description": section_content
+                    }
+                    has_hero_section = True
+
+                element = {
+                    "id": section.get("id", f"section-{idx}"),
+                    "type": section_type,
+                    "title": section.get("title"),
+                    "content": section_content,
+                    "styling": section.get("styling"),
+                    "order": section.get("order", idx)
+                }
+                onepager_layout_data["elements"].append(element)
+
+                if section_type == "hero":
+                    has_hero_section = True
+
+        # Add headline as hero element if exists and no hero section already present
+        if not has_hero_section and "content" in onepager_doc and "headline" in onepager_doc["content"]:
+            hero_element = {
+                "id": "hero-main",
+                "type": "hero",
+                "content": {
+                    "headline": onepager_doc["content"]["headline"],
+                    "subheadline": onepager_doc["content"].get("subheadline"),
+                    "description": onepager_doc["content"].get("description", "")
+                },
+                "order": 0
+            }
+            onepager_layout_data["elements"].insert(0, hero_element)
+
+        # Normalize order values
+        for idx, element in enumerate(onepager_layout_data["elements"]):
+            element["order"] = idx
+
+        onepager = OnePagerLayout(**onepager_layout_data)
+        brand_kit = BrandKitInDB(**brand_kit_doc)
+
+        # Extract layout_params from database (if exists)
+        layout_params = onepager_doc.get("layout_params", {})
+
+        # Use pdf_template from database, fall back to query parameter
+        selected_template = onepager_doc.get("pdf_template") or template or "minimalist"
+
+        # Generate HTML with Brand Kit styling
+        logger.info(f"Generating HTML preview with template: {selected_template}")
+        html_generator = PDFHTMLGenerator()
+        html = html_generator.generate_html(onepager, brand_kit, template_name=selected_template, layout_params=layout_params)
+
+        # Add preview-specific CSS overrides to remove height constraints
+        preview_css = """
+        <style>
+            /* Preview Mode Overrides - Remove fixed heights for scrollable preview */
+            body {
+                height: auto !important;
+                min-height: 11in !important;
+                overflow: visible !important;
+            }
+            .page-container {
+                height: auto !important;
+                min-height: 11in !important;
+                overflow: visible !important;
+            }
+        </style>
+        """
+
+        # Inject preview CSS before closing </head> tag
+        html = html.replace('</head>', preview_css + '</head>')
+
+        logger.info(f"✅ HTML preview generated successfully ({len(html)} characters)")
+
+        # Return HTML for iframe display
+        return HTMLResponse(content=html, status_code=200)
+
+    except Exception as e:
+        logger.error(f"HTML preview generation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"HTML preview generation failed: {str(e)}"
+        )
+
+
+@router.get(
     "/{onepager_id}/export/pdf",
     tags=["One-Pagers", "Export"],
     summary="Export one-pager as PDF",

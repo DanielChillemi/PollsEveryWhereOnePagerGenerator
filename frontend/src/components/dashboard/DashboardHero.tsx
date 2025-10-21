@@ -20,7 +20,7 @@ const PlusIcon = () => (
 
 export const DashboardHero = () => {
   const navigate = useNavigate()
-  
+
   return (
     <Box
       bg="linear-gradient(135deg, #864CBD 0%, #1568B8 100%)"
@@ -29,9 +29,9 @@ export const DashboardHero = () => {
       color="white"
       position="relative"
       overflow="hidden"
-      minH="280px"
+      minH="240px"
     >
-      {/* Background decoration - Extended to right side */}
+      {/* Animated background decorations */}
       <Box
         position="absolute"
         top="-100px"
@@ -41,6 +41,13 @@ export const DashboardHero = () => {
         borderRadius="full"
         bg="whiteAlpha.100"
         opacity="0.4"
+        animation="float 8s ease-in-out infinite"
+        css={{
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+            '50%': { transform: 'translate(-20px, 20px) scale(1.1)' }
+          }
+        }}
       />
       <Box
         position="absolute"
@@ -51,6 +58,14 @@ export const DashboardHero = () => {
         borderRadius="full"
         bg="whiteAlpha.100"
         opacity="0.3"
+        animation="float 6s ease-in-out infinite"
+        animationDelay="1s"
+        css={{
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+            '50%': { transform: 'translate(20px, -20px) scale(1.05)' }
+          }
+        }}
       />
       <Box
         position="absolute"
@@ -61,6 +76,13 @@ export const DashboardHero = () => {
         borderRadius="full"
         bg="whiteAlpha.100"
         opacity="0.25"
+        animation="pulse 4s ease-in-out infinite"
+        css={{
+          '@keyframes pulse': {
+            '0%, 100%': { opacity: 0.25, transform: 'scale(1)' },
+            '50%': { opacity: 0.35, transform: 'scale(1.08)' }
+          }
+        }}
       />
       <Box
         position="absolute"
@@ -71,10 +93,18 @@ export const DashboardHero = () => {
         borderRadius="full"
         bg="whiteAlpha.100"
         opacity="0.3"
+        animation="float 7s ease-in-out infinite"
+        animationDelay="2s"
+        css={{
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translate(0, 0)' },
+            '50%': { transform: 'translate(15px, -15px)' }
+          }
+        }}
       />
 
-      <VStack gap="6" align="start" position="relative" zIndex="1">
-        <VStack gap="4" align="start">
+      <VStack gap="5" align="start" position="relative" zIndex="1">
+        <VStack gap="3" align="start">
           <Text
             fontSize="sm"
             fontWeight="600"
@@ -83,14 +113,14 @@ export const DashboardHero = () => {
             opacity="0.9"
             color="white"
           >
-            AI-Powered Marketing
+            ✨ AI-Powered Marketing
           </Text>
           <Heading size="2xl" lineHeight="1.2" color="white">
-            Let's get started
+            Create Amazing One-Pagers
           </Heading>
-          <Text fontSize="lg" opacity="0.9" maxW="md" color="white">
-            Create your next one pager with AI assistance. Professional layouts, 
-            brand consistency, and instant PDF export.
+          <Text fontSize="md" opacity="0.95" maxW="lg" color="white" lineHeight="1.7">
+            Professional layouts with AI assistance. Maintain brand consistency
+            and export to PDF instantly.
           </Text>
         </VStack>
 
@@ -100,7 +130,10 @@ export const DashboardHero = () => {
           color="blue.600"
           _hover={{
             transform: 'translateY(-2px)',
-            boxShadow: 'xl'
+            boxShadow: '0 12px 24px -8px rgba(0, 0, 0, 0.3)'
+          }}
+          _active={{
+            transform: 'translateY(0px)'
           }}
           transition="all 0.2s"
           onClick={() => navigate('/onepager/create')}
@@ -110,7 +143,7 @@ export const DashboardHero = () => {
           <Box as="span" mr="2">
             <PlusIcon />
           </Box>
-          Create new
+          Create New Project
         </Button>
       </VStack>
     </Box>

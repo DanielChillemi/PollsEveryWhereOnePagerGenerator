@@ -72,13 +72,15 @@ const ProjectCard = ({ id, title, updatedAt, status, thumbnail, onClick, onDelet
       bg="white"
       borderRadius="xl"
       border="1px"
-      borderColor="gray.200"
+      borderColor="gray.300"
       overflow="hidden"
       cursor="pointer"
+      boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
       transition="all 0.2s"
       _hover={{
-        transform: 'translateY(-2px)',
-        boxShadow: 'xl'
+        transform: 'translateY(-4px)',
+        boxShadow: '0 12px 28px rgba(0, 0, 0, 0.15)',
+        borderColor: 'gray.400'
       }}
       onClick={onClick}
     >

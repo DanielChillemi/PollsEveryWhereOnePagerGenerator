@@ -109,8 +109,19 @@ export const SectionLayoutEditor = memo(({
                       disabled={disabled}
                       size="sm"
                     >
-                      <Select.Trigger>
+                      <Select.Trigger
+                        bg="white"
+                        borderWidth="1px"
+                        borderColor="gray.300"
+                        borderRadius="md"
+                        px={3}
+                        py={2}
+                        fontSize="13px"
+                        cursor="pointer"
+                        _hover={{ borderColor: 'gray.400' }}
+                      >
                         <Select.ValueText />
+                        <Select.Indicator>▼</Select.Indicator>
                       </Select.Trigger>
                       <Select.Content>
                         <Select.Item item="1">
@@ -142,8 +153,19 @@ export const SectionLayoutEditor = memo(({
                       disabled={disabled}
                       size="sm"
                     >
-                      <Select.Trigger>
+                      <Select.Trigger
+                        bg="white"
+                        borderWidth="1px"
+                        borderColor="gray.300"
+                        borderRadius="md"
+                        px={3}
+                        py={2}
+                        fontSize="13px"
+                        cursor="pointer"
+                        _hover={{ borderColor: 'gray.400' }}
+                      >
                         <Select.ValueText />
+                        <Select.Indicator>▼</Select.Indicator>
                       </Select.Trigger>
                       <Select.Content>
                         <Select.Item item="left">
@@ -175,8 +197,19 @@ export const SectionLayoutEditor = memo(({
                       disabled={disabled}
                       size="sm"
                     >
-                      <Select.Trigger>
+                      <Select.Trigger
+                        bg="white"
+                        borderWidth="1px"
+                        borderColor="gray.300"
+                        borderRadius="md"
+                        px={3}
+                        py={2}
+                        fontSize="13px"
+                        cursor="pointer"
+                        _hover={{ borderColor: 'gray.400' }}
+                      >
                         <Select.ValueText />
+                        <Select.Indicator>▼</Select.Indicator>
                       </Select.Trigger>
                       <Select.Content>
                         <Select.Item item="top">

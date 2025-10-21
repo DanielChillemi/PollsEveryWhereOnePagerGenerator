@@ -16,6 +16,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
+  Container,
   Heading,
   Text,
   HStack,
@@ -28,6 +29,7 @@ import {
   Tabs,
   NativeSelectRoot,
   NativeSelectField,
+  Center,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -35,6 +37,7 @@ import { useOnePager, useIterateOnePager, useUpdateOnePager, useUpdateOnePagerCo
 import { useBrandKits } from '../../hooks/useBrandKit';
 import { DraggableSectionList } from './DraggableSectionList';
 import { SaveStatusIndicator } from '../common/SaveStatusIndicator';
+import { OnePagerNavigation } from './OnePagerNavigation';
 import { DesignControlPanel } from './DesignControlPanel';
 import { LayoutParametersInfoPanel } from './LayoutParametersInfoPanel';
 import { WireframeMinimalist } from './wireframe/WireframeMinimalist';
@@ -45,32 +48,49 @@ import { toaster } from '../ui/toaster';
 import type { SaveStatus } from '../../hooks/useAutoSave';
 import type { LayoutParams, LayoutSuggestionResponse, PDFTemplate } from '../../types/onepager';
 import { applyLayoutParamsAsStyles } from '../../utils/layoutParamsToCSS';
+import { useAuthStore } from '../../stores/authStore';
+import axios from 'axios';
 import '../../styles/wireframe-mode.css';
 
-type ViewMode = 'wireframe' | 'styled';
+type ViewMode = 'edit' | 'wireframe' | 'styled';
 
 interface OnePagerEditorProps {
   /** ID of the one-pager to edit */
   onePagerId: string;
-  
+
   /** Context mode: 'wizard' for wizard step, 'standalone' for detail page */
   mode?: 'wizard' | 'standalone';
-  
+
   /** Optional callback when editing completes (wizard only) */
   onComplete?: () => void;
+
+  /** Optional callback for back button (standalone only) */
+  onBack?: () => void;
+
+  /** Optional callback for export button (standalone only) */
+  onExport?: () => void;
+
+  /** Hide design controls tab (used when design controls are in sidebar) */
+  hideDesignControls?: boolean;
 }
 
-export function OnePagerEditor({ 
-  onePagerId, 
+export function OnePagerEditor({
+  onePagerId,
   mode = 'standalone',
-  onComplete: _onComplete 
+  onComplete: _onComplete,
+  onBack,
+  onExport,
+  hideDesignControls = false
 }: OnePagerEditorProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = useState<ViewMode>('styled');
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [lastSavedAt, setLastSavedAt] = useState<Date>(new Date());
   const [feedback, setFeedback] = useState('');
   const [suggestedLayout, setSuggestedLayout] = useState<LayoutSuggestionResponse | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   const { data: onepager, isLoading, error, refetch } = useOnePager(onePagerId);
   const { data: brandKits } = useBrandKits();
@@ -93,6 +113,44 @@ export function OnePagerEditor({
       setLastSavedAt(new Date());
     }
   }, [contentUpdateMutation.isSuccess]);
+
+  // Load HTML preview when in Styled mode
+  useEffect(() => {
+    const loadHtmlPreview = async () => {
+      if (viewMode !== 'styled' || !onepager || !accessToken) {
+        return;
+      }
+
+      setIsLoadingPreview(true);
+      try {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const template = onepager.pdf_template || 'minimalist';
+
+        const response = await axios.get(
+          `${baseURL}/api/v1/onepagers/${onePagerId}/preview/html?template=${template}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        setPreviewHtml(response.data);
+      } catch (error) {
+        console.error('Failed to load HTML preview:', error);
+        toaster.create({
+          title: 'Preview Failed',
+          description: 'Could not load PDF preview. Please try again.',
+          type: 'error',
+          duration: 3000,
+        });
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    };
+
+    loadHtmlPreview();
+  }, [viewMode, onePagerId, onepager?.pdf_template, onepager?.updated_at, accessToken]);
 
   // Log when onepager data changes (for debugging)
   useEffect(() => {
@@ -355,47 +413,65 @@ export function OnePagerEditor({
 
   return (
     <Box w="100%" minH={mode === 'wizard' ? 'calc(100vh - 200px)' : 'auto'}>
-      {/* Compact Top Bar */}
-      <HStack 
-        justify="space-between" 
-        mb={2} 
-        py={2} 
-        px={3} 
-        bg="white" 
-        borderRadius="6px" 
-        border="1px solid #e2e8f0"
-        flexWrap="wrap"
-        gap={2}
-      >
-        {/* Left: Status Info */}
-        <HStack gap={3} fontSize="xs">
-          {onepager.brand_kit_id ? (
-            <Text color="gray.700">
-              🎨 <Text as="span" fontWeight={600}>Brand Kit</Text>
+      {/* Navigation Bar - Only in standalone mode */}
+      {mode === 'standalone' && onBack && onExport && (
+        <OnePagerNavigation
+          title={onepager.title}
+          sectionsCount={onepager.content.sections.length}
+          saveStatus={saveStatus}
+          lastSavedAt={lastSavedAt}
+          viewMode={viewMode}
+          template={onepager.pdf_template || 'minimalist'}
+          onViewModeChange={setViewMode}
+          onTemplateChange={handleTemplateChange}
+          onBack={onBack}
+          onExport={onExport}
+          brandKitLinked={!!onepager.brand_kit_id}
+          onLinkBrandKit={handleLinkBrandKit}
+        />
+      )}
+
+      {/* Compact Top Bar - Only in wizard mode */}
+      {mode === 'wizard' && (
+        <HStack
+          justify="space-between"
+          mb={2}
+          py={2}
+          px={3}
+          bg="white"
+          borderRadius="6px"
+          border="1px solid #e2e8f0"
+          flexWrap="wrap"
+          gap={2}
+        >
+          {/* Left: Status Info */}
+          <HStack gap={3} fontSize="xs">
+            {onepager.brand_kit_id ? (
+              <Text color="gray.700">
+                🎨 <Text as="span" fontWeight={600}>Brand Kit</Text>
+              </Text>
+            ) : (
+              <Button
+                size="xs"
+                variant="outline"
+                colorScheme="purple"
+                onClick={handleLinkBrandKit}
+                fontSize="xs"
+              >
+                🎨 Link Brand Kit
+              </Button>
+            )}
+
+            <Text color="gray.600">
+              <Text as="span" fontWeight={600}>{onepager.content.sections.length}</Text> sections
             </Text>
-          ) : (
-            <Button
-              size="xs"
-              variant="outline"
-              colorScheme="purple"
-              onClick={handleLinkBrandKit}
-              fontSize="xs"
-            >
-              🎨 Link Brand Kit
-            </Button>
-          )}
-          
-          <Text color="gray.600">
-            <Text as="span" fontWeight={600}>{onepager.content.sections.length}</Text> sections
-          </Text>
-        </HStack>
+          </HStack>
 
-        {/* Right: Controls */}
-        <HStack gap={2}>
-          <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+          {/* Right: Controls */}
+          <HStack gap={2}>
+            <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
 
-          {/* Template Selector - Only show in wireframe mode */}
-          {viewMode === 'wireframe' && (
+            {/* Template Selector - Show in both modes */}
             <NativeSelectRoot size="xs" width="140px">
               <NativeSelectField
                 value={onepager.pdf_template || 'minimalist'}
@@ -408,126 +484,204 @@ export function OnePagerEditor({
                 <option value="product">Product</option>
               </NativeSelectField>
             </NativeSelectRoot>
-          )}
 
-          <ButtonGroup size="xs" attached variant="outline">
-            <Button
-              onClick={() => setViewMode('wireframe')}
-              bg={viewMode === 'wireframe' ? 'gray.100' : 'white'}
-              borderColor={viewMode === 'wireframe' ? 'gray.400' : 'gray.200'}
-              fontWeight={viewMode === 'wireframe' ? 600 : 400}
-              fontSize="xs"
-              px={2}
-            >
-              Wireframe
-            </Button>
-            <Button
-              onClick={() => setViewMode('styled')}
-              bg={viewMode === 'styled' ? 'purple.50' : 'white'}
-              borderColor={viewMode === 'styled' ? 'purple.400' : 'gray.200'}
-              color={viewMode === 'styled' ? 'purple.700' : 'gray.700'}
-              fontWeight={viewMode === 'styled' ? 600 : 400}
-              fontSize="xs"
-              px={2}
-            >
-              Styled
-            </Button>
-          </ButtonGroup>
+            <ButtonGroup size="xs" attached variant="outline">
+              <Button
+                onClick={() => setViewMode('edit')}
+                bg={viewMode === 'edit' ? 'blue.50' : 'white'}
+                borderColor={viewMode === 'edit' ? 'blue.400' : 'gray.200'}
+                color={viewMode === 'edit' ? 'blue.700' : 'gray.700'}
+                fontWeight={viewMode === 'edit' ? 600 : 400}
+                fontSize="xs"
+                px={2}
+              >
+                Edit
+              </Button>
+              <Button
+                onClick={() => setViewMode('wireframe')}
+                bg={viewMode === 'wireframe' ? 'gray.100' : 'white'}
+                borderColor={viewMode === 'wireframe' ? 'gray.400' : 'gray.200'}
+                fontWeight={viewMode === 'wireframe' ? 600 : 400}
+                fontSize="xs"
+                px={2}
+              >
+                Wireframe
+              </Button>
+              <Button
+                onClick={() => setViewMode('styled')}
+                bg={viewMode === 'styled' ? 'purple.50' : 'white'}
+                borderColor={viewMode === 'styled' ? 'purple.400' : 'gray.200'}
+                color={viewMode === 'styled' ? 'purple.700' : 'gray.700'}
+                fontWeight={viewMode === 'styled' ? 600 : 400}
+                fontSize="xs"
+                px={2}
+              >
+                Styled
+              </Button>
+            </ButtonGroup>
+          </HStack>
         </HStack>
-      </HStack>
+      )}
 
-      {/* Tabbed Refinement & Design Panel */}
-      <Box
-        bg="white"
-        borderRadius="8px"
-        boxShadow="sm"
-        border="1px solid #e2e8f0"
-        mb={3}
+      {/* Content Container - wider in standalone mode */}
+      <Container
+        maxW={mode === 'standalone' ? '1400px' : '100%'}
+        px={mode === 'standalone' ? { base: 4, md: 8 } : 0}
+        py={mode === 'standalone' ? 6 : 0}
       >
-        <Tabs.Root defaultValue="content" variant="enclosed">
-          <Tabs.List borderBottom="1px solid" borderColor="gray.200">
-            <Tabs.Trigger value="content" px={4} py={2} fontSize="sm">
-              ✨ Content Refinement
-            </Tabs.Trigger>
-            <Tabs.Trigger value="design" px={4} py={2} fontSize="sm">
-              🎨 Design Controls
-            </Tabs.Trigger>
-          </Tabs.List>
-
+        {/* Refinement & Design Panel */}
+        <Box
+          bg="white"
+          borderRadius="8px"
+          boxShadow="sm"
+          border="1px solid #e2e8f0"
+          mb={3}
+        >
+        {hideDesignControls ? (
+          // Show only Content Refinement without tabs
           <Box p={3}>
-            {/* Content Refinement Tab */}
-            <Tabs.Content value="content">
-              <VStack gap={2} align="stretch">
-                <HStack justify="space-between" align="center">
-                  <Text fontSize="sm" fontWeight={600} color="#2d3748">
-                    Refine with AI
-                  </Text>
-                  <Text fontSize="xs" color="gray.500">
-                    {feedback.length}/1000
-                  </Text>
-                </HStack>
+            <VStack gap={2} align="stretch">
+              <HStack justify="space-between" align="center">
+                <Text fontSize="sm" fontWeight={600} color="#2d3748">
+                  ✨ Refine with AI
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  {feedback.length}/1000
+                </Text>
+              </HStack>
 
-                <Textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="e.g., Make headline more compelling, add pricing section..."
-                  minH="60px"
-                  maxH="80px"
-                  fontSize="xs"
-                  borderColor="#e2e8f0"
-                  resize="vertical"
-                  px={3}
-                  py={2}
-                  _focus={{
-                    borderColor: '#864CBD',
-                    boxShadow: '0 0 0 1px #864CBD',
-                  }}
-                />
-
-                <HStack justify="flex-end">
-                  <Button
-                    colorScheme="purple"
-                    size="xs"
-                    onClick={handleIterate}
-                    loading={iterateMutation.isPending}
-                    disabled={!feedback.trim() || feedback.length < 5}
-                    color="white"
-                    bg="purple.600"
-                    _hover={{ bg: 'purple.700' }}
-                    _disabled={{
-                      bg: 'gray.300',
-                      color: 'gray.500',
-                      cursor: 'not-allowed',
-                    }}
-                    fontSize="xs"
-                  >
-                    {iterateMutation.isPending ? 'Refining...' : '🔄 Refine'}
-                  </Button>
-                </HStack>
-
-                {iterateMutation.isPending && (
-                  <Text fontSize="xs" color="gray.600" textAlign="center">
-                    AI is processing... (5-10 seconds)
-                  </Text>
-                )}
-              </VStack>
-            </Tabs.Content>
-
-            {/* Design Controls Tab */}
-            <Tabs.Content value="design">
-              <DesignControlPanel
-                currentLayoutParams={onepager.layout_params}
-                designRationale={onepager.design_rationale}
-                onRequestSuggestion={handleRequestLayoutSuggestion}
-                isSuggestionLoading={suggestLayoutMutation.isPending}
-                suggestedLayoutParams={suggestedLayout?.suggested_layout_params}
-                suggestedRationale={suggestedLayout?.design_rationale}
-                onApplyChanges={handleApplyLayoutChanges}
-                isApplying={applyLayoutMutation.isPending}
+              <Textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="e.g., Make headline more compelling, add pricing section..."
+                minH="60px"
+                maxH="80px"
+                fontSize="xs"
+                borderColor="#e2e8f0"
+                resize="vertical"
+                px={3}
+                py={2}
+                _focus={{
+                  borderColor: '#864CBD',
+                  boxShadow: '0 0 0 1px #864CBD',
+                }}
               />
-            </Tabs.Content>
+
+              <HStack justify="flex-end">
+                <Button
+                  colorScheme="purple"
+                  size="xs"
+                  onClick={handleIterate}
+                  loading={iterateMutation.isPending}
+                  disabled={!feedback.trim() || feedback.length < 5}
+                  color="white"
+                  bg="purple.600"
+                  _hover={{ bg: 'purple.700' }}
+                  _disabled={{
+                    bg: 'gray.300',
+                    color: 'gray.500',
+                    cursor: 'not-allowed',
+                  }}
+                  fontSize="xs"
+                >
+                  {iterateMutation.isPending ? 'Refining...' : '🔄 Refine'}
+                </Button>
+              </HStack>
+
+              {iterateMutation.isPending && (
+                <Text fontSize="xs" color="gray.600" textAlign="center">
+                  AI is processing... (5-10 seconds)
+                </Text>
+              )}
+            </VStack>
           </Box>
-        </Tabs.Root>
+        ) : (
+          // Show tabs with both Content Refinement and Design Controls
+          <Tabs.Root defaultValue="content" variant="enclosed">
+            <Tabs.List borderBottom="1px solid" borderColor="gray.200">
+              <Tabs.Trigger value="content" px={4} py={2} fontSize="sm">
+                ✨ Content Refinement
+              </Tabs.Trigger>
+              <Tabs.Trigger value="design" px={4} py={2} fontSize="sm">
+                🎨 Design Controls
+              </Tabs.Trigger>
+            </Tabs.List>
+
+            <Box p={3}>
+              {/* Content Refinement Tab */}
+              <Tabs.Content value="content">
+                <VStack gap={2} align="stretch">
+                  <HStack justify="space-between" align="center">
+                    <Text fontSize="sm" fontWeight={600} color="#2d3748">
+                      Refine with AI
+                    </Text>
+                    <Text fontSize="xs" color="gray.500">
+                      {feedback.length}/1000
+                    </Text>
+                  </HStack>
+
+                  <Textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="e.g., Make headline more compelling, add pricing section..."
+                    minH="60px"
+                    maxH="80px"
+                    fontSize="xs"
+                    borderColor="#e2e8f0"
+                    resize="vertical"
+                    px={3}
+                    py={2}
+                    _focus={{
+                      borderColor: '#864CBD',
+                      boxShadow: '0 0 0 1px #864CBD',
+                    }}
+                  />
+
+                  <HStack justify="flex-end">
+                    <Button
+                      colorScheme="purple"
+                      size="xs"
+                      onClick={handleIterate}
+                      loading={iterateMutation.isPending}
+                      disabled={!feedback.trim() || feedback.length < 5}
+                      color="white"
+                      bg="purple.600"
+                      _hover={{ bg: 'purple.700' }}
+                      _disabled={{
+                        bg: 'gray.300',
+                        color: 'gray.500',
+                        cursor: 'not-allowed',
+                      }}
+                      fontSize="xs"
+                    >
+                      {iterateMutation.isPending ? 'Refining...' : '🔄 Refine'}
+                    </Button>
+                  </HStack>
+
+                  {iterateMutation.isPending && (
+                    <Text fontSize="xs" color="gray.600" textAlign="center">
+                      AI is processing... (5-10 seconds)
+                    </Text>
+                  )}
+                </VStack>
+              </Tabs.Content>
+
+              {/* Design Controls Tab */}
+              <Tabs.Content value="design">
+                <DesignControlPanel
+                  currentLayoutParams={onepager.layout_params}
+                  designRationale={onepager.design_rationale}
+                  onRequestSuggestion={handleRequestLayoutSuggestion}
+                  isSuggestionLoading={suggestLayoutMutation.isPending}
+                  suggestedLayoutParams={suggestedLayout?.suggested_layout_params}
+                  suggestedRationale={suggestedLayout?.design_rationale}
+                  onApplyChanges={handleApplyLayoutChanges}
+                  isApplying={applyLayoutMutation.isPending}
+                />
+              </Tabs.Content>
+            </Box>
+          </Tabs.Root>
+        )}
       </Box>
 
       {/* Compact Canvas Content */}
@@ -535,14 +689,23 @@ export function OnePagerEditor({
         {/* Compact View Mode Badge */}
         <Box textAlign="center">
           <Badge
-            className={viewMode === 'wireframe' ? 'wireframe-badge' : 'styled-badge'}
+            className={
+              viewMode === 'edit' ? 'edit-badge' :
+              viewMode === 'wireframe' ? 'wireframe-badge' :
+              'styled-badge'
+            }
             px={3}
             py={1}
             borderRadius="full"
             fontSize="xs"
             fontWeight={600}
+            colorPalette={
+              viewMode === 'edit' ? 'blue' :
+              viewMode === 'wireframe' ? 'gray' :
+              'purple'
+            }
           >
-            {viewMode === 'wireframe' ? 'WIREFRAME' : 'STYLED'}
+            {viewMode === 'edit' ? 'EDIT' : viewMode === 'wireframe' ? 'WIREFRAME' : 'STYLED'}
           </Badge>
         </Box>
 
@@ -557,17 +720,8 @@ export function OnePagerEditor({
         )}
 
         {/* Canvas Content with Mode Class */}
-        {viewMode === 'wireframe' ? (
-          <Box style={applyLayoutParamsAsStyles(onepager.layout_params)}>
-            {/* Render template-specific wireframe component */}
-            {onepager.pdf_template === 'minimalist' && <WireframeMinimalist onepager={onepager} />}
-            {onepager.pdf_template === 'bold' && <WireframeBold onepager={onepager} />}
-            {onepager.pdf_template === 'business' && <WireframeBusiness onepager={onepager} />}
-            {onepager.pdf_template === 'product' && <WireframeProduct onepager={onepager} />}
-            {!onepager.pdf_template && <WireframeMinimalist onepager={onepager} />}
-          </Box>
-        ) : (
-          <Box className="styled-mode" style={applyLayoutParamsAsStyles(onepager.layout_params)}>
+        {viewMode === 'edit' ? (
+          <Box>
             {/* Compact Headline Section */}
             <Box
               className="section-container"
@@ -620,8 +774,62 @@ export function OnePagerEditor({
               />
             </Box>
           </Box>
+        ) : viewMode === 'wireframe' ? (
+          <Box style={applyLayoutParamsAsStyles(onepager.layout_params)}>
+            {/* Render template-specific wireframe component */}
+            {onepager.pdf_template === 'minimalist' && <WireframeMinimalist onepager={onepager} />}
+            {onepager.pdf_template === 'bold' && <WireframeBold onepager={onepager} />}
+            {onepager.pdf_template === 'business' && <WireframeBusiness onepager={onepager} />}
+            {onepager.pdf_template === 'product' && <WireframeProduct onepager={onepager} />}
+            {!onepager.pdf_template && <WireframeMinimalist onepager={onepager} />}
+          </Box>
+        ) : (
+          <Box className="styled-mode" position="relative">
+            {isLoadingPreview ? (
+              <Center py={20}>
+                <VStack gap={3}>
+                  <Spinner size="lg" color="purple.500" />
+                  <Text fontSize="sm" color="gray.600">
+                    Loading PDF preview...
+                  </Text>
+                </VStack>
+              </Center>
+            ) : previewHtml ? (
+              <Box
+                borderRadius="8px"
+                boxShadow="lg"
+                border="1px solid #e2e8f0"
+                overflow="auto"
+                bg="white"
+                maxH="calc(100vh - 300px)"
+              >
+                <iframe
+                  srcDoc={previewHtml}
+                  style={{
+                    width: '100%',
+                    height: '2000px',
+                    border: 'none',
+                    display: 'block',
+                  }}
+                  title="PDF Preview"
+                />
+              </Box>
+            ) : (
+              <Center py={20}>
+                <VStack gap={3}>
+                  <Text fontSize="md" fontWeight={600} color="gray.700">
+                    Unable to load preview
+                  </Text>
+                  <Text fontSize="sm" color="gray.500">
+                    Please try switching to Wireframe mode
+                  </Text>
+                </VStack>
+              </Center>
+            )}
+          </Box>
         )}
       </VStack>
+      </Container>
     </Box>
   );
 }

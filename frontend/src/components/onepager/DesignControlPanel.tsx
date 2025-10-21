@@ -97,8 +97,9 @@ export const DesignControlPanel = memo(({
 
   // Check if there are unsaved changes
   const hasUnsavedChanges = useMemo(() => {
-    if (!currentLayoutParams) return false;
-    return JSON.stringify(workingParams) !== JSON.stringify(currentLayoutParams);
+    // If no current params, compare with default params
+    const compareParams = currentLayoutParams || getDefaultLayoutParams();
+    return JSON.stringify(workingParams) !== JSON.stringify(compareParams);
   }, [workingParams, currentLayoutParams]);
 
   // Handle apply button click
@@ -113,25 +114,23 @@ export const DesignControlPanel = memo(({
       w="full"
       h="full"
       bg="white"
-      borderRadius="lg"
-      borderWidth="1px"
-      borderColor="gray.200"
       display="flex"
       flexDirection="column"
+      overflow="hidden"
     >
-      {/* Header */}
+      {/* Header with Gradient */}
       <Box
         p={4}
-        borderBottom="1px solid"
-        borderColor="gray.200"
+        bg="linear-gradient(135deg, #864CBD 0%, #007ACC 100%)"
+        boxShadow="0 2px 4px rgba(0,0,0,0.1)"
       >
         <HStack justify="space-between" align="center">
           <HStack>
-            <Text fontSize="16px" fontWeight="600" color="#2d3748">
-              Design Controls
+            <Text fontSize="17px" fontWeight="700" color="white" letterSpacing="0.3px">
+              🎨 Design Controls
             </Text>
             {hasUnsavedChanges && (
-              <Badge colorScheme="orange" variant="subtle" size="sm">
+              <Badge colorScheme="orange" bg="orange.400" color="white" size="sm" px={2}>
                 Unsaved
               </Badge>
             )}
@@ -142,23 +141,30 @@ export const DesignControlPanel = memo(({
             <Button
               size="sm"
               variant="outline"
-              colorScheme="gray"
               onClick={handleReset}
               disabled={disabled || !hasUnsavedChanges || isApplying}
-              opacity={!hasUnsavedChanges ? 0.5 : 1}
+              opacity={!hasUnsavedChanges ? 0.6 : 1}
+              bg="whiteAlpha.200"
+              color="white"
+              borderColor="whiteAlpha.400"
+              _hover={hasUnsavedChanges ? { bg: 'whiteAlpha.300' } : {}}
+              fontSize="13px"
+              fontWeight="600"
             >
               Reset
             </Button>
             <Button
               size="sm"
-              colorScheme="purple"
               onClick={handleApply}
               disabled={disabled || !hasUnsavedChanges || isApplying}
               loading={isApplying}
-              bg={hasUnsavedChanges ? 'purple.600' : 'gray.300'}
-              color={hasUnsavedChanges ? 'white' : 'gray.500'}
-              _hover={hasUnsavedChanges ? { bg: 'purple.700' } : {}}
+              bg={hasUnsavedChanges ? 'white' : 'whiteAlpha.300'}
+              color={hasUnsavedChanges ? 'purple.700' : 'whiteAlpha.700'}
+              _hover={hasUnsavedChanges ? { bg: 'whiteAlpha.900' } : {}}
               cursor={hasUnsavedChanges ? 'pointer' : 'not-allowed'}
+              fontSize="13px"
+              fontWeight="700"
+              boxShadow={hasUnsavedChanges ? 'md' : 'none'}
             >
               Apply
             </Button>
@@ -167,29 +173,74 @@ export const DesignControlPanel = memo(({
       </Box>
 
       {/* Tabs Content */}
-      <Box flex="1" overflowY="auto">
+      <Box flex="1" overflowY="auto" bg="white">
         <Tabs.Root defaultValue="typography" variant="enclosed">
-          <Tabs.List px={4} pt={3} borderBottom="1px solid" borderColor="gray.200">
-            <Tabs.Trigger value="typography">
+          <Tabs.List
+            px={3}
+            pt={3}
+            pb={0}
+            borderBottom="2px solid"
+            borderColor="gray.200"
+            gap={1}
+            bg="gray.50"
+          >
+            <Tabs.Trigger
+              value="typography"
+              px={4}
+              py={2}
+              fontSize="13px"
+              fontWeight="600"
+              borderRadius="6px 6px 0 0"
+              _selected={{
+                bg: 'white',
+                borderBottom: '2px solid white',
+                color: 'purple.700',
+              }}
+            >
               Typography & Spacing
             </Tabs.Trigger>
-            <Tabs.Trigger value="sections">
+            <Tabs.Trigger
+              value="sections"
+              px={4}
+              py={2}
+              fontSize="13px"
+              fontWeight="600"
+              borderRadius="6px 6px 0 0"
+              _selected={{
+                bg: 'white',
+                borderBottom: '2px solid white',
+                color: 'purple.700',
+              }}
+            >
               Section Layouts
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Box p={4}>
+          <Box p={5}>
             {/* Typography & Spacing Tab */}
             <Tabs.Content value="typography">
               <VStack align="stretch" gap={4}>
                 {/* AI Suggestion Button */}
                 <Button
                   w="full"
-                  variant="outline"
-                  colorScheme="purple"
                   onClick={onRequestSuggestion}
                   disabled={disabled || isSuggestionLoading}
                   loading={isSuggestionLoading}
+                  bg="linear-gradient(135deg, #864CBD 0%, #007ACC 100%)"
+                  color="white"
+                  fontWeight="700"
+                  fontSize="14px"
+                  py={6}
+                  borderRadius="lg"
+                  boxShadow="0 4px 12px rgba(134, 76, 189, 0.3)"
+                  _hover={{
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 6px 16px rgba(134, 76, 189, 0.4)',
+                  }}
+                  _active={{
+                    transform: 'translateY(0)',
+                  }}
+                  transition="all 0.2s"
                 >
                   💡 Ask AI for Suggestion
                 </Button>
@@ -203,20 +254,24 @@ export const DesignControlPanel = memo(({
                     />
                     <Button
                       size="md"
-                      colorScheme="purple"
-                      variant="solid"
                       onClick={handleApplySuggestion}
                       disabled={disabled}
-                      fontWeight="600"
-                      py={3}
-                      boxShadow="md"
+                      w="full"
+                      bg="linear-gradient(135deg, #38A169 0%, #2F855A 100%)"
                       color="white"
-                      bg="purple.600"
+                      fontWeight="700"
+                      fontSize="15px"
+                      py={6}
+                      borderRadius="lg"
+                      boxShadow="0 4px 12px rgba(56, 161, 105, 0.3)"
                       _hover={{
-                        bg: 'purple.700',
-                        boxShadow: 'lg',
                         transform: 'translateY(-1px)',
+                        boxShadow: '0 6px 16px rgba(56, 161, 105, 0.4)',
                       }}
+                      _active={{
+                        transform: 'translateY(0)',
+                      }}
+                      transition="all 0.2s"
                     >
                       ✨ Apply Suggested Layout
                     </Button>

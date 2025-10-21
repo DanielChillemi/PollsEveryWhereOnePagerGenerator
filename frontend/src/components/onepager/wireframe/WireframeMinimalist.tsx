@@ -53,15 +53,21 @@ export const WireframeMinimalist: React.FC<WireframeMinimalistProps> = ({ onepag
         )}
 
         {/* Render content based on type */}
-        {section.type === 'hero' && typeof section.content === 'object' && 'headline' in section.content && (
+        {section.type === 'hero' && (
           <div className="wireframe-hero-content">
-            <h1 className="wireframe-headline">{section.content.headline}</h1>
-            {section.content.subheadline && (
-              <p className="wireframe-subheadline">{section.content.subheadline}</p>
-            )}
-            {section.content.description && (
-              <p className="wireframe-description">{section.content.description}</p>
-            )}
+            {typeof section.content === 'object' && 'headline' in section.content ? (
+              <>
+                <h1 className="wireframe-headline">{section.content.headline}</h1>
+                {section.content.subheadline && (
+                  <p className="wireframe-subheadline">{section.content.subheadline}</p>
+                )}
+                {section.content.description && (
+                  <p className="wireframe-description">{section.content.description}</p>
+                )}
+              </>
+            ) : typeof section.content === 'string' ? (
+              <p className="wireframe-text">{section.content}</p>
+            ) : null}
           </div>
         )}
 
