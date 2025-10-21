@@ -18,7 +18,7 @@ export function OnePagerDetailPage() {
   return (
     <Box minH="100vh" bg="#F9FAFB">
       <Box bg="white" borderBottom="1px solid #e2e8f0" position="sticky" top={0} zIndex={10}>
-        <Container maxW="1400px" px={{ base: 4, md: 8 }}>
+        <Container maxW="container.2xl" px={{ base: 4, md: 8 }}>
           <HStack justify="space-between" py={3}>
             <Button variant="ghost" size="sm" onClick={() => navigate('/onepagers')}>
               ← Back to One-Pagers
@@ -30,7 +30,7 @@ export function OnePagerDetailPage() {
         </Container>
       </Box>
 
-      <Container maxW="1400px" px={{ base: 4, md: 8 }} py={6}>
+      <Container maxW="container.2xl" px={{ base: 4, md: 8 }} py={6}>
         <OnePagerEditor onePagerId={id} mode="standalone" />
       </Container>
 

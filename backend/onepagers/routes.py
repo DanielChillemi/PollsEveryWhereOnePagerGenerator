@@ -259,6 +259,7 @@ async def create_onepager(
             "product_id": onepager_data.product_id
         },
         "version_history": [],
+        "pdf_template": "minimalist",  # Default PDF template
         "created_at": now,
         "updated_at": now,
         "last_accessed": now
@@ -391,11 +392,12 @@ async def get_onepager(
 async def update_onepager(
     onepager_id: str,
     brand_kit_id: Optional[str] = None,
+    pdf_template: Optional[str] = None,
     current_user: UserInDB = Depends(get_current_active_user),
     db: AsyncIOMotorDatabase = Depends(get_db)
 ):
     """
-    Update one-pager metadata (like brand_kit_id).
+    Update one-pager metadata (like brand_kit_id, pdf_template).
 
     Simple endpoint for updating basic metadata without triggering AI.
     """
@@ -450,6 +452,16 @@ async def update_onepager(
                 )
 
             update_doc["brand_kit_id"] = ObjectId(brand_kit_id)
+
+    if pdf_template is not None:
+        # Validate pdf_template value
+        valid_templates = ["minimalist", "bold", "business", "product"]
+        if pdf_template not in valid_templates:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid pdf_template. Must be one of: {', '.join(valid_templates)}"
+            )
+        update_doc["pdf_template"] = pdf_template
 
     # Update in database
     await db.onepagers.update_one(
@@ -963,6 +975,10 @@ async def restore_onepager_version(
         "updated_at": now
     }
 
+    # Restore layout_params if present in snapshot
+    if "layout_params" in version_snapshot:
+        update_doc["layout_params"] = version_snapshot["layout_params"]
+
     # Update in database
     await db.onepagers.update_one(
         {"_id": ObjectId(onepager_id)},
@@ -977,6 +993,7 @@ async def restore_onepager_version(
         "version": len(version_history) + 1,
         "content": version_snapshot["content"],
         "layout": version_snapshot["layout"],
+        "layout_params": version_snapshot.get("layout_params"),  # Include layout params in snapshot
         "created_at": now,
         "change_description": f"Restored to version {version}"
     }
@@ -1243,11 +1260,15 @@ async def export_onepager_pdf(
         # Extract layout_params from database (if exists)
         layout_params = onepager_doc.get("layout_params", {})
 
+        # Use pdf_template from database, fall back to query parameter
+        # Priority: database field > query parameter > default (minimalist)
+        selected_template = onepager_doc.get("pdf_template") or template or "minimalist"
+
         # Generate HTML with Brand Kit styling, layout params, and selected template
-        logger.info(f"Generating HTML from onepager layout with template: {template}")
+        logger.info(f"Generating HTML from onepager layout with template: {selected_template}")
         logger.info(f"Layout params: {layout_params}")
         html_generator = PDFHTMLGenerator()
-        html = html_generator.generate_html(onepager, brand_kit, template_name=template, layout_params=layout_params)
+        html = html_generator.generate_html(onepager, brand_kit, template_name=selected_template, layout_params=layout_params)
 
         # Generate PDF
         logger.info(f"Generating PDF with format: {format}")

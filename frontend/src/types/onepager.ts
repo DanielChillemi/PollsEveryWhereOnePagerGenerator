@@ -42,6 +42,12 @@ export type SectionType =
 export type OnePagerStatus = 'wireframe' | 'draft' | 'published' | 'archived';
 
 /**
+ * PDF template options for export
+ * Maps to backend PDFTemplate enum
+ */
+export type PDFTemplate = 'minimalist' | 'bold' | 'business' | 'product';
+
+/**
  * Content section within a OnePager
  * Represents a single block of content (e.g., heading, text, list)
  */
@@ -112,17 +118,15 @@ export interface GenerationMetadata {
 /**
  * Version history snapshot
  * Captures state at a specific point in time
+ * Includes layout_params to restore complete design state
  */
 export interface VersionSnapshot {
   version: number;
-  snapshot: {
-    content: OnePagerContent;
-    layout: LayoutBlock[];
-    style_overrides: Record<string, any>;
-    status: string;
-  };
+  content: OnePagerContent;
+  layout: LayoutBlock[];
+  layout_params?: LayoutParams | null;  // Added for complete state restoration
   created_at: string;
-  description?: string;
+  change_description?: string;  // Changed from 'description' to match backend
 }
 
 /**
@@ -204,6 +208,7 @@ export interface OnePager {
   version_history: VersionSnapshot[];
   layout_params?: LayoutParams | null;
   design_rationale?: string | null;
+  pdf_template: PDFTemplate;  // PDF template for export
   created_at: string;
   updated_at: string;
   last_accessed: string;
@@ -286,6 +291,7 @@ export interface OnePagerUpdateData {
   status?: OnePagerStatus;
   style_overrides?: Record<string, any>;
   brand_kit_id?: string;
+  pdf_template?: PDFTemplate;
 }
 
 /**

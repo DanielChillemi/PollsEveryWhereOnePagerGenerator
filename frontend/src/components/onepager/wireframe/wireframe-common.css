@@ -1,0 +1,462 @@
+/**
+ * Wireframe Common Styles
+ * =======================
+ * Shared styling for all template-specific wireframe components.
+ *
+ * Features:
+ * - Paper texture background with sketch aesthetic
+ * - Dashed borders and hand-drawn shadows
+ * - Section type labels with monospace font
+ * - Grayscale color palette
+ * - Grid visualization overlays
+ * - Dynamic spacing via CSS variables
+ *
+ * CSS Variables (set by parent):
+ * --layout-h1-scale
+ * --layout-h2-scale
+ * --layout-body-scale
+ * --layout-line-height-scale
+ * --layout-padding-scale
+ * --layout-section-gap
+ */
+
+/* =====================
+   Container Styles
+   ===================== */
+
+.wireframe-container {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  background: #FFFFFF;
+  padding: calc(30px * var(--layout-padding-scale, 1.0));
+  /* Apply grayscale filter for sketch-like appearance */
+  filter: grayscale(100%) sepia(5%);
+  transition: filter 0.4s ease-in-out;
+}
+
+/* Paper texture background */
+.wireframe-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.01) 0px,
+    transparent 1px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.01) 3px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.01) 0px,
+    transparent 1px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.01) 3px
+  );
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+/* Ensure content is above texture */
+.wireframe-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =====================
+   Template Header
+   ===================== */
+
+.wireframe-template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: calc(20px * var(--layout-padding-scale, 1.0));
+  background: #f5f5f5;
+  border: 2px dashed #999999;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.wireframe-template-name {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.wireframe-template-description {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #666666;
+}
+
+/* =====================
+   Section Containers
+   ===================== */
+
+.wireframe-section {
+  position: relative;
+  background: #fafafa;
+  border: 2px dashed #999999;
+  border-radius: 4px;
+  padding: calc(20px * var(--layout-padding-scale, 1.0));
+  margin-bottom: var(--layout-section-gap, 20px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.wireframe-section:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.15);
+}
+
+/* Section type label */
+.wireframe-section-label {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #FFFFFF;
+  padding: 4px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid #999999;
+  border-radius: 2px;
+}
+
+/* =====================
+   Hero Section
+   ===================== */
+
+.wireframe-hero-section {
+  margin-bottom: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+.wireframe-hero-content {
+  text-align: center;
+  padding: calc(30px * var(--layout-padding-scale, 1.0)) 0;
+}
+
+.wireframe-headline {
+  font-size: calc(36px * var(--layout-h1-scale, 1.0));
+  font-weight: bold;
+  color: #1A202C;
+  margin: 0 0 calc(12px * var(--layout-padding-scale, 1.0)) 0;
+  line-height: calc(1.2 * var(--layout-line-height-scale, 1.0));
+}
+
+.wireframe-subheadline {
+  font-size: calc(20px * var(--layout-h2-scale, 1.0));
+  color: #4A5568;
+  margin: 0 0 calc(16px * var(--layout-padding-scale, 1.0)) 0;
+  line-height: calc(1.4 * var(--layout-line-height-scale, 1.0));
+}
+
+.wireframe-description {
+  font-size: calc(14px * var(--layout-body-scale, 1.0));
+  color: #718096;
+  margin: 0;
+  line-height: calc(1.6 * var(--layout-line-height-scale, 1.0));
+}
+
+/* =====================
+   Section Title
+   ===================== */
+
+.wireframe-section-title {
+  font-size: calc(24px * var(--layout-h2-scale, 1.0));
+  font-weight: bold;
+  color: #2D3748;
+  margin: 0 0 calc(16px * var(--layout-padding-scale, 1.0)) 0;
+  line-height: calc(1.3 * var(--layout-line-height-scale, 1.0));
+}
+
+/* =====================
+   Text Content
+   ===================== */
+
+.wireframe-text {
+  font-size: calc(14px * var(--layout-body-scale, 1.0));
+  color: #4A5568;
+  line-height: calc(1.6 * var(--layout-line-height-scale, 1.0));
+  margin: 0;
+}
+
+/* =====================
+   List Content
+   ===================== */
+
+.wireframe-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wireframe-list-item {
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: calc(12px * var(--layout-padding-scale, 1.0));
+  font-size: calc(14px * var(--layout-body-scale, 1.0));
+  color: #4A5568;
+  line-height: calc(1.6 * var(--layout-line-height-scale, 1.0));
+}
+
+.wireframe-list-item::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #48BB78;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.wireframe-list-item:last-child {
+  margin-bottom: 0;
+}
+
+/* =====================
+   CTA Content
+   ===================== */
+
+.wireframe-cta-section {
+  margin-top: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+.wireframe-cta-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(12px * var(--layout-padding-scale, 1.0));
+}
+
+.wireframe-cta-button {
+  background: #4299E1;
+  color: #FFFFFF;
+  border: 2px dashed #2B6CB0;
+  border-radius: 4px;
+  padding: calc(12px * var(--layout-padding-scale, 1.0)) calc(24px * var(--layout-padding-scale, 1.0));
+  font-size: calc(16px * var(--layout-body-scale, 1.0));
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.wireframe-cta-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.25);
+}
+
+.wireframe-cta-url {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #A0AEC0;
+  text-decoration: underline;
+}
+
+/* =====================
+   Grid Layouts
+   ===================== */
+
+/* Two-column grid (Minimalist template) */
+.wireframe-two-column-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(30px * var(--layout-padding-scale, 1.0));
+  margin-bottom: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+/* Three-column grid (Product template) */
+.wireframe-three-column-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: calc(24px * var(--layout-padding-scale, 1.0));
+  margin-bottom: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+/* Asymmetric three-column grid (Bold template) */
+.wireframe-asymmetric-grid {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr 2fr;
+  gap: calc(20px * var(--layout-padding-scale, 1.0));
+  margin-bottom: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+/* Business template metrics bar */
+.wireframe-metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: calc(16px * var(--layout-padding-scale, 1.0));
+  margin-bottom: calc(30px * var(--layout-padding-scale, 1.0));
+}
+
+.wireframe-metric-card {
+  background: #EDF2F7;
+  border: 2px dashed #CBD5E0;
+  border-radius: 4px;
+  padding: calc(16px * var(--layout-padding-scale, 1.0));
+  text-align: center;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.wireframe-metric-value {
+  font-size: calc(28px * var(--layout-h1-scale, 1.0));
+  font-weight: bold;
+  color: #2D3748;
+  margin-bottom: calc(4px * var(--layout-padding-scale, 1.0));
+}
+
+.wireframe-metric-label {
+  font-size: calc(11px * var(--layout-body-scale, 1.0));
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =====================
+   Column Labels
+   ===================== */
+
+.wireframe-column {
+  position: relative;
+}
+
+.wireframe-column-label {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  color: #A0AEC0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: #FFFFFF;
+  padding: 2px 8px;
+  border: 1px solid #E2E8F0;
+  border-radius: 2px;
+}
+
+/* =====================
+   Placeholder Content
+   ===================== */
+
+.wireframe-placeholder {
+  background: #F7FAFC;
+  border: 2px dashed #E2E8F0;
+  border-radius: 4px;
+  padding: calc(40px * var(--layout-padding-scale, 1.0));
+  text-align: center;
+  color: #A0AEC0;
+  font-size: calc(12px * var(--layout-body-scale, 1.0));
+  font-style: italic;
+}
+
+/* =====================
+   Grid Visualization Overlay
+   ===================== */
+
+.wireframe-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wireframe-grid-line {
+  position: absolute;
+  background: rgba(153, 153, 153, 0.15);
+}
+
+.wireframe-vertical-line {
+  width: 1px;
+  height: 100%;
+  top: 0;
+}
+
+.wireframe-horizontal-line {
+  height: 1px;
+  width: 100%;
+  left: 0;
+}
+
+/* =====================
+   Responsive Adjustments
+   ===================== */
+
+@media (max-width: 768px) {
+  .wireframe-two-column-grid,
+  .wireframe-three-column-grid,
+  .wireframe-asymmetric-grid {
+    grid-template-columns: 1fr;
+    gap: calc(20px * var(--layout-padding-scale, 1.0));
+  }
+
+  .wireframe-metrics-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wireframe-column-label {
+    display: none;
+  }
+}
+
+/* =====================
+   Template-Specific Overrides
+   ===================== */
+
+/* Minimalist template: Clean and minimal */
+.wireframe-minimalist {
+  --wireframe-border-color: #999999;
+}
+
+/* Bold template: Strong visual hierarchy */
+.wireframe-bold {
+  --wireframe-border-color: #666666;
+}
+
+.wireframe-bold .wireframe-section {
+  border-width: 3px;
+  transform: rotate(-0.5deg);
+}
+
+.wireframe-bold .wireframe-section:nth-child(even) {
+  transform: rotate(0.5deg);
+}
+
+/* Business template: Data-focused */
+.wireframe-business {
+  --wireframe-border-color: #CBD5E0;
+}
+
+.wireframe-business .wireframe-section {
+  border-style: solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Product template: Visual showcase */
+.wireframe-product {
+  --wireframe-border-color: #A0AEC0;
+}
+
+.wireframe-product .wireframe-section {
+  border-width: 1px;
+  border-style: solid;
+}

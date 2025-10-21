@@ -26,6 +26,8 @@ import {
   Badge,
   ButtonGroup,
   Tabs,
+  NativeSelectRoot,
+  NativeSelectField,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,9 +36,15 @@ import { useBrandKits } from '../../hooks/useBrandKit';
 import { DraggableSectionList } from './DraggableSectionList';
 import { SaveStatusIndicator } from '../common/SaveStatusIndicator';
 import { DesignControlPanel } from './DesignControlPanel';
+import { LayoutParametersInfoPanel } from './LayoutParametersInfoPanel';
+import { WireframeMinimalist } from './wireframe/WireframeMinimalist';
+import { WireframeBold } from './wireframe/WireframeBold';
+import { WireframeBusiness } from './wireframe/WireframeBusiness';
+import { WireframeProduct } from './wireframe/WireframeProduct';
 import { toaster } from '../ui/toaster';
 import type { SaveStatus } from '../../hooks/useAutoSave';
-import type { LayoutParams, LayoutSuggestionResponse } from '../../types/onepager';
+import type { LayoutParams, LayoutSuggestionResponse, PDFTemplate } from '../../types/onepager';
+import { applyLayoutParamsAsStyles } from '../../utils/layoutParamsToCSS';
 import '../../styles/wireframe-mode.css';
 
 type ViewMode = 'wireframe' | 'styled';
@@ -321,6 +329,30 @@ export function OnePagerEditor({
     }
   };
 
+  const handleTemplateChange = async (template: PDFTemplate) => {
+    try {
+      await updateMutation.mutateAsync({
+        id: onePagerId,
+        data: { pdf_template: template },
+      });
+
+      toaster.create({
+        title: 'Template Updated!',
+        description: `Switched to ${template} template`,
+        type: 'success',
+        duration: 2000,
+      });
+    } catch (error: any) {
+      console.error('Failed to update template:', error);
+      toaster.create({
+        title: 'Template Update Failed',
+        description: error?.response?.data?.detail || 'Could not update template. Please try again.',
+        type: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <Box w="100%" minH={mode === 'wizard' ? 'calc(100vh - 200px)' : 'auto'}>
       {/* Compact Top Bar */}
@@ -361,6 +393,22 @@ export function OnePagerEditor({
         {/* Right: Controls */}
         <HStack gap={2}>
           <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+
+          {/* Template Selector - Only show in wireframe mode */}
+          {viewMode === 'wireframe' && (
+            <NativeSelectRoot size="xs" width="140px">
+              <NativeSelectField
+                value={onepager.pdf_template || 'minimalist'}
+                onChange={(e) => handleTemplateChange(e.target.value as PDFTemplate)}
+                fontSize="xs"
+              >
+                <option value="minimalist">Minimalist</option>
+                <option value="bold">Bold</option>
+                <option value="business">Business</option>
+                <option value="product">Product</option>
+              </NativeSelectField>
+            </NativeSelectRoot>
+          )}
 
           <ButtonGroup size="xs" attached variant="outline">
             <Button
@@ -498,60 +546,81 @@ export function OnePagerEditor({
           </Badge>
         </Box>
 
-        {/* Canvas Content with Mode Class */}
-        <Box className={viewMode === 'wireframe' ? 'wireframe-mode' : 'styled-mode'}>
-          {/* Compact Headline Section */}
-          <Box
-            className="section-container"
-            bg="white"
-            p={4}
-            borderRadius="8px"
-            boxShadow="sm"
-            border="1px solid #e2e8f0"
-            mb={3}
-            position="relative"
-          >
-            <Text className="section-type-label" fontSize="xs">HEADLINE</Text>
-            <VStack align="start" gap={2}>
-              <Heading
-                fontSize={{ base: '18px', md: '20px' }}
-                fontWeight={700}
-                color="#2d3748"
-                lineHeight="1.3"
-              >
-                {onepager.content.headline}
-              </Heading>
-              {onepager.content.subheadline && (
-                <Text
-                  fontSize={{ base: '13px', md: '14px' }}
-                  color="#4a5568"
-                  lineHeight="1.4"
-                >
-                  {onepager.content.subheadline}
-                </Text>
-              )}
-            </VStack>
-          </Box>
-
-          {/* Compact Sections Header */}
-          <Box>
-            <HStack justify="space-between" mb={2}>
-              <Text fontSize="sm" fontWeight={600} color="#2d3748">
-                Content Sections
-              </Text>
-              <Text fontSize="xs" color="gray.500">
-                Drag to reorder • Hover to edit
-              </Text>
-            </HStack>
-            <DraggableSectionList
-              key={`sections-${onepager.id}-${onepager.updated_at}`}
-              sections={onepager.content.sections}
-              onReorder={handleSectionReorder}
-              onEdit={handleSectionEdit}
-              onDelete={handleSectionDelete}
+        {/* Layout Parameters Info - Show in wireframe mode */}
+        {viewMode === 'wireframe' && onepager.layout_params && (
+          <Box textAlign="center">
+            <LayoutParametersInfoPanel
+              layoutParams={onepager.layout_params}
+              compact={true}
             />
           </Box>
-        </Box>
+        )}
+
+        {/* Canvas Content with Mode Class */}
+        {viewMode === 'wireframe' ? (
+          <Box style={applyLayoutParamsAsStyles(onepager.layout_params)}>
+            {/* Render template-specific wireframe component */}
+            {onepager.pdf_template === 'minimalist' && <WireframeMinimalist onepager={onepager} />}
+            {onepager.pdf_template === 'bold' && <WireframeBold onepager={onepager} />}
+            {onepager.pdf_template === 'business' && <WireframeBusiness onepager={onepager} />}
+            {onepager.pdf_template === 'product' && <WireframeProduct onepager={onepager} />}
+            {!onepager.pdf_template && <WireframeMinimalist onepager={onepager} />}
+          </Box>
+        ) : (
+          <Box className="styled-mode" style={applyLayoutParamsAsStyles(onepager.layout_params)}>
+            {/* Compact Headline Section */}
+            <Box
+              className="section-container"
+              bg="white"
+              p={4}
+              borderRadius="8px"
+              boxShadow="sm"
+              border="1px solid #e2e8f0"
+              mb={3}
+              position="relative"
+            >
+              <Text className="section-type-label" fontSize="xs">HEADLINE</Text>
+              <VStack align="start" gap={2}>
+                <Heading
+                  fontSize={{ base: '18px', md: '20px' }}
+                  fontWeight={700}
+                  color="#2d3748"
+                  lineHeight="1.3"
+                >
+                  {onepager.content.headline}
+                </Heading>
+                {onepager.content.subheadline && (
+                  <Text
+                    fontSize={{ base: '13px', md: '14px' }}
+                    color="#4a5568"
+                    lineHeight="1.4"
+                  >
+                    {onepager.content.subheadline}
+                  </Text>
+                )}
+              </VStack>
+            </Box>
+
+            {/* Compact Sections Header */}
+            <Box>
+              <HStack justify="space-between" mb={2}>
+                <Text fontSize="sm" fontWeight={600} color="#2d3748">
+                  Content Sections
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  Drag to reorder • Hover to edit
+                </Text>
+              </HStack>
+              <DraggableSectionList
+                key={`sections-${onepager.id}-${onepager.updated_at}`}
+                sections={onepager.content.sections}
+                onReorder={handleSectionReorder}
+                onEdit={handleSectionEdit}
+                onDelete={handleSectionDelete}
+              />
+            </Box>
+          </Box>
+        )}
       </VStack>
     </Box>
   );

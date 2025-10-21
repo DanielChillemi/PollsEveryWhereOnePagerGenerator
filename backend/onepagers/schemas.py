@@ -20,6 +20,14 @@ class OnePagerStatus(str, Enum):
     ARCHIVED = "archived"
 
 
+class PDFTemplate(str, Enum):
+    """PDF template options for export."""
+    MINIMALIST = "minimalist"
+    BOLD = "bold"
+    BUSINESS = "business"
+    PRODUCT = "product"
+
+
 class ContentSection(BaseModel):
     """Content section within a one-pager."""
     id: str = Field(description="Section identifier")
@@ -144,13 +152,15 @@ class OnePagerUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     status: Optional[OnePagerStatus] = None
     style_overrides: Optional[Dict[str, Any]] = None
+    pdf_template: Optional[PDFTemplate] = Field(None, description="PDF template for export")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "title": "Updated Title",
                 "status": "draft",
-                "style_overrides": {"primary_color": "#0ea5e9"}
+                "style_overrides": {"primary_color": "#0ea5e9"},
+                "pdf_template": "minimalist"
             }
         }
 
@@ -250,6 +260,7 @@ class OnePagerResponse(BaseModel):
     version_history: List[VersionSnapshot] = Field(default_factory=list, description="Version history")
     layout_params: Optional[LayoutParams] = Field(None, description="Layout parameters for design customization")
     design_rationale: Optional[str] = Field(None, description="AI's explanation for layout design choices")
+    pdf_template: str = Field(default="minimalist", description="PDF template for export (minimalist, bold, business, product)")
     created_at: datetime = Field(description="Creation timestamp")
     updated_at: datetime = Field(description="Last update timestamp")
     last_accessed: datetime = Field(description="Last access timestamp")

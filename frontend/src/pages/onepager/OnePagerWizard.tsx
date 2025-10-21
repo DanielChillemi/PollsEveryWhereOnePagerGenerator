@@ -235,12 +235,12 @@ export function OnePagerWizard() {
       <Sidebar />
 
       {/* Main Content Area - CENTER */}
-      <Box 
-        flex={1} 
+      <Box
+        flex={1}
         minH="100vh"
         mr={{ base: 0, xl: "320px" }}
       >
-        <Container maxW="900px" px={{ base: 4, md: 8 }} py={8}>
+        <Container maxW="1400px" px={{ base: 4, md: 8 }} py={8}>
           {/* Step Content */}
           <Box
             bg="white"

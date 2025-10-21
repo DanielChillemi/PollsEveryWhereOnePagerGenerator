@@ -188,6 +188,7 @@ def onepager_helper(onepager_doc: Dict[str, Any]) -> Dict[str, Any]:
         "version_history": onepager_doc.get("version_history", []),
         "layout_params": onepager_doc.get("layout_params"),
         "design_rationale": onepager_doc.get("design_rationale"),
+        "pdf_template": onepager_doc.get("pdf_template", "minimalist"),  # Default to minimalist if not set
         "created_at": onepager_doc["created_at"],
         "updated_at": onepager_doc["updated_at"],
         "last_accessed": onepager_doc.get("last_accessed", onepager_doc["updated_at"])

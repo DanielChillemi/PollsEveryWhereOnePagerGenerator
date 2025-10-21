@@ -40,13 +40,15 @@
   z-index: 2;
 }
 
-/* Wireframe section styling - hand-drawn aesthetic */
+/* Wireframe section styling - hand-drawn aesthetic with dynamic spacing */
 .wireframe-mode .section-container {
   background: #fafafa !important;
   border: 2px dashed #999999 !important;
   border-radius: 2px !important;
-  padding: 20px !important;
-  margin-bottom: 20px !important;
+  /* Dynamic padding based on layout_params */
+  padding: calc(20px * var(--layout-padding-scale, 1.0)) !important;
+  /* Dynamic margin based on section_gap */
+  margin-bottom: var(--layout-section-gap, 20px) !important;
   box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.3s ease;
 }
@@ -72,7 +74,7 @@
   display: inline-block;
 }
 
-/* Wireframe text styling - monospace for code-like feel */
+/* Wireframe text styling - monospace for code-like feel with dynamic sizing */
 .wireframe-mode h1,
 .wireframe-mode h2,
 .wireframe-mode h3,
@@ -82,15 +84,20 @@
   color: #1a1a1a !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
   font-weight: 700 !important;
-  line-height: 1.3 !important;
+  /* Dynamic line height based on layout_params */
+  line-height: calc(1.3 * var(--layout-line-height-scale, 1.0)) !important;
 }
 
 .wireframe-mode h1 {
+  /* Dynamic H1 sizing */
+  font-size: calc(32px * var(--layout-h1-scale, 1.0)) !important;
   border-bottom: 3px solid #cccccc;
   padding-bottom: 8px;
 }
 
 .wireframe-mode h2 {
+  /* Dynamic H2 sizing */
+  font-size: calc(24px * var(--layout-h2-scale, 1.0)) !important;
   border-bottom: 2px solid #dddddd;
   padding-bottom: 6px;
 }
@@ -101,7 +108,10 @@
 .wireframe-mode li {
   color: #444444 !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
-  line-height: 1.6 !important;
+  /* Dynamic body font size */
+  font-size: calc(14px * var(--layout-body-scale, 1.0)) !important;
+  /* Dynamic line height */
+  line-height: calc(1.6 * var(--layout-line-height-scale, 1.0)) !important;
 }
 
 /* Wireframe buttons - sketch-like */

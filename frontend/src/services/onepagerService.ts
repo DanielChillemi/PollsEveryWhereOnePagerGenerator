@@ -100,6 +100,9 @@ export const onepagerService = {
     if (data.brand_kit_id !== undefined) {
       params.append('brand_kit_id', data.brand_kit_id || '');
     }
+    if (data.pdf_template !== undefined) {
+      params.append('pdf_template', data.pdf_template);
+    }
 
     const response = await axios.patch(
       `${API_BASE_URL}/api/v1/onepagers/${id}?${params}`,

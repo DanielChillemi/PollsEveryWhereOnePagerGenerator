@@ -51,21 +51,21 @@ export const LayoutParamsEditor = memo(({
   const formatScale = (value: number) => `${value.toFixed(1)}x`;
 
   return (
-    <VStack align="stretch" gap={6}>
+    <VStack align="stretch" gap={3}>
       {/* Typography Controls */}
       <Box>
-        <Text fontSize="16px" fontWeight="600" color="#2d3748" mb={4}>
+        <Text fontSize="15px" fontWeight="600" color="#2d3748" mb={2}>
           Typography Scaling
         </Text>
 
-        <VStack align="stretch" gap={4}>
+        <VStack align="stretch" gap={3}>
           {/* H1 Scale */}
           <Field.Root>
-            <HStack justify="space-between" mb={2}>
-              <Field.Label fontSize="14px" color="gray.700">
+            <HStack justify="space-between" mb={1}>
+              <Field.Label fontSize="13px" color="gray.700">
                 Heading 1 Size
               </Field.Label>
-              <Text fontSize="13px" color="gray.600" fontWeight="500">
+              <Text fontSize="12px" color="gray.600" fontWeight="500">
                 {formatScale(typography.h1_scale)}
               </Text>
             </HStack>
@@ -81,19 +81,19 @@ export const LayoutParamsEditor = memo(({
               }
               cursor="pointer"
             />
-            <HStack justify="space-between" mt={1}>
-              <Text fontSize="11px" color="gray.500">0.8x (Smaller)</Text>
-              <Text fontSize="11px" color="gray.500">1.5x (Larger)</Text>
+            <HStack justify="space-between" mt={0.5}>
+              <Text fontSize="10px" color="gray.500">0.8x (Smaller)</Text>
+              <Text fontSize="10px" color="gray.500">1.5x (Larger)</Text>
             </HStack>
           </Field.Root>
 
           {/* H2 Scale */}
           <Field.Root>
-            <HStack justify="space-between" mb={2}>
-              <Field.Label fontSize="14px" color="gray.700">
+            <HStack justify="space-between" mb={1}>
+              <Field.Label fontSize="13px" color="gray.700">
                 Heading 2 Size
               </Field.Label>
-              <Text fontSize="13px" color="gray.600" fontWeight="500">
+              <Text fontSize="12px" color="gray.600" fontWeight="500">
                 {formatScale(typography.h2_scale)}
               </Text>
             </HStack>
@@ -109,19 +109,19 @@ export const LayoutParamsEditor = memo(({
               }
               cursor="pointer"
             />
-            <HStack justify="space-between" mt={1}>
-              <Text fontSize="11px" color="gray.500">0.8x</Text>
-              <Text fontSize="11px" color="gray.500">1.5x</Text>
+            <HStack justify="space-between" mt={0.5}>
+              <Text fontSize="10px" color="gray.500">0.8x</Text>
+              <Text fontSize="10px" color="gray.500">1.5x</Text>
             </HStack>
           </Field.Root>
 
           {/* Body Scale */}
           <Field.Root>
-            <HStack justify="space-between" mb={2}>
-              <Field.Label fontSize="14px" color="gray.700">
+            <HStack justify="space-between" mb={1}>
+              <Field.Label fontSize="13px" color="gray.700">
                 Body Text Size
               </Field.Label>
-              <Text fontSize="13px" color="gray.600" fontWeight="500">
+              <Text fontSize="12px" color="gray.600" fontWeight="500">
                 {formatScale(typography.body_scale)}
               </Text>
             </HStack>
@@ -137,19 +137,19 @@ export const LayoutParamsEditor = memo(({
               }
               cursor="pointer"
             />
-            <HStack justify="space-between" mt={1}>
-              <Text fontSize="11px" color="gray.500">0.8x</Text>
-              <Text fontSize="11px" color="gray.500">1.3x</Text>
+            <HStack justify="space-between" mt={0.5}>
+              <Text fontSize="10px" color="gray.500">0.8x</Text>
+              <Text fontSize="10px" color="gray.500">1.3x</Text>
             </HStack>
           </Field.Root>
 
           {/* Line Height Scale */}
           <Field.Root>
-            <HStack justify="space-between" mb={2}>
-              <Field.Label fontSize="14px" color="gray.700">
+            <HStack justify="space-between" mb={1}>
+              <Field.Label fontSize="13px" color="gray.700">
                 Line Height
               </Field.Label>
-              <Text fontSize="13px" color="gray.600" fontWeight="500">
+              <Text fontSize="12px" color="gray.600" fontWeight="500">
                 {formatScale(typography.line_height_scale)}
               </Text>
             </HStack>
@@ -165,24 +165,24 @@ export const LayoutParamsEditor = memo(({
               }
               cursor="pointer"
             />
-            <HStack justify="space-between" mt={1}>
-              <Text fontSize="11px" color="gray.500">0.8x (Compact)</Text>
-              <Text fontSize="11px" color="gray.500">1.4x (Loose)</Text>
+            <HStack justify="space-between" mt={0.5}>
+              <Text fontSize="10px" color="gray.500">0.8x (Compact)</Text>
+              <Text fontSize="10px" color="gray.500">1.4x (Loose)</Text>
             </HStack>
           </Field.Root>
         </VStack>
       </Box>
 
       {/* Spacing Controls */}
-      <Box pt={4} borderTop="1px solid" borderColor="gray.200">
-        <Text fontSize="16px" fontWeight="600" color="#2d3748" mb={4}>
+      <Box pt={2} borderTop="1px solid" borderColor="gray.200">
+        <Text fontSize="15px" fontWeight="600" color="#2d3748" mb={2}>
           Spacing & Layout
         </Text>
 
-        <VStack align="stretch" gap={4}>
+        <VStack align="stretch" gap={3}>
           {/* Section Gap - Dropdown with enhanced visibility */}
           <Box
-            p={3}
+            p={2}
             bg="gray.50"
             borderRadius="md"
             borderWidth="1px"
@@ -194,7 +194,7 @@ export const LayoutParamsEditor = memo(({
             }}
           >
             <Field.Root>
-              <Field.Label fontSize="14px" color="gray.700" mb={2} fontWeight="500">
+              <Field.Label fontSize="13px" color="gray.700" mb={1.5} fontWeight="500">
                 Section Gap
               </Field.Label>
               <select
@@ -241,7 +241,7 @@ export const LayoutParamsEditor = memo(({
                 <option value="normal">Normal (4rem)</option>
                 <option value="loose">Loose (6rem)</option>
               </select>
-              <Text fontSize="11px" color="gray.600" mt={2} fontStyle="italic">
+              <Text fontSize="10px" color="gray.600" mt={1} fontStyle="italic">
                 ↑ Click to select vertical spacing between sections
               </Text>
             </Field.Root>
@@ -249,18 +249,18 @@ export const LayoutParamsEditor = memo(({
 
           {/* Padding Scale - Slider with enhanced visibility */}
           <Box
-            p={3}
+            p={2}
             bg="gray.50"
             borderRadius="md"
             borderWidth="1px"
             borderColor="gray.200"
           >
             <Field.Root>
-              <HStack justify="space-between" mb={3}>
-                <Field.Label fontSize="14px" color="gray.700" fontWeight="500">
+              <HStack justify="space-between" mb={2}>
+                <Field.Label fontSize="13px" color="gray.700" fontWeight="500">
                   Padding Scale
                 </Field.Label>
-                <Text fontSize="14px" color="blue.600" fontWeight="600" px={2} py={0.5} bg="blue.50" borderRadius="md">
+                <Text fontSize="13px" color="blue.600" fontWeight="600" px={2} py={0.5} bg="blue.50" borderRadius="md">
                   {formatScale(spacing.padding_scale)}
                 </Text>
               </HStack>
@@ -285,9 +285,9 @@ export const LayoutParamsEditor = memo(({
                   accentColor="blue.500"
                 />
               </Box>
-              <HStack justify="space-between" mt={2}>
-                <Text fontSize="11px" color="gray.500">0.5x (Compact)</Text>
-                <Text fontSize="11px" color="gray.500">2.0x (Spacious)</Text>
+              <HStack justify="space-between" mt={1}>
+                <Text fontSize="10px" color="gray.500">0.5x (Compact)</Text>
+                <Text fontSize="10px" color="gray.500">2.0x (Spacious)</Text>
               </HStack>
             </Field.Root>
           </Box>

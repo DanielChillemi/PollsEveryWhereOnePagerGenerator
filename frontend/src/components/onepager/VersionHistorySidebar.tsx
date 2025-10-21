@@ -18,16 +18,7 @@ import {
   IconButton,
 } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
-
-interface VersionSnapshot {
-  version: number;
-  created_at: string;
-  change_description?: string;
-  content: {
-    headline: string;
-    sections: any[];
-  };
-}
+import type { VersionSnapshot } from '../../types/onepager';
 
 interface Props {
   versions: VersionSnapshot[];
