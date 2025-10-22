@@ -557,11 +557,13 @@
                 </div>
             {% endif %}
 
-            {# Small Accent Block - Center Bottom #}
+            {# Small Accent Block - Center Bottom - Only show if we have stats #}
+            {% if key_stats and key_stats|length >= 3 %}
             <div class="accent-block-small">
-                <div class="big-text">100%</div>
-                <div class="small-text">Quality</div>
+                <div class="big-text">{{ key_stats[2].number }}</div>
+                <div class="small-text">{{ key_stats[2].label }}</div>
             </div>
+            {% endif %}
 
             {# Wide Info Block - Right Column (Second list or text) #}
             {% if list_sections|length > 1 %}

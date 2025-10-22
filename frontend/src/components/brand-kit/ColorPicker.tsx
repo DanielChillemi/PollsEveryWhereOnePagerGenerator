@@ -125,7 +125,18 @@ export function ColorPicker({ label, description, value, onChange, required = fa
         </Box>
         <Input
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            let newValue = e.target.value;
+            // Remove all spaces
+            newValue = newValue.replace(/\s/g, '');
+            // Ensure # prefix
+            if (newValue && !newValue.startsWith('#')) {
+              newValue = '#' + newValue;
+            }
+            // Remove duplicate # symbols
+            newValue = newValue.replace(/^#+/, '#');
+            onChange(newValue);
+          }}
           placeholder="#0094CC"
           size="lg"
           fontFamily="mono"

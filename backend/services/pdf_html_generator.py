@@ -101,33 +101,35 @@ def extract_key_stats(onepager: OnePagerLayout) -> List[Dict[str, str]]:
 
     # If no stats found, generate defaults from content analysis
     if len(stats) == 0:
-        # Count features - safely get title
-        feature_count = sum(1 for el in onepager.elements
-                          if ('feature' in str(getattr(el, 'title', '')).lower() or el.type == 'list'))
-        if feature_count > 0:
+        # Precisely count features from list elements
+        feature_items = []
+        for el in onepager.elements:
+            element_title = str(getattr(el, 'title', '')).lower()
+            if el.type == 'list' and 'feature' in element_title:
+                if hasattr(el, 'content') and isinstance(el.content, list):
+                    feature_items.extend(el.content)
+
+        if len(feature_items) > 0:
             stats.append({
-                'number': str(feature_count * 5) + '+',  # Estimate features
+                'number': str(len(feature_items)),  # Exact count
                 'label': 'Features',
                 'icon': '⚡'
             })
 
-        # Count benefits - safely get title
-        benefit_count = sum(1 for el in onepager.elements
-                          if 'benefit' in str(getattr(el, 'title', '')).lower())
-        if benefit_count > 0:
+        # Precisely count benefits from list elements
+        benefit_items = []
+        for el in onepager.elements:
+            element_title = str(getattr(el, 'title', '')).lower()
+            if el.type == 'list' and 'benefit' in element_title:
+                if hasattr(el, 'content') and isinstance(el.content, list):
+                    benefit_items.extend(el.content)
+
+        if len(benefit_items) > 0:
             stats.append({
-                'number': str(benefit_count * 3),
+                'number': str(len(benefit_items)),
                 'label': 'Benefits',
                 'icon': '🎯'
             })
-
-        # Default stats if still empty
-        if len(stats) == 0:
-            stats = [
-                {'number': '100%', 'label': 'Quality', 'icon': '⭐'},
-                {'number': '24/7', 'label': 'Support', 'icon': '💬'},
-                {'number': 'Fast', 'label': 'Delivery', 'icon': '🚀'}
-            ]
 
     logger.info(f"Extracted {len(stats)} key stats from onepager")
     return stats[:4]  # Max 4 stats

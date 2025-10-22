@@ -122,19 +122,27 @@ export const brandKitService = {
     console.log('Update data:', data);
     console.log('JSON:', JSON.stringify(data, null, 2));
 
-    const response = await axios.put(`${API_BASE_URL}/api/v1/brand-kits/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    // Backend returns updated brand kit with nested structure
-    const backendKit = response.data;
-    return {
-      ...backendKit,
-      id: backendKit._id || backendKit.id,
-    };
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/v1/brand-kits/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Backend returns updated brand kit with nested structure
+      const backendKit = response.data;
+      return {
+        ...backendKit,
+        id: backendKit._id || backendKit.id,
+      };
+    } catch (error: any) {
+      console.error('=== BRAND KIT UPDATE ERROR ===');
+      console.error('Status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Validation errors:', JSON.stringify(error.response?.data?.detail, null, 2));
+      throw error;
+    }
   },
 
   /**
