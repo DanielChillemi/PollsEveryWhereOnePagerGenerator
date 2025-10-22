@@ -68,10 +68,30 @@ export function BrandKitEditPage() {
     products: [],
   });
 
+  // Helper function to ensure color has # prefix and no spaces
+  const ensureHashPrefix = (color: string): string => {
+    if (!color) return '#000000';
+    // Remove all spaces
+    color = color.replace(/\s/g, '');
+    // Add # prefix if missing
+    return color.startsWith('#') ? color : `#${color}`;
+  };
+
   // Populate form data when brand kit loads
   useEffect(() => {
     if (brandKit) {
-      setFormData(brandKit);
+      // Ensure all colors have # prefix
+      const sanitizedData = {
+        ...brandKit,
+        color_palette: {
+          primary: ensureHashPrefix(brandKit.color_palette.primary),
+          secondary: ensureHashPrefix(brandKit.color_palette.secondary),
+          accent: ensureHashPrefix(brandKit.color_palette.accent),
+          text: ensureHashPrefix(brandKit.color_palette.text),
+          background: ensureHashPrefix(brandKit.color_palette.background),
+        }
+      };
+      setFormData(sanitizedData);
       // Expand all audiences by default
       const audienceIndices = brandKit.target_audiences?.map((_, index) => index) || [];
       setExpandedAudiences(new Set(audienceIndices));
@@ -119,9 +139,19 @@ export function BrandKitEditPage() {
         audience => audience.name.trim() && audience.description.trim()
       );
 
+      // Sanitize color values (remove spaces, ensure # prefix)
+      const sanitizedColorPalette = {
+        primary: ensureHashPrefix(formData.color_palette.primary),
+        secondary: ensureHashPrefix(formData.color_palette.secondary),
+        accent: ensureHashPrefix(formData.color_palette.accent),
+        text: ensureHashPrefix(formData.color_palette.text),
+        background: ensureHashPrefix(formData.color_palette.background),
+      };
+
       // Create clean data object
       const dataToSend = {
         ...formData,
+        color_palette: sanitizedColorPalette,
         target_audiences: validAudiences,
       };
 
