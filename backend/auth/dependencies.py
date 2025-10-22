@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
 from typing import Optional
+from datetime import datetime, timezone
 
 from backend.auth.utils import decode_access_token
 from backend.database.mongodb import get_db
@@ -80,29 +81,39 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: UserInDB = Depends(get_current_user)
+    db: AsyncIOMotorDatabase = Depends(get_db)
 ) -> UserInDB:
     """
     Dependency to get current active user.
-    
-    Additional check to ensure user account is active.
-    Use this for routes that require active user status.
-    
-    Args:
-        current_user: Authenticated user from get_current_user
-        
+
+    AUTHENTICATION DISABLED FOR DEMO:
+    Returns a default demo user without requiring authentication.
+    This allows the application to run without login requirements.
+
     Returns:
-        UserInDB: Active authenticated user
-        
-    Raises:
-        HTTPException: 403 if user account is inactive
+        UserInDB: Demo user object
     """
-    if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user account"
-        )
-    return current_user
+    # Try to find or create a demo user
+    demo_email = "demo@example.com"
+    user_doc = await db.users.find_one({"email": demo_email})
+
+    # If demo user doesn't exist, create one
+    if user_doc is None:
+        from backend.auth.utils import hash_password
+        demo_user = {
+            "email": demo_email,
+            "full_name": "Demo User",
+            "hashed_password": hash_password("demo123"),
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
+        }
+        result = await db.users.insert_one(demo_user)
+        user_doc = await db.users.find_one({"_id": result.inserted_id})
+
+    # Convert to UserInDB model
+    user_doc["_id"] = str(user_doc["_id"])
+    return UserInDB(**user_doc)
 
 
 async def get_optional_current_user(
